@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Depthly design tokens ────────────────────────────────────────────────
+   Source of truth: brand identity v1.0.
+   Swap these values to re-theme; everything in Tailwind config points here.
+   Dark mode is the default surface. Light mode overrides via .light on <html>.
+   ────────────────────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    /* Brand — the one blue used for CTAs, active timer ring, links */
+    --color-brand:        #4B9EFF;
+    --color-brand-hover:  #6BAFFF;
+    --color-brand-subtle: rgba(75, 158, 255, 0.12);
+
+    /* Surfaces — near-monochromatic, depth via subtle steps */
+    --color-surface-base:    #0D0D10;
+    --color-surface-raised:  #141417;
+    --color-surface-overlay: #222228;
+
+    /* Borders */
+    --color-border:        #2E2E38;
+    --color-border-subtle: rgba(255, 255, 255, 0.04);
+
+    /* Text */
+    --color-text:       #E8E6F0;
+    --color-text-muted: #7A7890;
+    --color-text-faint: #3D3B4E;
+
+    /* Streak — the ONE loud accent. Reserved exclusively for streaks,
+       habit indicators, and earned/Pro states. Never decorative. */
+    --color-streak: #C8FF64;
+
+    /* Feedback */
+    --color-success: #3DD68C;
+    --color-warning: #F5A623;
+    --color-error:   #F25C5C;
+    --color-info:    #4B9EFF;
+
+    /* Fonts */
+    --font-sans:    'Inter', 'DM Sans', system-ui, sans-serif;
+    --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+  }
+
+  /* ── Light mode override ──────────────────────────────────────────────
+     Toggle by adding class="light" to <html>. Wire this to a theme store
+     once you build the settings page — Depthly defaults to dark. */
+  .light {
+    --color-brand:        #2563EB;
+    --color-brand-hover:  #1D4ED8;
+    --color-brand-subtle: rgba(37, 99, 235, 0.10);
+
+    --color-surface-base:    #F2F1F8;
+    --color-surface-raised:  #FFFFFF;
+    --color-surface-overlay: #ECEAF6;
+
+    --color-border:        #D6D3EC;
+    --color-border-subtle: rgba(24, 22, 31, 0.04);
+
+    --color-text:       #18161F;
+    --color-text-muted: #6B6880;
+    --color-text-faint: #B0AEBE;
+
+    --color-streak: #5A8A00;
+
+    --color-success: #059669;
+    --color-warning: #D97706;
+    --color-error:   #DC2626;
+    --color-info:    #2563EB;
+  }
+
+  /* ── Global resets ─────────────────────────────────────────────────────── */
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-surface-base text-text antialiased;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    min-height: 100dvh;
+  }
+
+  h1, h2, h3, h4, h5, h6, p { margin: 0; }
+
+  /* Headings carry Depthly's tight tracking — set explicitly per the
+     type system, not left to browser defaults */
+  h1 { letter-spacing: -0.04em; font-weight: 500; }
+  h2 { letter-spacing: -0.03em; font-weight: 500; }
+  h3 { letter-spacing: -0.01em; font-weight: 500; }
+
+  /* Data — timers, durations, session counts, streaks — always mono */
+  .font-data {
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
+  }
+
+  button, [role="button"] { cursor: pointer; }
+  button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  * { box-sizing: border-box; }
+}

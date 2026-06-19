@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(nohup npm run dev)",
+      "Bash(echo \"PID:$!\")",
+      "Read(//tmp/**)",
+      "Bash(curl -s http://localhost:5174/ -o /tmp/index.html)",
+      "Bash(curl -s http://localhost:5174/src/main.tsx)",
+      "Bash(curl -s http://localhost:5174/src/components/layout/Sidebar.tsx)",
+      "Bash(curl -s http://localhost:5174/src/App.tsx)",
+      "Bash(curl -s http://localhost:5174/src/routes/AppRoutes.tsx)",
+      "Bash(kill 141)",
+      "Bash(jobs -l)",
+      "Bash(pkill -f \"vite\")"
+    ]
+  }
+}
