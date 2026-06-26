@@ -1,0 +1,1 @@
+export { LogoIntro } from './LogoIntro'

@@ -1,0 +1,205 @@
+.logo-intro {
+  /* ── Animation timings — tweak here ───────────────────────────────────── */
+  --t-ring1: 200ms;
+  --t-ring1-dur: 700ms;
+  --t-ring2: 600ms;
+  --t-ring2-dur: 600ms;
+  --t-ring3: 950ms;
+  --t-ring3-dur: 500ms;
+  --t-dot: 1300ms;
+  --t-dot-dur: 400ms;
+  --t-dot-pulse: 1700ms;
+  --t-dot-pulse-dur: 400ms;
+  --t-word: 1550ms;
+  --t-word-dur: 500ms;
+  --t-tag: 2100ms;
+  --t-tag-dur: 700ms;
+  --t-exit: 3200ms;
+  --t-exit-dur: 500ms;
+
+  --ease-draw: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0D0D10;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity var(--t-exit-dur) var(--ease-draw);
+}
+
+.logo-intro--exit {
+  opacity: 0;
+}
+
+.logo-intro__ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(75, 158, 255, 0.04) 0%, rgba(75, 158, 255, 0) 70%);
+  transform: translate(-50%, -50%);
+  animation: logo-intro-ripple 1.2s ease-out forwards;
+}
+
+@keyframes logo-intro-ripple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    width: 120vw;
+    height: 120vw;
+    opacity: 0;
+  }
+}
+
+.logo-intro__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo-intro__lockup {
+  display: flex;
+  align-items: center;
+}
+
+.logo-intro__icon {
+  display: block;
+  overflow: visible;
+}
+
+.logo-intro__ring {
+  transform-origin: 24px 24px;
+  transform: rotate(-90deg);
+  fill: none;
+}
+
+.logo-intro__ring--outer {
+  stroke-dasharray: 138.23;
+  stroke-dashoffset: 138.23;
+  animation: logo-intro-draw var(--t-ring1-dur) var(--ease-draw) var(--t-ring1) forwards;
+}
+
+.logo-intro__ring--middle {
+  stroke-dasharray: 91.11;
+  stroke-dashoffset: 91.11;
+  animation: logo-intro-draw var(--t-ring2-dur) var(--ease-draw) var(--t-ring2) forwards;
+}
+
+.logo-intro__ring--inner {
+  stroke-dasharray: 47.12;
+  stroke-dashoffset: 47.12;
+  animation: logo-intro-draw var(--t-ring3-dur) var(--ease-draw) var(--t-ring3) forwards;
+}
+
+@keyframes logo-intro-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.logo-intro__dot {
+  transform-origin: 24px 24px;
+  transform: scale(0);
+  opacity: 0;
+  animation:
+    logo-intro-dot-in var(--t-dot-dur) var(--ease-spring) var(--t-dot) forwards,
+    logo-intro-dot-pulse var(--t-dot-pulse-dur) var(--ease-draw) var(--t-dot-pulse) forwards;
+}
+
+@keyframes logo-intro-dot-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes logo-intro-dot-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.logo-intro__wordmark {
+  margin-left: 14px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 28px;
+  letter-spacing: -0.05em;
+  color: #E8E6F0;
+  transform: translateX(-12px);
+  opacity: 0;
+  animation: logo-intro-wordmark var(--t-word-dur) var(--ease-draw) var(--t-word) forwards;
+}
+
+@keyframes logo-intro-wordmark {
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.logo-intro__tagline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 28px;
+  opacity: 0;
+  transform: scaleX(0.85) translateY(4px);
+  animation: logo-intro-tagline var(--t-tag-dur) var(--ease-draw) var(--t-tag) forwards;
+}
+
+.logo-intro__tagline-text {
+  margin: 0 14px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #7A7890;
+}
+
+.logo-intro__tagline-line {
+  display: inline-block;
+  width: 0;
+  height: 0.5px;
+  background: #2E2E38;
+  border-radius: 0;
+  animation: logo-intro-tagline-line var(--t-tag-dur) var(--ease-draw) var(--t-tag) forwards;
+}
+
+@keyframes logo-intro-tagline {
+  to {
+    opacity: 1;
+    transform: scaleX(1) translateY(0);
+  }
+}
+
+@keyframes logo-intro-tagline-line {
+  to {
+    width: 28px;
+  }
+}
