@@ -2,9 +2,15 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 interface UiState {
-  sidebarOpen: boolean
-  setSidebarOpen: (open: boolean) => void
-  toggleSidebar: () => void
+  sidebarOpen:      boolean
+  setSidebarOpen:   (open: boolean) => void
+  toggleSidebar:    () => void
+
+  isFullscreen:     boolean
+  toggleFullscreen: () => void
+
+  isSettingsOpen:   boolean
+  toggleSettings:   () => void
 }
 
 /**
@@ -18,9 +24,15 @@ interface UiState {
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
-      sidebarOpen:    true,
-      setSidebarOpen: (open) => set({ sidebarOpen: open }),
-      toggleSidebar:  () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+      sidebarOpen:      true,
+      setSidebarOpen:   (open) => set({ sidebarOpen: open }),
+      toggleSidebar:    () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+
+      isFullscreen:     false,
+      toggleFullscreen: () => set((s) => ({ isFullscreen: !s.isFullscreen })),
+
+      isSettingsOpen:   false,
+      toggleSettings:   () => set((s) => ({ isSettingsOpen: !s.isSettingsOpen })),
     }),
     { name: 'ui-preferences' } // localStorage key
   )

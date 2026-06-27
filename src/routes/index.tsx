@@ -3,13 +3,14 @@ import { createBrowserRouter } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { NotFoundPage } from '@/pages/NotFoundPage'
-import { HomePage } from '@/pages/HomePage'
+
 import { EmailConfirmedPage } from '@/pages/auth/EmailConfirmedPage'
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import { TimerPage } from '@/pages/TimerPage'
 
 import { ProtectedRoute } from './ProtectedRoute'
 
@@ -33,7 +34,7 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: '/',         element: <HomePage /> },
+          { path: '/',         element: <TimerPage /> },
           { path: '/settings', element: <SettingsPage /> },
           // Add your domain routes here:
           // { path: '/projects',     element: <ProjectsPage /> },
