@@ -29,7 +29,7 @@ export function TimerDisplay() {
         <span
           className="font-data"
           style={{
-            fontSize:      isFree ? 42 : 64,
+            fontSize:      isFree ? 48 : 72,
             fontWeight:    600,
             letterSpacing: '-0.02em',
             color:         'var(--color-text)',

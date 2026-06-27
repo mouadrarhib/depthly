@@ -1,8 +1,8 @@
 import { useTimerStore } from '@/store/timerStore'
-import { Button } from '@/components/ui'
+import { Button } from '@/components/ui/button'
 
 const primaryStyle: React.CSSProperties = {
-  width:        200,
+  width:        220,
   height:       52,
   borderRadius: 14,
   fontSize:     16,
@@ -26,8 +26,6 @@ export function TimerControls() {
   if (isIdle) {
     return (
       <Button
-        variant="primary"
-        size="lg"
         onClick={start}
         style={primaryStyle}
         className="hover:brightness-110 transition-all"
@@ -40,10 +38,10 @@ export function TimerControls() {
   if (isPaused) {
     return (
       <div className="flex items-center gap-3">
-        <Button variant="primary" size="lg" onClick={resume} style={actionStyle}>
+        <Button onClick={resume} style={actionStyle}>
           Resume
         </Button>
-        <Button variant="secondary" size="lg" onClick={stop} style={actionStyle}>
+        <Button variant="secondary" onClick={stop} style={actionStyle}>
           Stop
         </Button>
       </div>
@@ -52,14 +50,14 @@ export function TimerControls() {
 
   return (
     <div className="flex items-center gap-3">
-      <Button variant="ghost" size="lg" onClick={pause} style={actionStyle}>
+      <Button variant="ghost" onClick={pause} style={actionStyle}>
         Pause
       </Button>
-      <Button variant="secondary" size="lg" onClick={stop} style={actionStyle}>
+      <Button variant="secondary" onClick={stop} style={actionStyle}>
         Stop
       </Button>
       {sessionType === 'break' ? (
-        <Button variant="ghost" size="lg" onClick={skipBreak} style={actionStyle}>
+        <Button variant="ghost" onClick={skipBreak} style={actionStyle}>
           Skip Break
         </Button>
       ) : null}

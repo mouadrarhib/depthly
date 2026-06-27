@@ -11,8 +11,8 @@ interface ProgressRingProps {
 
 export function ProgressRing({
   progress,
-  size        = 320,
-  strokeWidth = 4,
+  size        = 340,
+  strokeWidth = 6,
   color       = 'var(--color-brand)',
   isRunning   = false,
   children,

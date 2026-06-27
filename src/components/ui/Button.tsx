@@ -1,60 +1,64 @@
-import { type ButtonHTMLAttributes, forwardRef } from 'react'
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from '@/lib/utils/cn'
+import { cn } from "@/lib/utils"
 
-const variants = {
-  primary:   'bg-brand text-white hover:bg-brand-hover shadow-sm',
-  secondary: 'bg-surface-overlay border border-border text-text hover:bg-surface-raised',
-  ghost:     'text-text-muted hover:text-text hover:bg-surface-overlay',
-  danger:    'bg-feedback-error/10 text-feedback-error hover:bg-feedback-error/20 border border-feedback-error/20',
-} as const
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  {
+    variants: {
+      variant: {
+        default:     "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:     "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:   "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost:       "hover:bg-accent hover:text-accent-foreground",
+        link:        "text-primary underline-offset-4 hover:underline",
+        // Depthly legacy aliases
+        primary:     "bg-primary text-primary-foreground hover:bg-primary/90",
+        danger:      "bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm:      "h-9 rounded-md px-3",
+        md:      "h-10 px-4 py-2",
+        lg:      "h-11 rounded-md px-8",
+        icon:    "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size:    "default",
+    },
+  }
+)
 
-const sizes = {
-  sm: 'h-8  px-3 text-sm  gap-1.5',
-  md: 'h-10 px-4 text-sm  gap-2',
-  lg: 'h-12 px-6 text-base gap-2',
-} as const
-
-type Variant = keyof typeof variants
-type Size    = keyof typeof sizes
-
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?:   Variant
-  size?:      Size
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?:   boolean
   isLoading?: boolean
 }
 
-/**
- * The foundational button. All other buttons in the app should use this.
- *
- * Usage:
- *   <Button>Save</Button>
- *   <Button variant="danger" size="sm">Delete</Button>
- *   <Button isLoading={mutation.isPending}>Submit</Button>
- */
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', isLoading, disabled, children, ...props }, ref) => {
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, isLoading, disabled, children, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
     return (
-      <button
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={disabled || isLoading}
-        className={cn(
-          'inline-flex items-center justify-center font-medium rounded transition-colors',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base',
-          'disabled:pointer-events-none disabled:opacity-50',
-          variants[variant],
-          sizes[size],
-          className
-        )}
         {...props}
       >
         {isLoading ? (
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
         ) : null}
         {children}
-      </button>
+      </Comp>
     )
   }
 )
+Button.displayName = "Button"
 
-Button.displayName = 'Button'
+export { Button, buttonVariants }
