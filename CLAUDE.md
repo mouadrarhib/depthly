@@ -42,7 +42,7 @@ Always use `@/` for imports from `src/`. Never use relative `../../` paths.
 
 ## Supabase client
 Import from `@/lib/supabase/client`. The client is typed — always use the typed version.
-The env variable is `VITE_SUPABASE_PUBLISHABLE_KEY` (not ANON_KEY — that name is deprecated).
+The env variable is `VITE_SUPABASE_ANON_KEY` — do not rename it.
 
 ---
 
