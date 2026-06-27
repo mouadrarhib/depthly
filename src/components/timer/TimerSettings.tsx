@@ -103,7 +103,7 @@ const SettingsPanelContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed right-0 bottom-0 z-30 w-[300px] outline-none',
+        'fixed right-0 bottom-0 z-30 w-full sm:w-[300px] outline-none',
         'flex flex-col overflow-y-auto',
         'transition ease-in-out',
         'data-[state=open]:duration-300 data-[state=closed]:duration-300',
@@ -183,7 +183,6 @@ export function TimerSettings() {
             Focus Settings
           </span>
           <DialogPrimitive.Close
-            onClick={closePanel}
             style={{
               fontSize: 16, color: 'var(--color-text-faint)', background: 'none',
               border: 'none', cursor: 'pointer', lineHeight: 1, padding: 4,

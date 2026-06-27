@@ -24,15 +24,17 @@ export function Sidebar() {
       className={cn(
         'fixed inset-y-0 left-0 z-20 flex flex-col border-r border-border bg-surface-raised',
         'transition-all duration-200',
-        sidebarOpen ? 'w-60' : 'w-16'
+        sidebarOpen
+          ? 'w-60 translate-x-0'
+          : 'w-60 -translate-x-full md:translate-x-0 md:w-16'
       )}
     >
-      {/* Logo + collapse toggle */}
+      {/* Logo + collapse toggle — collapse arrow only on desktop */}
       <div className="flex h-14 items-center justify-between border-b border-border px-4">
         <Logo size={22} withWordmark={sidebarOpen} />
         <button
           onClick={toggleSidebar}
-          className="rounded p-1 text-text-faint hover:bg-surface-overlay hover:text-text"
+          className="hidden rounded p-1 text-text-faint hover:bg-surface-overlay hover:text-text md:flex"
           aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
         >
           {sidebarOpen ? '←' : '→'}
