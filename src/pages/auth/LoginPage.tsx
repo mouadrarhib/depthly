@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { supabase } from '@/lib/supabase/client'
 import { PATHS } from '@/routes/paths'
-import { Button, Input } from '@/components/ui'
+import { Button, GoogleButton, Input } from '@/components/ui'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -113,6 +113,14 @@ export function LoginPage() {
           Sign in
         </Button>
       </div>
+
+      <div className="flex items-center gap-3">
+        <hr className="flex-1 border-border" />
+        <span className="text-xs text-text-muted">or</span>
+        <hr className="flex-1 border-border" />
+      </div>
+
+      <GoogleButton label="Sign in with Google" />
     </div>
   )
 }
