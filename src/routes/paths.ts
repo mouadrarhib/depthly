@@ -10,8 +10,11 @@
  */
 export const PATHS = {
   // Auth
-  login:    '/login',
-  signup:   '/signup',
+  login:           '/login',
+  signup:          '/signup',
+  forgotPassword:   '/forgot-password',
+  resetPassword:    '/reset-password',
+  emailConfirmed:   '/email-confirmed',
 
   // App — Timer lives at home, the rest are Depthly's other domains.
   // Uncomment each as you build its page (matches Sidebar NAV_ITEMS).
