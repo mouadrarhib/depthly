@@ -1,0 +1,109 @@
+.ec-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background: #0D0D10;
+  opacity: 1;
+  transition: opacity 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ec-screen--exit {
+  opacity: 0;
+}
+
+/* ── Logo + tick ring wrapper ── */
+.ec-logo-wrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  opacity: 0;
+  transform: scale(0.85);
+  animation: ec-logo-in 600ms cubic-bezier(0.34, 1.56, 0.64, 1) 200ms forwards;
+}
+
+.ec-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes ec-logo-in {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── Brand-blue tick ring drawn clockwise over the logo ── */
+.ec-tick-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  opacity: 0;
+  animation: ec-tick-ring-appear 100ms linear 800ms forwards;
+}
+
+.ec-tick-circle {
+  /* circumference of r=26 ≈ 163.36 */
+  stroke-dasharray: 163.36;
+  stroke-dashoffset: 163.36;
+  animation: ec-tick-draw 700ms cubic-bezier(0.4, 0, 0.2, 1) 900ms forwards;
+}
+
+@keyframes ec-tick-ring-appear {
+  to { opacity: 1; }
+}
+
+@keyframes ec-tick-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── Copy block ── */
+.ec-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.ec-headline {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  color: #E8E6F0;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: ec-text-in 500ms cubic-bezier(0.4, 0, 0.2, 1) 1400ms forwards;
+}
+
+.ec-sub {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: #7A7890;
+  opacity: 0;
+  animation: ec-fade-in 500ms linear 1900ms forwards;
+}
+
+@keyframes ec-text-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ec-fade-in {
+  to { opacity: 1; }
+}
