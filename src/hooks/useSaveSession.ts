@@ -15,7 +15,8 @@ export function useSaveSession() {
       queryClient.invalidateQueries({ queryKey: ['user-stats'] })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
 
-      useTimerStore.getState().reset()
+      // Transition to break (auto-starts if autoStartBreak is on)
+      useTimerStore.getState().startBreak()
       useTimerStore.setState((s) => ({ sessionCount: s.sessionCount + 1 }))
     },
   })

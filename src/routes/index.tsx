@@ -14,36 +14,36 @@ import { TimerPage } from '@/pages/TimerPage'
 
 import { ProtectedRoute } from './ProtectedRoute'
 
-export const router = createBrowserRouter([
-  // ── Auth routes (no sidebar, no auth required) ─────────────────────────
-  {
-    element: <AuthLayout />,
-    children: [
-      { path: '/login',            element: <LoginPage /> },
-      { path: '/signup',           element: <SignupPage /> },
-      { path: '/forgot-password',  element: <ForgotPasswordPage /> },
-      { path: '/reset-password',   element: <ResetPasswordPage /> },
-      { path: '/email-confirmed',  element: <EmailConfirmedPage /> },
-    ],
-  },
+export const router = createBrowserRouter(
+  [
+    // ── Auth routes (no sidebar, no auth required) ─────────────────────────
+    {
+      element: <AuthLayout />,
+      children: [
+        { path: '/login',           element: <LoginPage /> },
+        { path: '/signup',          element: <SignupPage /> },
+        { path: '/forgot-password', element: <ForgotPasswordPage /> },
+        { path: '/reset-password',  element: <ResetPasswordPage /> },
+        { path: '/email-confirmed', element: <EmailConfirmedPage /> },
+      ],
+    },
 
-  // ── Protected app routes ───────────────────────────────────────────────
-  {
-    element: <ProtectedRoute />,
-    children: [
-      {
-        element: <AppLayout />,
-        children: [
-          { path: '/',         element: <TimerPage /> },
-          { path: '/settings', element: <SettingsPage /> },
-          // Add your domain routes here:
-          // { path: '/projects',     element: <ProjectsPage /> },
-          // { path: '/projects/:id', element: <ProjectDetailPage /> },
-        ],
-      },
-    ],
-  },
+    // ── Protected app routes ───────────────────────────────────────────────
+    {
+      element: <ProtectedRoute />,
+      children: [
+        {
+          element: <AppLayout />,
+          children: [
+            { path: '/',         element: <TimerPage /> },
+            { path: '/settings', element: <SettingsPage /> },
+          ],
+        },
+      ],
+    },
 
-  // ── 404 ───────────────────────────────────────────────────────────────
-  { path: '*', element: <NotFoundPage /> },
-])
+    // ── 404 ───────────────────────────────────────────────────────────────
+    { path: '*', element: <NotFoundPage /> },
+  ],
+  { future: { v7_startTransition: true } },
+)

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 
 import { useTimerStore } from '@/store/timerStore'
 
-function playBeep() {
+function playBeep(freq = 880, duration = 0.6) {
   try {
     const ctx  = new AudioContext()
     const osc  = ctx.createOscillator()
@@ -12,17 +12,16 @@ function playBeep() {
     gain.connect(ctx.destination)
 
     osc.type            = 'sine'
-    osc.frequency.value = 880 // A5 — clear, non-jarring
+    osc.frequency.value = freq
 
     gain.gain.setValueAtTime(0.25, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration)
 
     osc.start(ctx.currentTime)
-    osc.stop(ctx.currentTime + 0.6)
-
+    osc.stop(ctx.currentTime + duration)
     osc.onended = () => ctx.close()
   } catch {
-    // AudioContext unavailable (e.g. SSR or blocked by browser policy)
+    // AudioContext unavailable
   }
 }
 
@@ -43,7 +42,16 @@ export function useTimerEffects() {
     tick,
   } = useTimerStore()
 
-  const soundPlayedRef = useRef(false)
+  const focusDoneRef = useRef(false)
+  const breakDoneRef = useRef(false)
+
+  // Reset guards when a fresh timer starts (elapsed → 0)
+  useEffect(() => {
+    if (elapsed === 0) {
+      focusDoneRef.current = false
+      breakDoneRef.current = false
+    }
+  }, [elapsed])
 
   // ── 1. Tab title ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -52,34 +60,48 @@ export function useTimerEffects() {
       return
     }
 
-    const isFree   = mode === 'free'
-    const seconds  = isFree ? elapsed : Math.max(0, duration - elapsed)
-    const label    = sessionType === 'focus' ? 'Focus' : 'Break'
+    const isFree  = mode === 'free'
+    const seconds = isFree ? elapsed : Math.max(0, duration - elapsed)
+    const label   = sessionType === 'focus' ? 'Focus' : 'Break'
     document.title = `${formatTitle(seconds)} — ${label} | Depthly`
 
     return () => { document.title = 'Depthly' }
   }, [isRunning, mode, elapsed, duration, sessionType])
 
-  // ── 2. Completion sound ───────────────────────────────────────────────────
-  // Reset the guard whenever a fresh session starts (elapsed resets to 0).
-  useEffect(() => {
-    if (elapsed === 0) soundPlayedRef.current = false
-  }, [elapsed])
-
+  // ── 2. Focus session completion ───────────────────────────────────────────
+  // Beep when focus ends. The actual save + break transition is handled in
+  // TimerPage (save) and useSaveSession.onSuccess (startBreak).
   useEffect(() => {
     if (
       mode !== 'free' &&
-      duration > 0 &&
       sessionType === 'focus' &&
+      duration > 0 &&
+      isRunning &&
       elapsed >= duration &&
-      !soundPlayedRef.current
+      !focusDoneRef.current
     ) {
-      soundPlayedRef.current = true
-      playBeep()
+      focusDoneRef.current = true
+      playBeep(880, 0.6) // A5 — focus done
     }
-  }, [elapsed, duration, sessionType, mode])
+  }, [elapsed, duration, sessionType, mode, isRunning])
 
-  // ── 3. Tick interval ──────────────────────────────────────────────────────
+  // ── 3. Break completion ───────────────────────────────────────────────────
+  useEffect(() => {
+    if (
+      mode !== 'free' &&
+      sessionType === 'break' &&
+      duration > 0 &&
+      isRunning &&
+      elapsed >= duration &&
+      !breakDoneRef.current
+    ) {
+      breakDoneRef.current = true
+      playBeep(660, 0.4) // E5 — softer tone, break done
+      useTimerStore.getState().endBreak()
+    }
+  }, [elapsed, duration, sessionType, mode, isRunning])
+
+  // ── 4. Tick interval ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!isRunning || isPaused) return
 

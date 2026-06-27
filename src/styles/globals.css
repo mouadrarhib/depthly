@@ -86,7 +86,10 @@
   }
 
   body {
-    @apply bg-depth-bg text-ink-primary antialiased;
+    background-color: var(--color-surface-base);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-family: 'Inter', system-ui, sans-serif;
     overflow-x: hidden;
     min-height: 100dvh;

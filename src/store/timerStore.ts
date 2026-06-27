@@ -32,6 +32,8 @@ interface TimerState {
   resume:             () => void
   stop:               () => void
   reset:              () => void
+  startBreak:         () => void
+  endBreak:           () => void
   skipBreak:          () => void
   tick:               () => void
   setMode:            (mode: TimerMode) => void
@@ -67,6 +69,30 @@ export const useTimerStore = create<TimerState>()((set, get) => ({
   stop: () => set({ isRunning: false, isPaused: false, elapsed: 0, sessionType: 'focus' }),
 
   reset: () => set({ isRunning: false, isPaused: false, elapsed: 0 }),
+
+  // Called after a focus session is saved — always auto-starts the break.
+  startBreak: () => {
+    const { breakDuration } = get()
+    set({
+      sessionType: 'break',
+      elapsed:     0,
+      duration:    breakDuration,
+      isRunning:   true,
+      isPaused:    false,
+    })
+  },
+
+  // Called when break finishes — returns to focus phase.
+  endBreak: () => {
+    const { focusDuration, autoStartFocus } = get()
+    set({
+      sessionType: 'focus',
+      elapsed:     0,
+      duration:    focusDuration,
+      isRunning:   autoStartFocus,
+      isPaused:    false,
+    })
+  },
 
   skipBreak: () => {
     const { focusDuration } = get()

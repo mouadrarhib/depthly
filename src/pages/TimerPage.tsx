@@ -43,7 +43,8 @@ function SessionDots() {
 // ── Bottom action row ─────────────────────────────────────────────────────
 
 function BottomActionRow() {
-  const toggleSettings = useUiStore((s) => s.toggleSettings)
+  const toggleSettings  = useUiStore((s) => s.toggleSettings)
+  const toggleFullscreen = useUiStore((s) => s.toggleFullscreen)
 
   const btnStyle: React.CSSProperties = {
     display:      'flex',
@@ -52,8 +53,8 @@ function BottomActionRow() {
     background:   'var(--color-surface-overlay)',
     border:       '1px solid var(--color-border)',
     borderRadius: 10,
-    padding:      '8px 16px',
-    fontSize:     13,
+    padding:      '7px 12px',
+    fontSize:     12,
     color:        'var(--color-text-muted)',
     cursor:       'pointer',
     transition:   'color 0.15s, background 0.15s',
@@ -61,7 +62,7 @@ function BottomActionRow() {
   }
 
   return (
-    <div style={{ display: 'flex', gap: 10 }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
       <button
         style={btnStyle}
         onClick={toggleSettings}
@@ -77,6 +78,26 @@ function BottomActionRow() {
         }}
       >
         <span>⚙</span> Configure
+      </button>
+
+      <button
+        style={btnStyle}
+        onClick={() => {
+          document.documentElement.requestFullscreen().catch(() => {})
+          toggleFullscreen()
+        }}
+        onMouseEnter={(e) => {
+          const el = e.currentTarget as HTMLButtonElement
+          el.style.color      = 'var(--color-text)'
+          el.style.background = 'var(--color-surface-raised)'
+        }}
+        onMouseLeave={(e) => {
+          const el = e.currentTarget as HTMLButtonElement
+          el.style.color      = 'var(--color-text-muted)'
+          el.style.background = 'var(--color-surface-overlay)'
+        }}
+      >
+        <span>⛶</span> Fullscreen
       </button>
 
       <button
@@ -103,7 +124,7 @@ function BottomActionRow() {
 export function TimerPage() {
   useTimerEffects()
 
-  const { elapsed, duration, mode, isRunning } = useTimerStore()
+  const { elapsed, duration, mode, sessionType, isRunning } = useTimerStore()
   const { saveSession } = useSaveSession()
 
   const savedRef = useRef(false)
@@ -113,8 +134,10 @@ export function TimerPage() {
       savedRef.current = false
       return
     }
+    // Only save focus sessions — break completion is handled in useTimerEffects
     if (
       mode !== 'free' &&
+      sessionType === 'focus' &&
       duration > 0 &&
       isRunning &&
       elapsed >= duration &&
@@ -123,12 +146,12 @@ export function TimerPage() {
       savedRef.current = true
       saveSession()
     }
-  }, [elapsed, duration, mode, isRunning, saveSession])
+  }, [elapsed, duration, mode, sessionType, isRunning, saveSession])
 
   return (
     <>
       {/* Main centered area — fills the full available space */}
-      <div className="flex min-h-full flex-col items-center justify-center gap-6">
+      <div className="flex min-h-full flex-col items-center justify-center gap-4 sm:gap-6">
         <TimerModeSelector />
 
         <SessionDots />
