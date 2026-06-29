@@ -18,7 +18,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Timer',    path: PATHS.home,     icon: <Clock size={18} /> },
   { label: 'Projects', path: PATHS.projects, icon: <FolderOpen size={18} /> },
   { label: 'Settings', path: PATHS.settings, icon: <Settings size={18} /> },
-  // { label: 'Tasks',       path: PATHS.tasks,       icon: <CheckSquare size={18} /> },
   // { label: 'Analytics',   path: PATHS.analytics,   icon: <BarChart2 size={18} /> },
   // { label: 'Goals',       path: PATHS.goals,       icon: <Target size={18} /> },
   // { label: 'Leaderboard', path: PATHS.leaderboard, icon: <Trophy size={18} /> },
@@ -53,7 +52,7 @@ export function Sidebar() {
       <nav className="flex-1 space-y-1 p-2">
         {NAV_ITEMS.map(({ label, path, icon }) => (
           <NavLink
-            key={path}
+            key={label}
             to={path}
             end={path === PATHS.home}
             className={({ isActive }) =>

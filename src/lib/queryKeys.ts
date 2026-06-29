@@ -9,3 +9,9 @@ export const projectKeys = {
 export const sessionKeys = {
   byProject: (id: string) => ['sessions', 'project', id] as const,
 }
+
+export const taskKeys = {
+  all:       ['tasks'] as const,
+  byProject: (projectId: string) => ['tasks', 'project', projectId] as const,
+  detail:    (id: string) => ['tasks', id] as const,
+}
