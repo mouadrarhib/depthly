@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { fetchActiveProjects, projectKeys } from '@/lib/supabase/queries/projects'
+import { fetchProjects } from '@/lib/supabase/queries/projects'
 import { fetchTasksByProject, taskKeys } from '@/lib/supabase/queries/tasks'
+import { projectKeys } from '@/lib/queryKeys'
+import { useAuthStore } from '@/store/authStore'
 import { useTimerStore } from '@/store/timerStore'
 
 function Chevron() {
@@ -36,11 +38,13 @@ const selectStyle: React.CSSProperties = {
 }
 
 export function TimerProjectSelector() {
+  const userId = useAuthStore(s => s.user?.id ?? '')
   const { selectedProjectId, selectedTaskId, setSelectedProject, setSelectedTask } = useTimerStore()
 
   const { data: projects = [] } = useQuery({
     queryKey: projectKeys.active,
-    queryFn:  fetchActiveProjects,
+    queryFn:  () => fetchProjects(userId),
+    enabled:  !!userId,
   })
 
   const { data: tasks = [] } = useQuery({

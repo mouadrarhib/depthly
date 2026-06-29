@@ -9,6 +9,8 @@ import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
+import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
+import { ProjectsPage } from '@/pages/ProjectsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { TimerPage } from '@/pages/TimerPage'
 
@@ -35,8 +37,10 @@ export const router = createBrowserRouter(
         {
           element: <AppLayout />,
           children: [
-            { path: '/',         element: <TimerPage /> },
-            { path: '/settings', element: <SettingsPage /> },
+            { path: '/',          element: <TimerPage /> },
+            { path: '/settings',  element: <SettingsPage /> },
+            { path: '/projects',     element: <ProjectsPage /> },
+            { path: '/projects/:id', element: <ProjectDetailPage /> },
           ],
         },
       ],

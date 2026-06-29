@@ -25,6 +25,19 @@ type RpcFn = (
   params: SaveSessionParams
 ) => Promise<{ data: Session | null; error: PostgrestError | null }>
 
+export async function fetchSessionsByProject(projectId: string): Promise<Session[]> {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('project_id', projectId)
+    .eq('type', 'focus')
+    .order('started_at', { ascending: false })
+    .limit(50)
+
+  if (error) throw error
+  return data
+}
+
 export async function saveSession(params: SaveSessionParams): Promise<Session> {
   const { data, error } = await (supabase.rpc as unknown as RpcFn)(
     'save_session',

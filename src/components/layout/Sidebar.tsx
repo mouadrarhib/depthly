@@ -1,20 +1,28 @@
+import { type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
+import { Clock, FolderOpen, Settings } from 'lucide-react'
 
 import { useUiStore } from '@/store'
 import { PATHS } from '@/routes/paths'
 import { cn } from '@/lib/utils/cn'
 import { Logo } from '@/components/ui'
 
+interface NavItem {
+  label: string
+  path:  string
+  icon:  ReactNode
+}
+
 // ── Nav items — Depthly's domains. Uncomment as you build each page. ────────
-const NAV_ITEMS = [
-  { label: 'Timer',    path: PATHS.home,     icon: '◷' },
-  { label: 'Settings', path: PATHS.settings, icon: '⚙' },
-  // { label: 'Projects',    path: PATHS.projects,    icon: '◈' },
-  // { label: 'Tasks',       path: PATHS.tasks,       icon: '☰' },
-  // { label: 'Analytics',   path: PATHS.analytics,   icon: '▦' },
-  // { label: 'Goals',       path: PATHS.goals,       icon: '◎' },
-  // { label: 'Leaderboard', path: PATHS.leaderboard, icon: '▲' },
-] as const
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Timer',    path: PATHS.home,     icon: <Clock size={18} /> },
+  { label: 'Projects', path: PATHS.projects, icon: <FolderOpen size={18} /> },
+  { label: 'Settings', path: PATHS.settings, icon: <Settings size={18} /> },
+  // { label: 'Tasks',       path: PATHS.tasks,       icon: <CheckSquare size={18} /> },
+  // { label: 'Analytics',   path: PATHS.analytics,   icon: <BarChart2 size={18} /> },
+  // { label: 'Goals',       path: PATHS.goals,       icon: <Target size={18} /> },
+  // { label: 'Leaderboard', path: PATHS.leaderboard, icon: <Trophy size={18} /> },
+]
 
 export function Sidebar() {
   const { sidebarOpen, toggleSidebar } = useUiStore()
@@ -57,7 +65,7 @@ export function Sidebar() {
               )
             }
           >
-            <span className="text-base">{icon}</span>
+            {icon}
             {sidebarOpen ? <span>{label}</span> : null}
           </NavLink>
         ))}

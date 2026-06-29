@@ -20,6 +20,7 @@ export const PATHS = {
   // Uncomment each as you build its page (matches Sidebar NAV_ITEMS).
   home:     '/',            // Timer
   settings: '/settings',
+  projects: '/projects',
   // projects:    '/projects',
   // tasks:       '/tasks',
   // analytics:   '/analytics',
