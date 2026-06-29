@@ -55,18 +55,18 @@ export function useTimerEffects() {
 
   // ── 1. Tab title ──────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!isRunning) {
-      document.title = 'Depthly'
+    if (!isRunning && !isPaused) {
+      document.title = 'Depthly - Track your focus'
       return
     }
 
     const isFree  = mode === 'free'
     const seconds = isFree ? elapsed : Math.max(0, duration - elapsed)
     const label   = sessionType === 'focus' ? 'Focus' : 'Break'
-    document.title = `${formatTitle(seconds)} — ${label} | Depthly`
+    document.title = `${formatTitle(seconds)} ${label} - Depthly`
 
-    return () => { document.title = 'Depthly' }
-  }, [isRunning, mode, elapsed, duration, sessionType])
+    return () => { document.title = 'Depthly - Track your focus' }
+  }, [isRunning, isPaused, mode, elapsed, duration, sessionType])
 
   // ── 2. Focus session completion ───────────────────────────────────────────
   // Beep when focus ends. The actual save + break transition is handled in
