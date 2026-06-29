@@ -31,7 +31,7 @@ export function ProgressRing({
         viewBox={`0 0 ${size} ${size}`}
         style={{
           transform:  'rotate(-90deg)',
-          filter:     isRunning ? 'drop-shadow(0 0 20px #4B9EFF50)' : 'none',
+          filter:     isRunning ? `drop-shadow(0 0 20px ${color}50)` : 'none',
           transition: 'filter 0.4s ease',
         }}
         aria-hidden="true"

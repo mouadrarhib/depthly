@@ -44,12 +44,15 @@ export function TimerDisplay() {
   const typeLabel  = sessionType === 'focus' ? 'FOCUS' : 'BREAK'
   const countLabel = `${sessionCount} session${sessionCount === 1 ? '' : 's'} today`
 
+  // Focus = green, Break = blue
+  const ringColor = sessionType === 'focus' ? '#3DD68C' : 'var(--color-brand)'
+
   // Scale font proportionally to ring size (baseline: 340px ring → 72px / 48px)
   const scale    = ringSize / 340
   const fontSize = Math.round((isFree ? 48 : 72) * scale)
 
   return (
-    <ProgressRing progress={progress} isRunning={isRunning} size={ringSize}>
+    <ProgressRing progress={progress} isRunning={isRunning} size={ringSize} color={ringColor}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
         <span
           className="font-data"
