@@ -1,6 +1,6 @@
+import { useState } from 'react'
 import { MoreHorizontal } from 'lucide-react'
 
-import { Card, CardContent } from '@/components/ui/Card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,8 +14,8 @@ type Project = Tables<'projects'>
 
 interface ProjectStats {
   total_focus_minutes: number
-  total_tasks: number
-  completed_tasks: number
+  total_tasks:         number
+  completed_tasks:     number
 }
 
 interface ProjectCardProps {
@@ -27,6 +27,12 @@ interface ProjectCardProps {
   onClick:   () => void
 }
 
+function formatHours(minutes: number): string {
+  if (minutes === 0) return '0h'
+  if (minutes < 60)  return `${minutes}m`
+  return `${parseFloat((minutes / 60).toFixed(1))}h`
+}
+
 export function ProjectCard({
   project,
   stats,
@@ -35,48 +41,63 @@ export function ProjectCard({
   onDelete,
   onClick,
 }: ProjectCardProps) {
-  const focusHours = (stats.total_focus_minutes / 60).toFixed(1)
-  const hasTasks   = stats.total_tasks > 0
-  const pct        = hasTasks
+  const [isHovered, setIsHovered] = useState(false)
+
+  const hasTasks = stats.total_tasks > 0
+  const pct      = hasTasks
     ? Math.round((stats.completed_tasks / stats.total_tasks) * 100)
     : 0
 
   return (
-    <Card className="bg-depth-surface border-depth-border transition-colors hover:bg-depth-raised cursor-pointer">
-      <CardContent className="p-4 flex flex-col gap-4">
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        backgroundColor: '#141417',
+        borderTop:       `3px solid ${project.color}`,
+        borderRight:     `1px solid ${isHovered ? 'rgba(255,255,255,0.1)' : '#2E2E38'}`,
+        borderBottom:    `1px solid ${isHovered ? 'rgba(255,255,255,0.1)' : '#2E2E38'}`,
+        borderLeft:      `1px solid ${isHovered ? 'rgba(255,255,255,0.1)' : '#2E2E38'}`,
+        borderRadius:    12,
+        transform:       isHovered ? 'translateY(-2px)' : 'translateY(0)',
+        boxShadow:       isHovered ? '0 8px 24px rgba(0,0,0,0.4)' : 'none',
+        transition:      'all 150ms ease',
+        cursor:          'pointer',
+        overflow:        'hidden',
+      }}
+    >
+      <div className="flex flex-col gap-4 p-4">
 
         {/* Top row */}
         <div className="flex items-center justify-between gap-2">
           <div
-            className="flex items-center gap-2 min-w-0 flex-1"
+            className="flex min-w-0 flex-1 items-center gap-2"
             onClick={onClick}
           >
             <span
               className="shrink-0 rounded-full"
-              style={{ width: 10, height: 10, backgroundColor: project.color }}
+              style={{ width: 12, height: 12, backgroundColor: project.color }}
             />
             {project.icon && (
               <span style={{ fontSize: 18, lineHeight: 1 }}>{project.icon}</span>
             )}
-            <span className="text-ink-primary text-sm font-medium truncate">
+            <span className="truncate text-sm font-medium text-ink-primary">
               {project.name}
             </span>
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger
-              className="shrink-0 flex items-center justify-center w-7 h-7 rounded-md text-ink-secondary hover:text-ink-primary hover:bg-depth-raised transition-colors"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md
+                         text-ink-secondary transition-colors
+                         hover:bg-depth-raised hover:text-ink-primary"
               onClick={e => e.stopPropagation()}
             >
               <MoreHorizontal size={16} />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-36">
-              <DropdownMenuItem onSelect={onEdit}>
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={onArchive}>
-                Archive
-              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={onEdit}>Edit</DropdownMenuItem>
+              <DropdownMenuItem onSelect={onArchive}>Archive</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onSelect={onDelete}
@@ -88,38 +109,44 @@ export function ProjectCard({
           </DropdownMenu>
         </div>
 
-        {/* Middle — focus stat */}
+        {/* Focus stat */}
         <div className="flex flex-col gap-0.5" onClick={onClick}>
-          <span className="font-data text-ink-primary" style={{ fontSize: 24 }}>
-            {focusHours}h
+          <span className="font-data text-ink-primary" style={{ fontSize: 28 }}>
+            {formatHours(stats.total_focus_minutes)}
           </span>
           <span className="text-ink-muted" style={{ fontSize: 12 }}>
             total focus
           </span>
         </div>
 
-        {/* Bottom — task progress */}
+        {/* Task progress */}
         <div className="flex flex-col gap-1.5" onClick={onClick}>
-          {hasTasks ? (
-            <>
-              <span className="text-ink-secondary" style={{ fontSize: 12 }}>
-                {stats.completed_tasks} / {stats.total_tasks} tasks
-              </span>
-              <div className="h-1.5 rounded-full bg-depth-raised overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-brand transition-all"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </>
-          ) : (
-            <span className="text-ink-muted" style={{ fontSize: 12 }}>
-              No tasks yet
+          <div className="flex items-center gap-1.5">
+            <span className="text-ink-secondary" style={{ fontSize: 12 }}>
+              {hasTasks
+                ? `${stats.completed_tasks} / ${stats.total_tasks} tasks`
+                : 'No tasks yet'}
             </span>
-          )}
+            {hasTasks && (
+              <span style={{ fontSize: 11, color: '#7A7890' }}>({pct}%)</span>
+            )}
+          </div>
+
+          {/* Progress track — always visible */}
+          <div style={{ height: 4, borderRadius: 999, backgroundColor: '#222228' }}>
+            <div
+              style={{
+                height:          4,
+                borderRadius:    999,
+                backgroundColor: project.color,
+                width:           pct > 0 ? `${pct}%` : 4,
+                transition:      'width 300ms ease',
+              }}
+            />
+          </div>
         </div>
 
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

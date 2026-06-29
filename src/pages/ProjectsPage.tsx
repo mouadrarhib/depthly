@@ -91,12 +91,15 @@ export function ProjectsPage() {
   })
 
   return (
-    <div className="p-8 flex flex-col gap-6">
+    <div className="px-8 py-6 flex flex-col gap-6">
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-ink-primary font-medium" style={{ fontSize: 24 }}>
+          <h1
+            className="text-ink-primary"
+            style={{ fontSize: 22, fontWeight: 500, letterSpacing: '-0.03em' }}
+          >
             Projects
           </h1>
           {!isLoading && (
@@ -138,7 +141,7 @@ export function ProjectsPage() {
 
       {/* Loading */}
       {isLoading && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
@@ -161,7 +164,7 @@ export function ProjectsPage() {
 
       {/* Grid */}
       {!isLoading && sorted.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map(project => (
             <ProjectCardWrapper
               key={project.id}
