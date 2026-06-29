@@ -144,3 +144,19 @@ Never work ahead into future phases without being asked.
 - One commit per logical unit (one component, one hook, one page)
 - Never commit `.env` files
 - Branch: `main` (trunk-based — direct commits, no long-lived branches)
+
+---
+
+## Feature Documentation
+
+Detailed implementation references live in docs/.
+Read the relevant doc before touching a feature:
+
+- Timer:    docs/timer.md
+- Projects: docs/PROJECTS.md
+- Tasks:    docs/TASKS.md
+
+These docs reflect what is actually built.
+They are the source of truth for implementation
+details, component props, hook behavior, and
+known limitations.
