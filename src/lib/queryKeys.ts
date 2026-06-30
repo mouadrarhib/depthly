@@ -16,6 +16,10 @@ export const taskKeys = {
   detail:    (id: string) => ['tasks', id] as const,
 }
 
+export const goalKeys = {
+  detail: (userId: string) => ['goals', userId] as const,
+}
+
 export const analyticsKeys = {
   profile:        (userId: string) =>
                   ['analytics', 'profile', userId] as const,

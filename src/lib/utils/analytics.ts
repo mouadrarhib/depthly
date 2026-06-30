@@ -149,6 +149,36 @@ export function getBestDayOfWeek(
   return days[Number(best[0])]
 }
 
+const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const
+
+export function getGoalProgress(
+  focusMinutes: number,
+  goalMinutes: number | null
+): { percentage: number; isComplete: boolean; remaining: number } {
+  if (goalMinutes === null) return { percentage: 0, isComplete: false, remaining: 0 }
+  return {
+    percentage: Math.min(100, Math.round((focusMinutes / goalMinutes) * 100)),
+    isComplete:  focusMinutes >= goalMinutes,
+    remaining:   Math.max(0, goalMinutes - focusMinutes),
+  }
+}
+
+export function getWeekGoalHistory(
+  summaries: Array<{ date: string; focus_minutes: number; daily_goal_met: boolean }>,
+  weekDays: Date[]
+): Array<{ date: Date; dayLabel: string; met: boolean | null }> {
+  const byDate = new Map(summaries.map(s => [s.date, s]))
+  return weekDays.map(day => {
+    const key = formatPeriodKey(day, 'daily')
+    const summary = byDate.get(key)
+    return {
+      date:     day,
+      dayLabel: DAY_LABELS[day.getDay()],
+      met:      summary ? summary.daily_goal_met : null,
+    }
+  })
+}
+
 // --- internal helpers ---
 
 function getMonday(date: Date): Date {

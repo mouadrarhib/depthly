@@ -7,8 +7,13 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-import { useDailySummary, useSessionsForDay } from '@/hooks/useAnalytics'
-import { formatPeriodKey, formatMinutesToHours } from '@/lib/utils/analytics'
+import { useDailySummary, useSessionsForDay, useDailySummariesRange } from '@/hooks/useAnalytics'
+import { useGoals } from '@/hooks/useGoals'
+import { useGoalCelebration } from '@/hooks/useGoalCelebration'
+import { formatPeriodKey, formatMinutesToHours, getGoalProgress, getDaysInWeek } from '@/lib/utils/analytics'
+import { ProgressRing } from '@/components/ui/ProgressRing'
+import { ConfettiBurst } from '@/components/ui/ConfettiBurst'
+import { GoalHistoryRow } from '@/components/goals/GoalHistoryRow'
 import { PATHS } from '@/routes/paths'
 
 interface DailyViewProps {
@@ -152,11 +157,19 @@ export function DailyView({ date }: DailyViewProps) {
 
   const { data: summary,  isLoading: loadingSummary  } = useDailySummary(dateKey)
   const { data: sessions, isLoading: loadingSessions } = useSessionsForDay(dateKey)
+  const { data: goals } = useGoals()
+
+  const weekDays    = getDaysInWeek(date)
+  const mondayKey   = formatPeriodKey(weekDays[0], 'daily')
+  const sundayKey   = formatPeriodKey(weekDays[6], 'daily')
+  const { data: weekSummaries } = useDailySummariesRange(mondayKey, sundayKey)
 
   const isLoading = loadingSummary || loadingSessions
 
   const focusMinutes = summary?.focus_minutes ?? 0
   const sessionCount = summary?.session_count ?? 0
+
+  const { shouldCelebrate } = useGoalCelebration(focusMinutes, goals?.daily_goal_minutes ?? null)
 
   // Build project totals and hour slots from sessions
   const projectMap = new Map<string, ProjectEntry>()
@@ -197,6 +210,7 @@ export function DailyView({ date }: DailyViewProps) {
             <>
               <StatCardSkeleton />
               <StatCardSkeleton />
+              <StatCardSkeleton />
             </>
           ) : (
             <>
@@ -229,6 +243,77 @@ export function DailyView({ date }: DailyViewProps) {
                   {sessionCount}
                 </div>
               </div>
+
+              {/* Card 3: Daily Goal */}
+              {(() => {
+                const dailyGoal = goals?.daily_goal_minutes ?? null
+                if (dailyGoal === null) {
+                  return (
+                    <div style={card}>
+                      <CardHeader
+                        icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+                        title="Daily Goal"
+                      />
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', gap: 8 }}>
+                        <span style={{ fontSize: 13, color: '#7A7890' }}>No goal set</span>
+                        <Link
+                          to={PATHS.settings}
+                          style={{ fontSize: 13, color: '#4B9EFF', textDecoration: 'none' }}
+                        >
+                          Set goal →
+                        </Link>
+                      </div>
+                    </div>
+                  )
+                }
+                const goal = getGoalProgress(focusMinutes, dailyGoal)
+                const ringColor = goal.isComplete ? '#3DD68C' : '#4B9EFF'
+                return (
+                  <div style={card}>
+                    <CardHeader
+                      icon={<BarChart2 size={16} style={{ color: ringColor, flexShrink: 0 }} />}
+                      title="Daily Goal"
+                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                      <div style={{ position: 'relative' }}>
+                        <ProgressRing
+                          progress={goal.percentage / 100}
+                          size={64}
+                          strokeWidth={5}
+                          color={ringColor}
+                        >
+                          <span
+                            className="font-data"
+                            style={{ fontSize: 16, fontWeight: 600, color: '#E8E6F0' }}
+                          >
+                            {goal.percentage}%
+                          </span>
+                        </ProgressRing>
+                        <ConfettiBurst trigger={shouldCelebrate} />
+                      </div>
+                      {goal.isComplete ? (
+                        <span style={{ fontSize: 11, color: '#3DD68C' }}>Goal reached! 🎉</span>
+                      ) : (
+                        <span style={{ fontSize: 11, color: '#3D3B4E' }}>{goal.remaining} min to go</span>
+                      )}
+                    </div>
+
+                    <div style={{ marginTop: 16 }}>
+                      <div style={{
+                        fontSize:      11,
+                        color:         '#3D3B4E',
+                        textAlign:     'center',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        marginBottom:  8,
+                      }}>
+                        This week
+                      </div>
+                      <GoalHistoryRow weekDays={weekDays} summaries={weekSummaries ?? []} />
+                    </div>
+                  </div>
+                )
+              })()}
             </>
           )}
         </div>

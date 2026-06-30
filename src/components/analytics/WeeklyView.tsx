@@ -14,11 +14,13 @@ import {
 } from 'recharts'
 
 import { useDailySummariesRange } from '@/hooks/useAnalytics'
+import { useGoals } from '@/hooks/useGoals'
 import {
   getDaysInWeek,
   formatPeriodKey,
   navigatePeriod,
   formatMinutesToHours,
+  getGoalProgress,
 } from '@/lib/utils/analytics'
 import { PATHS } from '@/routes/paths'
 
@@ -154,6 +156,7 @@ export function WeeklyView({ date }: WeeklyViewProps) {
 
   const { data: summaries,     isLoading: loadingThis } = useDailySummariesRange(mondayKey, sundayKey)
   const { data: prevSummaries, isLoading: loadingPrev } = useDailySummariesRange(prevMonKey, prevSunKey)
+  const { data: goals } = useGoals()
 
   const isLoading = loadingThis || loadingPrev
   const todayKey  = formatPeriodKey(new Date(), 'daily')
@@ -233,6 +236,31 @@ export function WeeklyView({ date }: WeeklyViewProps) {
                   {thisWeekSessions}
                 </div>
               </div>
+
+              {/* Weekly Goal stat */}
+              {goals?.weekly_goal_minutes != null && (() => {
+                const goal      = getGoalProgress(thisWeekMinutes, goals.weekly_goal_minutes)
+                const fillColor = goal.isComplete ? '#3DD68C' : '#4B9EFF'
+                return (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 12, color: '#7A7890', marginBottom: 8 }}>Weekly Goal</div>
+                    <div style={{ height: 8, borderRadius: 999, backgroundColor: '#222228', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          height:          '100%',
+                          borderRadius:    999,
+                          backgroundColor: fillColor,
+                          width:           `${goal.percentage}%`,
+                          transition:      'width 0.4s ease',
+                        }}
+                      />
+                    </div>
+                    <div style={{ fontSize: 12, color: fillColor, marginTop: 6 }}>
+                      {goal.isComplete ? 'Goal reached! 🎉' : `${goal.percentage}% complete`}
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           </div>
         )}
