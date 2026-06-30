@@ -18,12 +18,11 @@ export const PATHS = {
 
   // App — Timer lives at home, the rest are Depthly's other domains.
   // Uncomment each as you build its page (matches Sidebar NAV_ITEMS).
-  home:     '/',            // Timer
-  settings: '/settings',
-  projects: '/projects',
-  // projects:    '/projects',
+  home:      '/',            // Timer
+  settings:  '/settings',
+  projects:  '/projects',
+  analytics: '/analytics',
   // tasks:       '/tasks',
-  // analytics:   '/analytics',
   // goals:       '/goals',
   // leaderboard: '/leaderboard',
 

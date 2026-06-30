@@ -15,3 +15,18 @@ export const taskKeys = {
   byProject: (projectId: string) => ['tasks', 'project', projectId] as const,
   detail:    (id: string) => ['tasks', id] as const,
 }
+
+export const analyticsKeys = {
+  profile:        (userId: string) =>
+                  ['analytics', 'profile', userId] as const,
+  daily:          (userId: string, date: string) =>
+                  ['analytics', 'daily', userId, date] as const,
+  dailyRange:     (userId: string, start: string, end: string) =>
+                  ['analytics', 'daily-range', userId, start, end] as const,
+  sessionsForDay: (userId: string, date: string) =>
+                  ['analytics', 'sessions-day', userId, date] as const,
+  userStats:      (userId: string, type: string, key: string) =>
+                  ['analytics', 'stats', userId, type, key] as const,
+  userStatsRange: (userId: string, type: string, keys: string[]) =>
+                  ['analytics', 'stats-range', userId, type, ...keys] as const,
+}

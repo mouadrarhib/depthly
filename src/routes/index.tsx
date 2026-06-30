@@ -9,6 +9,7 @@ import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
+import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
@@ -37,10 +38,11 @@ export const router = createBrowserRouter(
         {
           element: <AppLayout />,
           children: [
-            { path: '/',          element: <TimerPage /> },
-            { path: '/settings',  element: <SettingsPage /> },
+            { path: '/',             element: <TimerPage /> },
+            { path: '/settings',     element: <SettingsPage /> },
             { path: '/projects',     element: <ProjectsPage /> },
             { path: '/projects/:id', element: <ProjectDetailPage /> },
+            { path: '/analytics',    element: <AnalyticsPage /> },
           ],
         },
       ],
