@@ -21,6 +21,7 @@ export const PATHS = {
   home:      '/',            // Timer
   settings:  '/settings',
   projects:  '/projects',
+  sessions:  '/sessions',
   analytics: '/analytics',
   // tasks:       '/tasks',
   // goals:       '/goals',

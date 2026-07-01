@@ -12,6 +12,7 @@ import { SignupPage } from '@/pages/auth/SignupPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
+import { SessionsPage } from '@/pages/SessionsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { TimerPage } from '@/pages/TimerPage'
 
@@ -42,6 +43,7 @@ export const router = createBrowserRouter(
             { path: '/settings',     element: <SettingsPage /> },
             { path: '/projects',     element: <ProjectsPage /> },
             { path: '/projects/:id', element: <ProjectDetailPage /> },
+            { path: '/sessions',     element: <SessionsPage /> },
             { path: '/analytics',    element: <AnalyticsPage /> },
           ],
         },
