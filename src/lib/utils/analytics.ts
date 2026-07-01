@@ -179,6 +179,13 @@ export function getWeekGoalHistory(
   })
 }
 
+export function getCurrentPeriodKey(
+  period: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'all_time'
+): string {
+  if (period === 'all_time') return ''
+  return formatPeriodKey(new Date(), period)
+}
+
 // --- internal helpers ---
 
 function getMonday(date: Date): Date {

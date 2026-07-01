@@ -10,6 +10,8 @@ import { LoginPage } from '@/pages/auth/LoginPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
+import { LeaderboardPage } from '@/pages/LeaderboardPage'
+import { PublicProfilePage } from '@/pages/PublicProfilePage'
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
 import { SessionsPage } from '@/pages/SessionsPage'
@@ -45,10 +47,14 @@ export const router = createBrowserRouter(
             { path: '/projects/:id', element: <ProjectDetailPage /> },
             { path: '/sessions',     element: <SessionsPage /> },
             { path: '/analytics',    element: <AnalyticsPage /> },
+            { path: '/leaderboard', element: <LeaderboardPage /> },
           ],
         },
       ],
     },
+
+    // ── Public profile ────────────────────────────────────────────────────
+    { path: '/u/:slug', element: <PublicProfilePage /> },
 
     // ── 404 ───────────────────────────────────────────────────────────────
     { path: '*', element: <NotFoundPage /> },

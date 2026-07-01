@@ -22,6 +22,19 @@ export const goalKeys = {
   detail: (userId: string) => ['goals', userId] as const,
 }
 
+export const leaderboardKeys = {
+  global:       (period: string, key: string) =>
+                ['leaderboard', 'global', period, key] as const,
+  allTime:      () =>
+                ['leaderboard', 'all-time'] as const,
+  friends:      (userId: string, period: string, key: string) =>
+                ['leaderboard', 'friends', userId, period, key] as const,
+  userRank:     (userId: string, period: string, key: string) =>
+                ['leaderboard', 'rank', userId, period, key] as const,
+  followStatus: (followerId: string, followingId: string) =>
+                ['leaderboard', 'follow', followerId, followingId] as const,
+}
+
 export const analyticsKeys = {
   profile:        (userId: string) =>
                   ['analytics', 'profile', userId] as const,

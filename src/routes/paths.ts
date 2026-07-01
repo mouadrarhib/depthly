@@ -22,10 +22,10 @@ export const PATHS = {
   settings:  '/settings',
   projects:  '/projects',
   sessions:  '/sessions',
-  analytics: '/analytics',
-  // tasks:       '/tasks',
-  // goals:       '/goals',
-  // leaderboard: '/leaderboard',
+  analytics:   '/analytics',
+  leaderboard: '/leaderboard',
+  // tasks: '/tasks',
+  // goals: '/goals',
 
   // Dynamic routes — functions to avoid string concatenation at call site
   project:  (id: string) => `/projects/${id}`,
