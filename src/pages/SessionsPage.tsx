@@ -208,7 +208,7 @@ export function SessionsPage() {
   }
 
   return (
-    <div className="px-8 py-6">
+    <div className="px-4 py-4 sm:px-8 sm:py-6">
 
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
@@ -316,7 +316,7 @@ export function SessionsPage() {
             <div className="flex flex-wrap items-end gap-3">
 
               {/* Date range */}
-              <div className="flex items-end gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                 <div>
                   <p className="mb-1 text-[11px] text-ink-muted">From</p>
                   <input
@@ -324,7 +324,7 @@ export function SessionsPage() {
                     value={fromDate}
                     onChange={e => setFromDate(e.target.value)}
                     max={toDate || undefined}
-                    className={DATE_INPUT_CLASS}
+                    className={DATE_INPUT_CLASS + ' w-full sm:w-auto'}
                   />
                 </div>
                 <div>
@@ -334,7 +334,7 @@ export function SessionsPage() {
                     value={toDate}
                     onChange={e => setToDate(e.target.value)}
                     min={fromDate || undefined}
-                    className={DATE_INPUT_CLASS}
+                    className={DATE_INPUT_CLASS + ' w-full sm:w-auto'}
                   />
                 </div>
               </div>

@@ -7,7 +7,7 @@ import { DangerZoneSection }    from '@/components/settings/DangerZoneSection'
 
 export function SettingsPage() {
   return (
-    <div style={{ padding: '24px 32px', maxWidth: 720, margin: '0 auto' }}>
+    <div className="px-4 py-5 sm:px-8 sm:py-6" style={{ maxWidth: 720, margin: '0 auto' }}>
       <p style={{ fontSize: 22, fontWeight: 500, color: 'var(--color-text)', marginBottom: 32 }}>
         Settings
       </p>

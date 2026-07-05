@@ -100,7 +100,7 @@ export function ProjectsPage() {
   })
 
   return (
-    <div className="px-8 py-6 flex flex-col gap-6">
+    <div className="px-4 py-4 sm:px-8 sm:py-6 flex flex-col gap-6">
 
       {/* Header */}
       <div className="flex flex-col gap-1.5">

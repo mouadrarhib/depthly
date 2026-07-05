@@ -48,7 +48,7 @@ export function AnalyticsPage() {
   const isNewUser = profile?.total_sessions === 0
 
   return (
-    <div style={{ padding: '24px 32px' }}>
+    <div className="px-4 py-5 sm:px-8 sm:py-6">
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Header */}

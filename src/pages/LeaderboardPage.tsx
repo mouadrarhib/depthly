@@ -243,17 +243,64 @@ export function LeaderboardPage() {
     : `${NAV_TITLE[activeNav]} · ${viewTab === 'global' ? 'Everyone' : 'Friends'} · Global`
 
   return (
-    <div style={{ display: 'flex', height: '100%', minHeight: 0 }}>
+    <div className="flex h-full min-h-0 flex-col md:flex-row">
 
-      {/* ── Left panel ── */}
-      <div style={{
-        width:        160,
-        flexShrink:   0,
-        background:   '#0D0D10',
-        borderRight:  '1px solid #2E2E38',
-        padding:      '24px 12px',
-        overflowY:    'auto',
-      }}>
+      {/* ── Mobile nav: horizontal scrollable pill strip ── */}
+      <div
+        className="shrink-0 overflow-x-auto md:hidden"
+        style={{ borderBottom: '1px solid #2E2E38', background: '#0D0D10' }}
+      >
+        <div className="flex items-center gap-0.5 p-2" style={{ minWidth: 'max-content' }}>
+          <span style={{ fontSize: 10, color: '#7A7890', padding: '6px 6px', flexShrink: 0, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            Time
+          </span>
+          {TIME_ITEMS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => handleNavSelect(value)}
+              style={{
+                padding: '5px 12px', borderRadius: 9999, flexShrink: 0,
+                border: 'none',
+                background: activeNav === value ? '#222228' : 'transparent',
+                color:      activeNav === value ? '#E8E6F0' : '#7A7890',
+                fontSize: 13, fontWeight: activeNav === value ? 500 : 400, cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+          <span style={{ width: 1, height: 20, background: '#2E2E38', flexShrink: 0, margin: '0 6px', alignSelf: 'center' }} />
+          <span style={{ fontSize: 10, color: '#7A7890', padding: '6px 6px', flexShrink: 0, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            Streak
+          </span>
+          {STREAK_ITEMS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => handleNavSelect(value)}
+              style={{
+                padding: '5px 12px', borderRadius: 9999, flexShrink: 0,
+                border: 'none',
+                background: activeNav === value ? '#222228' : 'transparent',
+                color:      activeNav === value ? '#E8E6F0' : '#7A7890',
+                fontSize: 13, fontWeight: activeNav === value ? 500 : 400, cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Desktop sidebar ── */}
+      <div
+        className="hidden shrink-0 overflow-y-auto md:block"
+        style={{
+          width:       160,
+          background:  '#0D0D10',
+          borderRight: '1px solid #2E2E38',
+          padding:     '24px 12px',
+        }}
+      >
         <NavSection
           title="Time"
           items={TIME_ITEMS}
@@ -269,7 +316,7 @@ export function LeaderboardPage() {
       </div>
 
       {/* ── Right content ── */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+      <div className="flex-1 overflow-y-auto p-4 sm:p-7">
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
 
           {/* Title */}
@@ -296,13 +343,8 @@ export function LeaderboardPage() {
           {!showNavigator && <div style={{ marginBottom: 20 }} />}
 
           {/* Status bar */}
-          <div style={{
-            display:      'flex',
-            alignItems:   'center',
-            justifyContent: 'space-between',
-            marginBottom: 12,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
               <span style={{
                 padding:      '2px 10px',
                 borderRadius: 9999,
@@ -311,12 +353,13 @@ export function LeaderboardPage() {
                 background:   'rgba(61,214,140,0.15)',
                 color:        '#3DD68C',
                 border:       '1px solid rgba(61,214,140,0.3)',
+                flexShrink:   0,
               }}>
                 Active
               </span>
-              <span style={{ fontSize: 13, color: '#7A7890' }}>{scopeLabel}</span>
+              <span style={{ fontSize: 13, color: '#7A7890', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{scopeLabel}</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
               {isTimeMode && <PeriodCountdown periodType={activeNav} periodKey={periodKey} />}
               {isTimeMode && (
                 <div style={{

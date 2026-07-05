@@ -69,7 +69,7 @@ export function BillingPage() {
     subscription?.plan_interval === 'lifetime' ? 'Lifetime' : '—'
 
   return (
-    <div className="px-8 py-6">
+    <div className="px-4 py-4 sm:px-8 sm:py-6">
       <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* Title */}

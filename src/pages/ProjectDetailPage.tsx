@@ -75,7 +75,7 @@ export function ProjectDetailPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-8">
+    <div className="flex flex-col gap-6 p-4 sm:p-8">
 
       {/* Back button */}
       <button

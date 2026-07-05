@@ -119,6 +119,7 @@ export function AllTimeStatsBar() {
   const { data: profile, isLoading } = useProfile()
 
   return (
+    <div className="overflow-x-auto">
     <div
       style={{
         backgroundColor: '#141417',
@@ -126,7 +127,7 @@ export function AllTimeStatsBar() {
         borderRadius:    14,
         display:         'flex',
         flexDirection:   'row',
-        width:           '100%',
+        minWidth:        560,
         overflow:        'hidden',
       }}
     >
@@ -190,6 +191,7 @@ export function AllTimeStatsBar() {
           />
         </>
       )}
+    </div>
     </div>
   )
 }

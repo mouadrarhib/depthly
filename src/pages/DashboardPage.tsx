@@ -93,7 +93,7 @@ export function DashboardPage() {
   }
 
   return (
-    <div style={{ padding: '20px 24px' }}>
+    <div className="px-4 py-5 sm:px-6">
 
       {/* Welcome banner — shown only when the user has zero sessions ever */}
       {totalSessions === 0 && profile && (
