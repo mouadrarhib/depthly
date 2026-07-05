@@ -24,6 +24,7 @@ interface TimerState {
   sessionCount:      number
   selectedProjectId: string | null
   selectedTaskId:    string | null
+  sessionTitle:      string
   notes:             string
   autoStartBreak:    boolean
   autoStartFocus:    boolean
@@ -41,6 +42,7 @@ interface TimerState {
   setPreset:          (preset: PomodoroPreset) => void
   setSelectedProject: (id: string | null) => void
   setSelectedTask:    (id: string | null) => void
+  setSessionTitle:    (title: string) => void
   setNotes:           (notes: string) => void
   setAutoStartBreak:  (val: boolean) => void
   setAutoStartFocus:  (val: boolean) => void
@@ -59,6 +61,7 @@ export const useTimerStore = create<TimerState>()((set, get) => ({
   sessionCount:      0,
   selectedProjectId: null,
   selectedTaskId:    null,
+  sessionTitle:      '',
   notes:             '',
   autoStartBreak:    false,
   autoStartFocus:    false,
@@ -133,6 +136,8 @@ export const useTimerStore = create<TimerState>()((set, get) => ({
   setSelectedProject: (id) => set({ selectedProjectId: id, selectedTaskId: null }),
 
   setSelectedTask: (id) => set({ selectedTaskId: id }),
+
+  setSessionTitle: (sessionTitle) => set({ sessionTitle }),
 
   setNotes: (notes) => set({ notes }),
 
