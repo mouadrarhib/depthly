@@ -16,6 +16,7 @@ const COLUMN_CONFIG: Record<Status, { bg: string; color: string; label: string }
 interface KanbanColumnProps {
   status:          Status
   tasks:           Task[]
+  sessionMinsMap?: Record<string, number>
   onEditTask:      (task: Task) => void
   onDeleteTask:    (task: Task) => void
   onDuplicateTask: (task: Task) => void
@@ -25,6 +26,7 @@ interface KanbanColumnProps {
 export function KanbanColumn({
   status,
   tasks,
+  sessionMinsMap,
   onEditTask,
   onDeleteTask,
   onDuplicateTask,
@@ -117,6 +119,7 @@ export function KanbanColumn({
               <KanbanCard
                 key={task.id}
                 task={task}
+                sessionMins={sessionMinsMap?.[task.id]}
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
                 onDuplicate={onDuplicateTask}

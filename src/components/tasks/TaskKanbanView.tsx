@@ -14,6 +14,7 @@ import { KanbanColumn } from '@/components/tasks/KanbanColumn'
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
 import {
   useTasks,
+  useTaskSessionMins,
   useDeleteTask,
   useDuplicateTask,
   useReorderKanban,
@@ -33,6 +34,7 @@ interface TaskKanbanViewProps {
 
 export function TaskKanbanView({ projectId, onEditTask, onAddTask }: TaskKanbanViewProps) {
   const { data: tasks = [], isLoading } = useTasks(projectId)
+  const { data: sessionMinsMap }        = useTaskSessionMins(projectId)
 
   const deleteTask    = useDeleteTask()
   const duplicateTask = useDuplicateTask()
@@ -124,6 +126,7 @@ export function TaskKanbanView({ projectId, onEditTask, onAddTask }: TaskKanbanV
             key={status}
             status={status}
             tasks={getColumnTasks(status)}
+            sessionMinsMap={sessionMinsMap}
             onEditTask={onEditTask}
             onDeleteTask={task => deleteTask.mutate({ id: task.id, projectId })}
             onDuplicateTask={task => duplicateTask.mutate(task.id)}

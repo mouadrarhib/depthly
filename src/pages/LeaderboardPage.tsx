@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Clock } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { BarChart2, Clock, Users } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { LeaderboardRow } from '@/components/leaderboard/LeaderboardRow'
@@ -12,6 +13,7 @@ import { useGlobalLeaderboard, useFriendsLeaderboard, useUserRank } from '@/hook
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase/client'
 import { formatMinutesToHours, formatPeriodKey } from '@/lib/utils/analytics'
+import { PATHS } from '@/routes/paths'
 import type { LeaderboardEntry } from '@/lib/supabase/queries/leaderboard'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -429,10 +431,66 @@ export function LeaderboardPage() {
                 <Spinner />
               </div>
             ) : entries.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '48px 20px', color: '#7A7890', fontSize: 14 }}>
-                {viewTab === 'friends' && isTimeMode
-                  ? 'Follow users to see them here.'
-                  : 'No data for this period yet.'}
+              <div style={{
+                display:        'flex',
+                flexDirection:  'column',
+                alignItems:     'center',
+                padding:        '48px 20px',
+                gap:            10,
+                textAlign:      'center',
+              }}>
+                {viewTab === 'friends' && isTimeMode ? (
+                  <>
+                    <Users style={{ width: 36, height: 36, color: '#3D3B4E' }} />
+                    <p style={{ fontSize: 15, fontWeight: 500, color: '#7A7890', margin: 0 }}>
+                      No friends yet
+                    </p>
+                    <p style={{ fontSize: 13, color: '#3D3B4E', margin: 0 }}>
+                      Click a user on the Everyone tab to follow them
+                    </p>
+                    <button
+                      onClick={() => setViewTab('global')}
+                      style={{
+                        marginTop:    6,
+                        padding:      '6px 16px',
+                        borderRadius: 8,
+                        border:       '1px solid #2E2E38',
+                        background:   '#222228',
+                        color:        '#7A7890',
+                        fontSize:     13,
+                        cursor:       'pointer',
+                      }}
+                    >
+                      Browse everyone →
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <BarChart2 style={{ width: 36, height: 36, color: '#3D3B4E' }} />
+                    <p style={{ fontSize: 15, fontWeight: 500, color: '#7A7890', margin: 0 }}>
+                      No data for this period
+                    </p>
+                    <p style={{ fontSize: 13, color: '#3D3B4E', margin: 0 }}>
+                      Complete a focus session to appear on the leaderboard
+                    </p>
+                    <Link
+                      to={PATHS.timer}
+                      style={{
+                        marginTop:    6,
+                        padding:      '6px 16px',
+                        borderRadius: 8,
+                        border:       '1px solid rgba(75,158,255,0.2)',
+                        background:   'rgba(75,158,255,0.06)',
+                        color:        '#4B9EFF',
+                        fontSize:     13,
+                        textDecoration: 'none',
+                        display:      'inline-block',
+                      }}
+                    >
+                      Start a session →
+                    </Link>
+                  </>
+                )}
               </div>
             ) : (
               (entries as Array<StreakEntry | LeaderboardEntry>).map(entry => (

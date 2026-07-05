@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { MoreHorizontal } from 'lucide-react'
+import { Clock, MoreHorizontal } from 'lucide-react'
 
 import {
   DropdownMenu,
@@ -12,16 +12,18 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
 import { formatDueDate, isOverdue } from '@/lib/utils/tasks'
+import { formatMinutesToHours } from '@/lib/utils/analytics'
 import type { Task } from '@/lib/supabase/queries/tasks'
 
 interface KanbanCardProps {
-  task:        Task
-  onEdit:      (task: Task) => void
-  onDelete:    (task: Task) => void
-  onDuplicate: (task: Task) => void
+  task:         Task
+  sessionMins?: number
+  onEdit:       (task: Task) => void
+  onDelete:     (task: Task) => void
+  onDuplicate:  (task: Task) => void
 }
 
-export function KanbanCard({ task, onEdit, onDelete, onDuplicate }: KanbanCardProps) {
+export function KanbanCard({ task, sessionMins, onEdit, onDelete, onDuplicate }: KanbanCardProps) {
   const [isHovered, setIsHovered] = useState(false)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -36,7 +38,8 @@ export function KanbanCard({ task, onEdit, onDelete, onDuplicate }: KanbanCardPr
     (task.actual_pomodoros != null && task.actual_pomodoros > 0) ||
     task.estimated_pomodoros != null
 
-  const showBottom = !!dueText || showPomCount
+  const showSessionTime = sessionMins != null && sessionMins > 0
+  const showBottom      = !!dueText || showPomCount || showSessionTime
 
   // Merge dnd-kit's transform transition with visual transitions
   const visualTransition = 'background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease'
@@ -154,6 +157,17 @@ export function KanbanCard({ task, onEdit, onDelete, onDuplicate }: KanbanCardPr
               {task.actual_pomodoros ?? 0}
               {task.estimated_pomodoros != null && ` / ${task.estimated_pomodoros}`}
               {' 🍅'}
+            </span>
+          )}
+
+          {/* Total session time */}
+          {showSessionTime && (
+            <span
+              className="ml-auto flex items-center gap-1 font-data"
+              style={{ fontSize: 11, color: '#3D3B4E' }}
+            >
+              <Clock size={10} style={{ color: '#3D3B4E', flexShrink: 0 }} />
+              {formatMinutesToHours(sessionMins!)}
             </span>
           )}
         </div>

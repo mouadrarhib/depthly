@@ -13,9 +13,10 @@ export const sessionKeys = {
 }
 
 export const taskKeys = {
-  all:       ['tasks'] as const,
-  byProject: (projectId: string) => ['tasks', 'project', projectId] as const,
-  detail:    (id: string) => ['tasks', id] as const,
+  all:         ['tasks'] as const,
+  byProject:   (projectId: string) => ['tasks', 'project', projectId] as const,
+  detail:      (id: string) => ['tasks', id] as const,
+  sessionMins: (projectId: string) => ['tasks', 'session-mins', projectId] as const,
 }
 
 export const goalKeys = {

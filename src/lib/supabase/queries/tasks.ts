@@ -82,6 +82,24 @@ export async function deleteTask(id: string): Promise<void> {
   if (error) throw error
 }
 
+export async function fetchSessionMinsByTask(projectId: string): Promise<Record<string, number>> {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('task_id, duration_mins')
+    .eq('project_id', projectId)
+    .not('task_id', 'is', null)
+
+  if (error) throw error
+
+  const totals: Record<string, number> = {}
+  for (const row of data ?? []) {
+    if (row.task_id) {
+      totals[row.task_id] = (totals[row.task_id] ?? 0) + row.duration_mins
+    }
+  }
+  return totals
+}
+
 export async function duplicateTask(id: string): Promise<Task> {
   const original = await fetchTaskById(id)
 

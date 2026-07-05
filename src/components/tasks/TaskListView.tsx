@@ -14,7 +14,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Check, MoreHorizontal } from 'lucide-react'
+import { Check, Clock, MoreHorizontal } from 'lucide-react'
 
 import {
   DropdownMenu,
@@ -27,6 +27,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
 import {
   useTasks,
+  useTaskSessionMins,
   useUpdateTask,
   useDeleteTask,
   useDuplicateTask,
@@ -39,6 +40,7 @@ import {
   PRIORITY_CONFIG,
   STATUS_CONFIG,
 } from '@/lib/utils/tasks'
+import { formatMinutesToHours } from '@/lib/utils/analytics'
 import type { Task } from '@/lib/supabase/queries/tasks'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -98,6 +100,7 @@ function FilterPill({ label, active, onClick, color }: FilterPillProps) {
 interface RowProps {
   task:            Task
   projectId:       string
+  sessionMins?:    number
   onEdit:          (task: Task) => void
   onDeleteRequest: (id: string) => void
   onToggle:        (task: Task) => void
@@ -107,6 +110,7 @@ interface RowProps {
 function SortableTaskRow({
   task,
   projectId: _projectId,
+  sessionMins,
   onEdit,
   onDeleteRequest,
   onToggle,
@@ -193,6 +197,17 @@ function SortableTaskRow({
         </span>
       )}
 
+      {/* Total session time */}
+      {sessionMins != null && sessionMins > 0 && (
+        <span
+          className="flex shrink-0 items-center gap-1 font-data"
+          style={{ fontSize: 12, color: '#3D3B4E' }}
+        >
+          <Clock size={11} style={{ color: '#3D3B4E', flexShrink: 0 }} />
+          {formatMinutesToHours(sessionMins)}
+        </span>
+      )}
+
       {/* Three-dot menu — visible on hover only */}
       <DropdownMenu>
         <DropdownMenuTrigger
@@ -230,6 +245,7 @@ interface TaskListViewProps {
 
 export function TaskListView({ projectId, onEditTask, onCreateTask }: TaskListViewProps) {
   const { data: tasks = [], isLoading } = useTasks(projectId)
+  const { data: sessionMinsMap }        = useTaskSessionMins(projectId)
 
   const updateTask    = useUpdateTask()
   const deleteTask    = useDeleteTask()
@@ -366,6 +382,7 @@ export function TaskListView({ projectId, onEditTask, onCreateTask }: TaskListVi
                   key={task.id}
                   task={task}
                   projectId={projectId}
+                  sessionMins={sessionMinsMap?.[task.id]}
                   onEdit={onEditTask}
                   onDeleteRequest={setDeleteTarget}
                   onToggle={handleToggle}

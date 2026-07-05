@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { taskKeys, projectKeys } from '@/lib/queryKeys'
 import {
   fetchTasksByProject,
+  fetchSessionMinsByTask,
   createTask,
   updateTask,
   deleteTask,
@@ -14,6 +15,14 @@ export function useTasks(projectId: string) {
   return useQuery({
     queryKey: taskKeys.byProject(projectId),
     queryFn:  () => fetchTasksByProject(projectId),
+    enabled:  !!projectId,
+  })
+}
+
+export function useTaskSessionMins(projectId: string) {
+  return useQuery({
+    queryKey: taskKeys.sessionMins(projectId),
+    queryFn:  () => fetchSessionMinsByTask(projectId),
     enabled:  !!projectId,
   })
 }
