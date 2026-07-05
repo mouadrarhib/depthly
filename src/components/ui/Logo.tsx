@@ -46,10 +46,10 @@ export function Logo({ size = 24, withWordmark = false, className }: LogoProps) 
 
       {withWordmark ? (
         <span
-          className="text-text font-medium lowercase"
+          className="text-text font-medium"
           style={{ fontSize: size * 0.65, letterSpacing: '-0.05em' }}
         >
-          depthly
+          Depthly
         </span>
       ) : null}
     </span>

@@ -184,7 +184,7 @@ export function Sidebar() {
                 {logoMark}
                 <div>
                   <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.03em', color: '#E8E6F0' }}>
-                    depthly
+                    Depthly
                   </div>
                   <div style={{ fontSize: 11, color: '#7A7890', marginTop: 1 }}>
                     Stay focused, work deeper

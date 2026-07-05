@@ -80,7 +80,7 @@ export function LogoIntro({ onComplete }: LogoIntroProps) {
             />
           </svg>
 
-          <span className="logo-intro__wordmark">depthly</span>
+          <span className="logo-intro__wordmark">Depthly</span>
         </div>
 
         <div className="logo-intro__tagline">
