@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
 
 import { useAuth } from '@/hooks/shared/useAuth'
 import { useUiStore } from '@/store'
@@ -11,6 +12,12 @@ export function AppLayout() {
   useAuth()
 
   const { sidebarOpen, toggleSidebar } = useUiStore()
+  const { pathname } = useLocation()
+  const mainRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, behavior: 'instant' })
+  }, [pathname])
 
   return (
     <div className="flex h-dvh overflow-hidden" style={{ background: 'var(--color-surface-base)' }}>
@@ -33,7 +40,7 @@ export function AppLayout() {
       >
         <Topbar />
 
-        <main className="flex-1 overflow-y-auto p-3 sm:p-6">
+        <main ref={mainRef} className="flex-1 overflow-y-auto p-3 sm:p-6">
           <Outlet />
         </main>
       </div>

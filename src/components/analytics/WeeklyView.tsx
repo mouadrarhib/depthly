@@ -359,6 +359,19 @@ export function WeeklyView({ date }: WeeklyViewProps) {
         )}
       </div>
 
+      {/* ── No-sessions notice for the current week ── */}
+      {!isLoading && thisWeekMinutes === 0 && (
+        <div style={{ textAlign: 'center', padding: '16px 0 8px' }}>
+          <p style={{ fontSize: 13, color: '#7A7890' }}>No sessions this week yet</p>
+          <Link
+            to={PATHS.home}
+            style={{ fontSize: 13, color: '#4B9EFF', marginTop: 6, display: 'block', textDecoration: 'none' }}
+          >
+            Start tracking →
+          </Link>
+        </div>
+      )}
+
       {/* ── Bottom: Bar chart ── */}
       {isLoading ? <ChartCardSkeleton /> : (
         <div style={card}>

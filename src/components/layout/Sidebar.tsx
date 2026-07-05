@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
-import { BarChart2, Clock, FolderOpen, History, Settings, Trophy } from 'lucide-react'
+import { BarChart2, Clock, FolderOpen, History, LayoutDashboard, Settings, Trophy } from 'lucide-react'
 
 import { useUiStore } from '@/store'
 import { PATHS } from '@/routes/paths'
@@ -15,12 +15,13 @@ interface NavItem {
 
 // ── Nav items — Depthly's domains. Uncomment as you build each page. ────────
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Timer',     path: PATHS.home,      icon: <Clock size={18} />     },
-  { label: 'Projects',  path: PATHS.projects,  icon: <FolderOpen size={18} /> },
-  { label: 'Sessions',  path: PATHS.sessions,  icon: <History size={18} />   },
-  { label: 'Analytics',   path: PATHS.analytics,   icon: <BarChart2 size={18} /> },
-  { label: 'Leaderboard', path: PATHS.leaderboard, icon: <Trophy size={18} />   },
-  { label: 'Settings',    path: PATHS.settings,    icon: <Settings size={18} />  },
+  { label: 'Dashboard',   path: PATHS.home,        icon: <LayoutDashboard size={18} /> },
+  { label: 'Timer',       path: PATHS.timer,       icon: <Clock size={18} />           },
+  { label: 'Projects',    path: PATHS.projects,    icon: <FolderOpen size={18} />      },
+  { label: 'Sessions',    path: PATHS.sessions,    icon: <History size={18} />         },
+  { label: 'Analytics',   path: PATHS.analytics,   icon: <BarChart2 size={18} />       },
+  { label: 'Leaderboard', path: PATHS.leaderboard, icon: <Trophy size={18} />          },
+  { label: 'Settings',    path: PATHS.settings,    icon: <Settings size={18} />        },
   // { label: 'Goals', path: PATHS.goals, icon: <Target size={18} /> },
 ]
 

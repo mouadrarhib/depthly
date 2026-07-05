@@ -407,6 +407,21 @@ export function DailyView({ date }: DailyViewProps) {
         )}
       </div>
 
+      {/* ── No-sessions notice for the selected day ── */}
+      {!isLoading && focusMinutes === 0 && sessionCount === 0 && (
+        <div style={{ textAlign: 'center', padding: '32px 0' }}>
+          <p style={{ fontSize: 13, color: '#7A7890' }}>No sessions on this day</p>
+          {dateKey === formatPeriodKey(new Date(), 'daily') && (
+            <Link
+              to={PATHS.home}
+              style={{ fontSize: 13, color: '#4B9EFF', marginTop: 6, display: 'block', textDecoration: 'none' }}
+            >
+              Start a session →
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* ── Daily Timeline ── */}
       {isLoading ? <TimelineCardSkeleton /> : (
         <div style={card}>

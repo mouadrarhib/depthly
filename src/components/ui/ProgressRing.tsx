@@ -42,7 +42,7 @@ export function ProgressRing({
           cy={center}
           r={radius}
           fill="none"
-          stroke="var(--color-surface-overlay)"
+          stroke="rgba(255,255,255,0.08)"
           strokeWidth={strokeWidth}
         />
         {/* Progress */}

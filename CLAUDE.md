@@ -126,8 +126,8 @@ Check limits via `usePlan().checkLimit(type)` — never inline the limit logic.
 ---
 
 ## Current phase
-Check PROGRESS.md for current status. Work only on the explicitly stated task for this session.
-Never work ahead into future phases without being asked.
+Phase 11 complete. Moving to Phase 12 Launch.
+All core features built. Lemon Squeezy checkout pending verification.
 
 ---
 
@@ -152,9 +152,10 @@ Never work ahead into future phases without being asked.
 Detailed implementation references live in docs/.
 Read the relevant doc before touching a feature:
 
-- Timer:    docs/timer.md
-- Projects: docs/PROJECTS.md
-- Tasks:    docs/TASKS.md
+- Dashboard: docs/DASHBOARD.md
+- Timer:     docs/timer.md
+- Projects:  docs/PROJECTS.md
+- Tasks:     docs/TASKS.md
 
 These docs reflect what is actually built.
 They are the source of truth for implementation

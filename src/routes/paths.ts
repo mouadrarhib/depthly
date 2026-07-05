@@ -16,9 +16,11 @@ export const PATHS = {
   resetPassword:    '/reset-password',
   emailConfirmed:   '/email-confirmed',
 
-  // App — Timer lives at home, the rest are Depthly's other domains.
+  // App — Dashboard at root; timer is embedded in the dashboard.
   // Uncomment each as you build its page (matches Sidebar NAV_ITEMS).
-  home:      '/',            // Timer
+  home:      '/',            // Dashboard
+  dashboard: '/dashboard',   // Alias — redirects to /
+  timer:     '/timer',       // Alias — redirects to / (timer is embedded in dashboard)
   settings:  '/settings',
   projects:  '/projects',
   sessions:  '/sessions',
