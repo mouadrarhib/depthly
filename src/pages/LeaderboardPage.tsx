@@ -343,8 +343,8 @@ export function LeaderboardPage() {
           {!showNavigator && <div style={{ marginBottom: 20 }} />}
 
           {/* Status bar */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center" style={{ marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }} className="sm:flex-1">
               <span style={{
                 padding:      '2px 10px',
                 borderRadius: 9999,
@@ -396,6 +396,8 @@ export function LeaderboardPage() {
                 display:         'flex',
                 alignItems:      'center',
                 justifyContent:  'space-between',
+                flexWrap:        'wrap',
+                gap:             8,
                 marginBottom:    16,
                 background:      isRanked ? 'rgba(75,158,255,0.05)' : '#141417',
               }}>
