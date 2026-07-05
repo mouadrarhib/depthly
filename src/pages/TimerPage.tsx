@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { useTimerEffects } from '@/hooks/useTimerEffects'
 import { useSaveSession } from '@/hooks/useSaveSession'
+import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { TimerFullscreen } from '@/components/timer/TimerFullscreen'
 import { TimerModeSelector } from '@/components/timer/TimerModeSelector'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
@@ -188,9 +189,18 @@ export function TimerPage() {
   useTimerEffects()
 
   const { elapsed, duration, mode, sessionType, isRunning } = useTimerStore()
-  const { saveSession } = useSaveSession()
+  const { saveSession, isSessionLimitReached } = useSaveSession()
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
 
   const savedRef = useRef(false)
+
+  // Intercept timer start when monthly session limit is reached
+  useEffect(() => {
+    if (isRunning && sessionType === 'focus' && isSessionLimitReached && !upgradeOpen) {
+      useTimerStore.getState().pause()
+      setUpgradeOpen(true)
+    }
+  }, [isRunning, sessionType, isSessionLimitReached, upgradeOpen])
 
   useEffect(() => {
     if (elapsed === 0) {
@@ -231,6 +241,12 @@ export function TimerPage() {
 
       {/* Fixed fullscreen overlay */}
       <TimerFullscreen />
+
+      <UpgradeModal
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        trigger="sessions"
+      />
     </>
   )
 }

@@ -1,10 +1,15 @@
+import { useState } from 'react'
+import { Lock } from 'lucide-react'
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { useDailySummariesRange } from '@/hooks/useAnalytics'
+import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
 import {
   getDaysInMonth,
   formatPeriodKey,
@@ -68,6 +73,13 @@ export function MonthlyView({ date }: MonthlyViewProps) {
 
   const isLoading = loadingThis || loadingPrev
   const todayKey  = formatPeriodKey(new Date(), 'daily')
+  const { windowDays, isPro } = useAnalyticsWindow()
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
+
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - windowDays)
+  const cutoffKey   = formatPeriodKey(cutoff, 'daily')
+  const showOverlay = !isPro && firstKey < cutoffKey
 
   const summaryMap = new Map((summaries ?? []).map(s => [s.date, s]))
   const prevMap    = new Map((prevSummaries ?? []).map(s => [s.date, s]))
@@ -130,6 +142,7 @@ export function MonthlyView({ date }: MonthlyViewProps) {
 
       {/* Calendar heatmap */}
       {!isLoading && (
+        <div style={{ position: 'relative' }}>
         <div style={{
           backgroundColor: '#141417',
           border:          '1px solid #2E2E38',
@@ -227,7 +240,25 @@ export function MonthlyView({ date }: MonthlyViewProps) {
             </div>
           </div>
         </div>
+        {showOverlay && (
+          <>
+            <div style={{ position: 'absolute', inset: 0, backdropFilter: 'blur(4px)', pointerEvents: 'none', zIndex: 1, borderRadius: 14 }} />
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, zIndex: 2 }}>
+              <Lock size={20} color="#7A7890" />
+              <span style={{ fontSize: 14, color: '#E8E6F0', fontWeight: 500 }}>Unlock full history</span>
+              <button
+                onClick={() => setUpgradeOpen(true)}
+                style={{ background: '#4B9EFF', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+              >
+                Upgrade to Pro
+              </button>
+            </div>
+          </>
+        )}
+        </div>
       )}
+
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="analytics" />
 
     </div>
   )

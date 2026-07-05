@@ -3,9 +3,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { saveSession } from '@/lib/supabase/queries/sessions'
 import { useAuthStore } from '@/store'
 import { useTimerStore } from '@/store/timerStore'
+import { useSessionMonthLimit } from '@/hooks/usePlanLimits'
 
 export function useSaveSession() {
   const queryClient = useQueryClient()
+  const { isAtLimit } = useSessionMonthLimit()
 
   const { mutate, isPending } = useMutation({
     mutationFn: saveSession,
@@ -22,6 +24,8 @@ export function useSaveSession() {
   })
 
   const handleSave = () => {
+    if (isAtLimit) return
+
     const user = useAuthStore.getState().user
     if (!user) return
 
@@ -44,5 +48,5 @@ export function useSaveSession() {
     })
   }
 
-  return { saveSession: handleSave, isSaving: isPending }
+  return { saveSession: handleSave, isSaving: isPending, isSessionLimitReached: isAtLimit }
 }

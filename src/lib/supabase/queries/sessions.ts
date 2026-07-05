@@ -129,6 +129,21 @@ export async function deleteSession(id: string): Promise<void> {
   if (error) throw error
 }
 
+export async function fetchSessionsThisMonth(userId: string): Promise<number> {
+  const now = new Date()
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+
+  const { count, error } = await supabase
+    .from('sessions')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('type', 'focus')
+    .gte('started_at', firstOfMonth)
+
+  if (error) throw error
+  return count ?? 0
+}
+
 export async function createManualSession(data: CreateManualSessionInput): Promise<Session> {
   // Routes through save_session() RPC so daily_summaries and user_stats stay correct.
   // The RPC does not expose an is_manual parameter (the DB column defaults to false);

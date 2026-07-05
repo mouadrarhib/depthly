@@ -10,6 +10,7 @@ import { LoginPage } from '@/pages/auth/LoginPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
+import { BillingPage } from '@/pages/BillingPage'
 import { LeaderboardPage } from '@/pages/LeaderboardPage'
 import { PublicProfilePage } from '@/pages/PublicProfilePage'
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
@@ -48,6 +49,7 @@ export const router = createBrowserRouter(
             { path: '/sessions',     element: <SessionsPage /> },
             { path: '/analytics',    element: <AnalyticsPage /> },
             { path: '/leaderboard', element: <LeaderboardPage /> },
+            { path: '/billing',     element: <BillingPage /> },
           ],
         },
       ],

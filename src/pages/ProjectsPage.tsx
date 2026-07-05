@@ -7,12 +7,14 @@ import { Button } from '@/components/ui/button'
 import { ProjectCard } from '@/components/projects/ProjectCard'
 import { ProjectModal } from '@/components/projects/ProjectModal'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import {
   useProjects,
   useArchiveProject,
   useDeleteProject,
   useProjectStats,
 } from '@/hooks/useProjects'
+import { useProjectLimit } from '@/hooks/usePlanLimits'
 import { PATHS } from '@/routes/paths'
 import type { Tables } from '@/types/database'
 
@@ -74,10 +76,17 @@ export function ProjectsPage() {
   const [isCreateOpen,    setIsCreateOpen]    = useState(false)
   const [editingProject,  setEditingProject]  = useState<Project | null>(null)
   const [deletingProject, setDeletingProject] = useState<Project | null>(null)
+  const [upgradeOpen,     setUpgradeOpen]     = useState(false)
 
   const { data: projects = [], isLoading } = useProjects()
   const archiveProject = useArchiveProject()
   const deleteProject  = useDeleteProject()
+  const { isAtLimit, count: projectCount, max: projectMax, isPro } = useProjectLimit()
+
+  function handleNewProject() {
+    if (isAtLimit) setUpgradeOpen(true)
+    else setIsCreateOpen(true)
+  }
 
   const sorted = [...projects].sort((a, b) => {
     if (sortBy === 'alphabetical') {
@@ -94,30 +103,38 @@ export function ProjectsPage() {
     <div className="px-8 py-6 flex flex-col gap-6">
 
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1
-            className="text-ink-primary"
-            style={{ fontSize: 22, fontWeight: 500, letterSpacing: '-0.03em' }}
-          >
-            Projects
-          </h1>
-          {!isLoading && (
-            <Badge
-              className="border-transparent bg-depth-raised text-ink-muted font-medium"
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1
+              className="text-ink-primary"
+              style={{ fontSize: 22, fontWeight: 500, letterSpacing: '-0.03em' }}
             >
-              {projects.length}
-            </Badge>
-          )}
+              Projects
+            </h1>
+            {!isLoading && (
+              <Badge
+                className="border-transparent bg-depth-raised text-ink-muted font-medium"
+              >
+                {projects.length}
+              </Badge>
+            )}
+          </div>
+
+          <Button
+            variant="primary"
+            onClick={handleNewProject}
+          >
+            <Plus size={16} />
+            New Project
+          </Button>
         </div>
 
-        <Button
-          variant="primary"
-          onClick={() => setIsCreateOpen(true)}
-        >
-          <Plus size={16} />
-          New Project
-        </Button>
+        {!isPro && (
+          <span className="text-[11px] text-ink-muted">
+            {projectCount} / {projectMax} projects · Free plan
+          </span>
+        )}
       </div>
 
       {/* Sort pills */}
@@ -155,7 +172,7 @@ export function ProjectsPage() {
           <p className="text-ink-muted text-sm max-w-xs">
             Create your first project to start tracking focus sessions
           </p>
-          <Button variant="primary" onClick={() => setIsCreateOpen(true)}>
+          <Button variant="primary" onClick={handleNewProject}>
             <Plus size={16} />
             New Project
           </Button>
@@ -182,6 +199,13 @@ export function ProjectsPage() {
       <ProjectModal
         open={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
+      />
+
+      {/* Upgrade modal */}
+      <UpgradeModal
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        trigger="projects"
       />
 
       {/* Edit modal */}
