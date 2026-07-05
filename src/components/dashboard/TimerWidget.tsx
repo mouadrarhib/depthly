@@ -29,10 +29,10 @@ export function TimerWidget() {
   const {
     elapsed, duration, mode, sessionType,
     isRunning, isPaused, sessionCount,
-    start, pause, resume, stop,
+    start, pause, resume,
   } = useTimerStore()
 
-  const { saveSession, isSessionLimitReached } = useSaveSession()
+  const { saveSession, saveAndStop, isSessionLimitReached } = useSaveSession()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const savedRef = useRef(false)
 
@@ -149,7 +149,7 @@ export function TimerWidget() {
       ) : isPaused ? (
         <div style={{ display: 'flex', gap: 8 }}>
           <Btn onClick={resume} variant="blue">Resume</Btn>
-          <Btn onClick={stop}   variant="red">Stop</Btn>
+          <Btn onClick={saveAndStop} variant="red">Stop</Btn>
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 8 }}>

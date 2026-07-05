@@ -3,9 +3,15 @@ import { cn } from '@/lib/utils'
 
 const base = 'inline-flex items-center justify-center font-medium cursor-pointer transition-all disabled:pointer-events-none disabled:opacity-50 select-none'
 
-export function TimerControls() {
+interface TimerControlsProps {
+  onStop?: () => void
+}
+
+export function TimerControls({ onStop }: TimerControlsProps = {}) {
   const { isRunning, isPaused, sessionType, start, pause, resume, stop, skipBreak } =
     useTimerStore()
+
+  const handleStop = onStop ?? stop
 
   const isIdle = !isRunning && !isPaused
 
@@ -73,7 +79,7 @@ export function TimerControls() {
 
         {/* Stop — faint red chip */}
         <button
-          onClick={stop}
+          onClick={handleStop}
           className={cn(base, 'h-[44px] sm:h-[48px] min-w-[100px] sm:min-w-[120px] px-4 sm:px-6 rounded-[12px] text-[13px] sm:text-[14px]')}
           style={{
             background: 'rgba(242, 92, 92, 0.06)',
@@ -129,7 +135,7 @@ export function TimerControls() {
 
       {/* Stop — faint red chip */}
       <button
-        onClick={stop}
+        onClick={handleStop}
         className={cn(base, 'h-[44px] sm:h-[48px] min-w-[100px] sm:min-w-[120px] px-4 sm:px-6 rounded-[12px] text-[13px] sm:text-[14px]')}
         style={{
           background: 'rgba(242, 92, 92, 0.06)',

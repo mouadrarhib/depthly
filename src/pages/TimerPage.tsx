@@ -189,7 +189,7 @@ export function TimerPage() {
   useTimerEffects()
 
   const { elapsed, duration, mode, sessionType, isRunning } = useTimerStore()
-  const { saveSession, isSessionLimitReached } = useSaveSession()
+  const { saveSession, saveAndStop, isSessionLimitReached } = useSaveSession()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
 
   const savedRef = useRef(false)
@@ -231,7 +231,7 @@ export function TimerPage() {
 
         <TimerDisplay />
 
-        <TimerControls />
+        <TimerControls onStop={saveAndStop} />
 
         <BottomActionRow />
       </div>
