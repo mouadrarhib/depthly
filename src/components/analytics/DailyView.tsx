@@ -202,7 +202,7 @@ export function DailyView({ date }: DailyViewProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── Top two-column grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_2fr]">
 
         {/* Left: two stat cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -328,7 +328,7 @@ export function DailyView({ date }: DailyViewProps) {
             />
 
             {hasSessions ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+              <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
                 {/* Donut */}
                 <div style={{ position: 'relative', flexShrink: 0 }}>
                   <PieChart width={180} height={180}>

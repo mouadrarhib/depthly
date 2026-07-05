@@ -213,7 +213,7 @@ export function WeeklyView({ date }: WeeklyViewProps) {
       <div style={{ position: 'relative' }}>
 
       {/* ── Top two-column grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_2fr]">
 
         {/* Left: Weekly Summary */}
         {isLoading ? <SummaryCardSkeleton /> : (
@@ -281,7 +281,7 @@ export function WeeklyView({ date }: WeeklyViewProps) {
         {isLoading ? <ProjectCardSkeleton /> : (
           <div style={{ ...card, height: '100%', boxSizing: 'border-box' }}>
             {thisWeekMinutes > 0 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+              <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
                 {/* Donut */}
                 <div style={{ position: 'relative', flexShrink: 0 }}>
                   <PieChart width={160} height={160}>

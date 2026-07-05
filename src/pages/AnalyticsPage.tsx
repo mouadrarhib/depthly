@@ -97,7 +97,7 @@ export function AnalyticsPage() {
                         'data-[state=active]:border data-[state=active]:border-[rgba(75,158,255,0.3)]',
                         'data-[state=active]:shadow-none',
                       ].join(' ')}
-                      style={{ padding: '8px 20px' }}
+                      style={{ padding: '6px 14px' }}
                     >
                       {label}
                     </TabsTrigger>

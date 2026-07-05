@@ -97,7 +97,7 @@ export function MonthlyView({ date }: MonthlyViewProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       {/* Stats row */}
-      <div style={{ display: 'flex', gap: 16 }}>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {isLoading ? (
           <>
             <SkeletonCard />
