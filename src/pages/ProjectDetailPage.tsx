@@ -59,7 +59,7 @@ export function ProjectDetailPage() {
   const archiveMutation  = isArchived ? updateProject : archiveProject
   const isArchivePending = archiveMutation.isPending
 
-  function openCreateTask(status?: string) {
+  function openCreateTask(_status?: string) {
     setEditingTask(null)
     setIsTaskModalOpen(true)
   }

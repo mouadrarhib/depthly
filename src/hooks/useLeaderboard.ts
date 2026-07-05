@@ -33,7 +33,7 @@ export function useFriendsLeaderboard(periodType: string, periodKey: string) {
   const userId = useAuthStore(s => s.user?.id ?? '')
   return useQuery({
     queryKey: leaderboardKeys.friends(userId, periodType, periodKey),
-    queryFn:  () => fetchFriendsLeaderboard(userId, periodType, periodKey),
+    queryFn:  () => fetchFriendsLeaderboard(userId, periodType as 'daily' | 'weekly' | 'monthly' | 'yearly', periodKey),
     enabled:  !!userId,
   })
 }
@@ -42,7 +42,7 @@ export function useUserRank(periodType: string, periodKey: string) {
   const userId = useAuthStore(s => s.user?.id ?? '')
   return useQuery({
     queryKey: leaderboardKeys.userRank(userId, periodType, periodKey),
-    queryFn:  () => fetchUserRank(userId, periodType, periodKey),
+    queryFn:  () => fetchUserRank(userId, periodType as 'daily' | 'weekly' | 'monthly' | 'yearly', periodKey),
     enabled:  !!userId,
   })
 }

@@ -61,5 +61,5 @@ export const router = createBrowserRouter(
     // ── 404 ───────────────────────────────────────────────────────────────
     { path: '*', element: <NotFoundPage /> },
   ],
-  { future: { v7_startTransition: true } },
+  {},
 )

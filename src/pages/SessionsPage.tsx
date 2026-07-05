@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Clock, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, Download, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -11,9 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { ExportPanel } from '@/components/sessions/ExportPanel'
 import { SessionModal } from '@/components/sessions/SessionModal'
 import { SessionRow } from '@/components/sessions/SessionRow'
 import { useSessionsPaginated, useDeleteSession } from '@/hooks/useSessions'
+import { useProjects } from '@/hooks/useProjects'
+import { usePlan } from '@/hooks/usePlan'
 import { formatPeriodKey } from '@/lib/utils/analytics'
 import { PATHS } from '@/routes/paths'
 import type { SessionWithRelations } from '@/lib/supabase/queries/sessions'
@@ -98,6 +101,10 @@ export function SessionsPage() {
   const sessions   = query.data?.sessions   ?? []
   const totalCount = query.data?.totalCount ?? 0
   const isPending  = query.isPending
+
+  const { data: projects } = useProjects()
+  const { isPro }          = usePlan()
+  const exportPanelRef     = useRef<HTMLDivElement>(null)
 
   const deleteSession = useDeleteSession()
 
@@ -216,10 +223,22 @@ export function SessionsPage() {
             </span>
           )}
         </div>
-        <Button variant="primary" size="sm" onClick={openCreate}>
-          <Plus className="h-4 w-4" />
-          Add session
-        </Button>
+        <div className="flex items-center gap-2">
+          {isPro && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => exportPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
+          )}
+          <Button variant="primary" size="sm" onClick={openCreate}>
+            <Plus className="h-4 w-4" />
+            Add session
+          </Button>
+        </div>
       </div>
 
       {/* Loading */}
@@ -256,6 +275,11 @@ export function SessionsPage() {
       {/* Sessions exist — show filter bar + content */}
       {!isPending && totalCount > 0 && (
         <>
+          {/* ── Export panel ── */}
+          <div ref={exportPanelRef}>
+            <ExportPanel projects={projects ?? []} totalCount={totalCount} />
+          </div>
+
           {/* ── Filter bar ── */}
           <div style={{ marginBottom: 20 }}>
 

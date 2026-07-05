@@ -83,7 +83,7 @@ export function useArchiveProject() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => updateProject(id, { is_archived: true }),
-    onSuccess: (_result, id) => {
+    onSuccess: (_result, _id) => {
       qc.invalidateQueries({ queryKey: projectKeys.active })
       qc.invalidateQueries({ queryKey: projectKeys.archived })
     },

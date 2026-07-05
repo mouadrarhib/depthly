@@ -1,4 +1,7 @@
 import { supabase } from '@/lib/supabase/client'
+import type { Database } from '@/types/database'
+
+type PeriodType = Database['public']['Enums']['period_type']
 
 export type PublicProfile = {
   id: string
@@ -129,7 +132,7 @@ export async function fetchAllTimeLeaderboard(limit: number = 50): Promise<Leade
 
 export async function fetchUserRank(
   userId: string,
-  periodType: string,
+  periodType: PeriodType,
   periodKey: string,
 ): Promise<{ rank: number; focus_minutes: number } | null> {
   const { data: statsData, error: statsError } = await supabase
@@ -161,7 +164,7 @@ export async function fetchUserRank(
 
 export async function fetchFriendsLeaderboard(
   userId: string,
-  periodType: string,
+  periodType: PeriodType,
   periodKey: string,
 ): Promise<LeaderboardEntry[]> {
   const { data: followsData, error: followsError } = await supabase

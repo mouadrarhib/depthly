@@ -5,11 +5,21 @@ import { sessionKeys } from '@/lib/queryKeys'
 import {
   fetchSessionsByProject,
   fetchSessionsPaginated,
+  fetchSessionsForExport,
   updateSession,
   deleteSession,
   createManualSession,
 } from '@/lib/supabase/queries/sessions'
-import type { UpdateSessionInput, CreateManualSessionInput } from '@/lib/supabase/queries/sessions'
+import type {
+  UpdateSessionInput,
+  CreateManualSessionInput,
+  ExportFilters,
+} from '@/lib/supabase/queries/sessions'
+import {
+  convertSessionsToCSV,
+  downloadCSV,
+  generateExportFilename,
+} from '@/lib/utils/export'
 
 export function useSessionsByProject(projectId: string) {
   return useQuery({
@@ -22,10 +32,9 @@ export function useSessionsByProject(projectId: string) {
 export function useSessionsPaginated(page: number) {
   const userId = useAuthStore(s => s.user?.id ?? '')
   return useQuery({
-    queryKey:         sessionKeys.paginated(userId, page),
-    queryFn:          () => fetchSessionsPaginated(userId, page),
-    enabled:          !!userId,
-    keepPreviousData: true,
+    queryKey: sessionKeys.paginated(userId, page),
+    queryFn:  () => fetchSessionsPaginated(userId, page),
+    enabled:  !!userId,
   })
 }
 
@@ -60,4 +69,17 @@ export function useCreateManualSession() {
       qc.invalidateQueries({ queryKey: ['analytics'] })
     },
   })
+}
+
+export function useExportSessions() {
+  const userId = useAuthStore(s => s.user?.id ?? '')
+  const { mutate: exportSessions, isPending: isExporting } = useMutation({
+    mutationFn: (filters: ExportFilters) => fetchSessionsForExport(userId, filters),
+    onSuccess: (sessions, filters) => {
+      const csv = convertSessionsToCSV(sessions)
+      const filename = generateExportFilename(filters.startDate, filters.endDate)
+      downloadCSV(csv, filename)
+    },
+  })
+  return { exportSessions, isExporting }
 }

@@ -395,7 +395,7 @@ export function WeeklyView({ date }: WeeklyViewProps) {
                 <LabelList
                   dataKey="focus_minutes"
                   position="top"
-                  formatter={(val: number) => val > 0 ? formatMinutesToHours(val) : ''}
+                  formatter={(val: unknown) => typeof val === 'number' && val > 0 ? formatMinutesToHours(val) : ''}
                   style={{ fill: '#7A7890', fontSize: 11 }}
                 />
                 {chartData.map((entry, i) => {

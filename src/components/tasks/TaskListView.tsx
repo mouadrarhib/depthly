@@ -106,7 +106,7 @@ interface RowProps {
 
 function SortableTaskRow({
   task,
-  projectId,
+  projectId: _projectId,
   onEdit,
   onDeleteRequest,
   onToggle,

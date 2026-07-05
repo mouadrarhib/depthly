@@ -144,6 +144,39 @@ export async function fetchSessionsThisMonth(userId: string): Promise<number> {
   return count ?? 0
 }
 
+export type ExportFilters = {
+  startDate?: string
+  endDate?: string
+  projectId?: string | null
+}
+
+export async function fetchSessionsForExport(
+  userId: string,
+  filters: ExportFilters,
+): Promise<SessionWithRelations[]> {
+  let query = supabase
+    .from('sessions')
+    .select('*, projects(name, color), tasks(title)')
+    .eq('user_id', userId)
+    .eq('type', 'focus')
+    .order('started_at', { ascending: false })
+
+  if (filters.startDate) {
+    query = query.gte('started_at', filters.startDate)
+  }
+  if (filters.endDate) {
+    query = query.lte('started_at', `${filters.endDate}T23:59:59`)
+  }
+  if (filters.projectId) {
+    query = query.eq('project_id', filters.projectId)
+  }
+
+  const { data, error } = await query
+
+  if (error) throw error
+  return (data ?? []) as SessionWithRelations[]
+}
+
 export async function createManualSession(data: CreateManualSessionInput): Promise<Session> {
   // Routes through save_session() RPC so daily_summaries and user_stats stay correct.
   // The RPC does not expose an is_manual parameter (the DB column defaults to false);

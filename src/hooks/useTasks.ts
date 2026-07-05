@@ -116,7 +116,7 @@ export function useReorderKanban(projectId: string) {
           return {
             ...task,
             kanban_order: hit.kanban_order,
-            ...(hit.status !== undefined && { status: hit.status }),
+            ...(hit.status !== undefined && { status: hit.status as 'todo' | 'in_progress' | 'done' }),
           }
         })
       )
