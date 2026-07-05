@@ -15,9 +15,7 @@ export function useSaveSession() {
     mutationFn: saveSession,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] })
-      queryClient.invalidateQueries({ queryKey: ['daily-summaries'] })
-      queryClient.invalidateQueries({ queryKey: ['user-stats'] })
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ['analytics'] })
     },
   })
 

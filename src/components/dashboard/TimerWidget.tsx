@@ -153,8 +153,8 @@ export function TimerWidget() {
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 8 }}>
-          <Btn onClick={pause} variant="neutral">Pause</Btn>
-          <Btn onClick={stop}  variant="red">Stop</Btn>
+          <Btn onClick={pause}        variant="neutral">Pause</Btn>
+          <Btn onClick={saveAndStop} variant="red">Stop</Btn>
         </div>
       )}
 
