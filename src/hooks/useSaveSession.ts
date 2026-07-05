@@ -26,7 +26,7 @@ export function useSaveSession() {
     const user = useAuthStore.getState().user
     if (!user) return
 
-    const { elapsed, mode, sessionType, selectedProjectId, selectedTaskId } =
+    const { elapsed, mode, sessionType, selectedProjectId, selectedTaskId, notes } =
       useTimerStore.getState()
 
     const now       = new Date()
@@ -41,10 +41,10 @@ export function useSaveSession() {
       p_started_at:    startedAt.toISOString(),
       p_ended_at:      now.toISOString(),
       p_timer_mode:    mode,
-      p_notes:         null,
+      p_notes:         notes.trim() || null,
     }, {
       onSuccess: () => {
-        useTimerStore.setState((s) => ({ sessionCount: s.sessionCount + 1 }))
+        useTimerStore.setState((s) => ({ sessionCount: s.sessionCount + 1, notes: '' }))
         // Guard: skip startBreak if the user manually stopped the timer between
         // the save firing and the DB response coming back
         if (useTimerStore.getState().isRunning) {
@@ -56,7 +56,7 @@ export function useSaveSession() {
 
   // Manual early stop — resets UI immediately, saves in background if >= 1 min focus
   const handleSaveAndStop = () => {
-    const { elapsed, mode, sessionType, selectedProjectId, selectedTaskId } =
+    const { elapsed, mode, sessionType, selectedProjectId, selectedTaskId, notes } =
       useTimerStore.getState()
 
     // Reset timer immediately so UI snaps back right away
@@ -84,10 +84,10 @@ export function useSaveSession() {
       p_started_at:    startedAt.toISOString(),
       p_ended_at:      now.toISOString(),
       p_timer_mode:    mode,
-      p_notes:         null,
+      p_notes:         notes.trim() || null,
     }, {
       onSuccess: () => {
-        useTimerStore.setState((s) => ({ sessionCount: s.sessionCount + 1 }))
+        useTimerStore.setState((s) => ({ sessionCount: s.sessionCount + 1, notes: '' }))
       },
     })
   }

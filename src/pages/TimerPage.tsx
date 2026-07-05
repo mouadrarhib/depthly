@@ -8,6 +8,8 @@ import { TimerModeSelector } from '@/components/timer/TimerModeSelector'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { TimerControls } from '@/components/timer/TimerControls'
 import { TimerSettings } from '@/components/timer/TimerSettings'
+import { TimerNotesPanel } from '@/components/timer/TimerNotesPanel'
+import { TimerTodoPanel } from '@/components/timer/TimerTodoPanel'
 import { useTimerStore } from '@/store/timerStore'
 import { useUiStore } from '@/store'
 
@@ -107,8 +109,10 @@ function SessionDots() {
 // ── Bottom action row ─────────────────────────────────────────────────────
 
 function BottomActionRow() {
-  const toggleSettings  = useUiStore((s) => s.toggleSettings)
+  const toggleSettings   = useUiStore((s) => s.toggleSettings)
   const toggleFullscreen = useUiStore((s) => s.toggleFullscreen)
+  const toggleLog        = useUiStore((s) => s.toggleLog)
+  const toggleTodo       = useUiStore((s) => s.toggleTodo)
 
   const btnStyle: React.CSSProperties = {
     display:      'flex',
@@ -165,17 +169,35 @@ function BottomActionRow() {
       </button>
 
       <button
-        style={{ ...btnStyle, cursor: 'default', opacity: 0.5 }}
-        disabled
-        title="Coming soon"
+        style={btnStyle}
+        onClick={toggleLog}
+        onMouseEnter={(e) => {
+          const el = e.currentTarget as HTMLButtonElement
+          el.style.color      = 'var(--color-text)'
+          el.style.background = 'var(--color-surface-raised)'
+        }}
+        onMouseLeave={(e) => {
+          const el = e.currentTarget as HTMLButtonElement
+          el.style.color      = 'var(--color-text-muted)'
+          el.style.background = 'var(--color-surface-overlay)'
+        }}
       >
         <span>✏</span> Log
       </button>
 
       <button
-        style={{ ...btnStyle, cursor: 'default', opacity: 0.5 }}
-        disabled
-        title="Coming soon"
+        style={btnStyle}
+        onClick={toggleTodo}
+        onMouseEnter={(e) => {
+          const el = e.currentTarget as HTMLButtonElement
+          el.style.color      = 'var(--color-text)'
+          el.style.background = 'var(--color-surface-raised)'
+        }}
+        onMouseLeave={(e) => {
+          const el = e.currentTarget as HTMLButtonElement
+          el.style.color      = 'var(--color-text-muted)'
+          el.style.background = 'var(--color-surface-overlay)'
+        }}
       >
         <span>☑</span> Todo
       </button>
@@ -236,8 +258,10 @@ export function TimerPage() {
         <BottomActionRow />
       </div>
 
-      {/* Fixed right-side settings panel (renders on top) */}
+      {/* Fixed right-side slide-in panels */}
       <TimerSettings />
+      <TimerNotesPanel />
+      <TimerTodoPanel />
 
       {/* Fixed fullscreen overlay */}
       <TimerFullscreen />

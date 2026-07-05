@@ -11,6 +11,12 @@ interface UiState {
 
   isSettingsOpen:   boolean
   toggleSettings:   () => void
+
+  isLogOpen:        boolean
+  toggleLog:        () => void
+
+  isTodoOpen:       boolean
+  toggleTodo:       () => void
 }
 
 /**
@@ -32,7 +38,13 @@ export const useUiStore = create<UiState>()(
       toggleFullscreen: () => set((s) => ({ isFullscreen: !s.isFullscreen })),
 
       isSettingsOpen:   false,
-      toggleSettings:   () => set((s) => ({ isSettingsOpen: !s.isSettingsOpen })),
+      toggleSettings:   () => set((s) => ({ isSettingsOpen: !s.isSettingsOpen, isLogOpen: false, isTodoOpen: false })),
+
+      isLogOpen:        false,
+      toggleLog:        () => set((s) => ({ isLogOpen: !s.isLogOpen, isSettingsOpen: false, isTodoOpen: false })),
+
+      isTodoOpen:       false,
+      toggleTodo:       () => set((s) => ({ isTodoOpen: !s.isTodoOpen, isSettingsOpen: false, isLogOpen: false })),
     }),
     { name: 'ui-preferences' } // localStorage key
   )
