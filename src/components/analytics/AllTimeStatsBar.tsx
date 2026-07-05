@@ -15,27 +15,24 @@ function formatMemberSince(dateStr: string): string {
 }
 
 interface StatCellProps {
-  icon:        LucideIcon
-  iconBg:      string
-  iconColor:   string
-  value:       React.ReactNode
-  label:       string
-  isLast?:     boolean
+  icon:      LucideIcon
+  iconBg:    string
+  iconColor: string
+  value:     React.ReactNode
+  label:     string
 }
 
-function StatCell({ icon: Icon, iconBg, iconColor, value, label, isLast }: StatCellProps) {
+function StatCell({ icon: Icon, iconBg, iconColor, value, label }: StatCellProps) {
   return (
     <div
       style={{
-        flex:           1,
-        minWidth:       0,
-        display:        'flex',
-        flexDirection:  'column',
-        alignItems:     'center',
-        justifyContent: 'center',
-        padding:        '20px 16px',
-        borderRight:    isLast ? 'none' : '1px solid #2E2E38',
-        textAlign:      'center',
+        display:         'flex',
+        flexDirection:   'column',
+        alignItems:      'center',
+        justifyContent:  'center',
+        padding:         '20px 16px',
+        textAlign:       'center',
+        backgroundColor: '#141417',
       }}
     >
       {/* Icon */}
@@ -85,18 +82,16 @@ function StatCell({ icon: Icon, iconBg, iconColor, value, label, isLast }: StatC
   )
 }
 
-function SkeletonCell({ isLast }: { isLast?: boolean }) {
+function SkeletonCell() {
   return (
     <div
       style={{
-        flex:           1,
-        minWidth:       0,
-        display:        'flex',
-        flexDirection:  'column',
-        alignItems:     'center',
-        justifyContent: 'center',
-        padding:        '20px 16px',
-        borderRight:    isLast ? 'none' : '1px solid #2E2E38',
+        display:         'flex',
+        flexDirection:   'column',
+        alignItems:      'center',
+        justifyContent:  'center',
+        padding:         '20px 16px',
+        backgroundColor: '#141417',
       }}
     >
       <div
@@ -119,15 +114,12 @@ export function AllTimeStatsBar() {
   const { data: profile, isLoading } = useProfile()
 
   return (
-    <div className="overflow-x-auto">
     <div
+      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-px"
       style={{
-        backgroundColor: '#141417',
+        backgroundColor: '#2E2E38',
         border:          '1px solid #2E2E38',
         borderRadius:    14,
-        display:         'flex',
-        flexDirection:   'row',
-        minWidth:        560,
         overflow:        'hidden',
       }}
     >
@@ -138,7 +130,7 @@ export function AllTimeStatsBar() {
           <SkeletonCell />
           <SkeletonCell />
           <SkeletonCell />
-          <SkeletonCell isLast />
+          <SkeletonCell />
         </>
       ) : (
         <>
@@ -187,11 +179,9 @@ export function AllTimeStatsBar() {
             iconColor="#7A7890"
             value={formatMemberSince(profile.member_since)}
             label="member since"
-            isLast
           />
         </>
       )}
-    </div>
     </div>
   )
 }
