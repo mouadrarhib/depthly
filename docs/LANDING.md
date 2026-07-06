@@ -61,10 +61,19 @@ Reused from the app: `Logo`, `Button` (asChild + Link), `ProgressRing`,
 
 ## Section order
 
-1. **Nav** — logo lockup + "Stay focused, work deeper" tagline (hidden < md).
-   Logged out: "Log in" text link + "Get started" (brand fill). Logged in:
-   "Go to app" + initial avatar. Sticky, `rgba(13,13,16,0.88)` + blur,
-   0.5px bottom border.
+1. **Nav** — logo lockup + "Stay focused, work deeper" tagline (hidden < md),
+   then "Features" / "Pricing" anchor links (`#features` / `#pricing`,
+   smooth-scroll via global CSS, also hidden < md to keep the mobile CTA
+   layout tight). Logged out: "Log in" text link + "Get started" (brand
+   fill). Logged in: "Go to app" button, a 0.5px divider (same style as the
+   logo/tagline divider), then an avatar trigger with a hover
+   brightness+scale affordance and a working account dropdown (Radix
+   `DropdownMenu` — same component the app's `Topbar` uses): email, plan
+   badge, Dashboard, Settings, divider, Sign out. Fully keyboard-operable
+   (Enter/Space to open, arrow keys to navigate, Enter to select, Escape to
+   close) and focus-trapped for free via Radix; the portal-rendered content
+   is `z-50` so it always sits above page content. Sticky header itself,
+   `rgba(13,13,16,0.88)` + blur, 0.5px bottom border.
 2. **Hero** — "Work at depth." (alternates considered: "Deep work, made
    measurable." / "Focus deeper. Ship more."), one subtext line, "Get
    started free" → `/signup` + "Free forever • No credit card required".
