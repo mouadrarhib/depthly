@@ -14,7 +14,6 @@ export const PATHS = {
   signup:          '/signup',
   forgotPassword:   '/forgot-password',
   resetPassword:    '/reset-password',
-  emailConfirmed:   '/email-confirmed',
 
   // Public marketing site
   home:      '/',            // Landing page (logged-out visitors)

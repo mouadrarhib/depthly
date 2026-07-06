@@ -13,23 +13,15 @@ export function LoginPage() {
   const [password,           setPassword]           = useState('')
   const [isLoading,          setIsLoading]          = useState(false)
   const [error,              setError]              = useState<string | null>(null)
-  const [unconfirmed,        setUnconfirmed]        = useState(false)
-  const [resendLoading,      setResendLoading]      = useState(false)
-  const [resendSent,         setResendSent]         = useState(false)
 
   const handleSubmit = async () => {
     setIsLoading(true)
     setError(null)
-    setUnconfirmed(false)
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      if (error.message === 'Email not confirmed') {
-        setUnconfirmed(true)
-      } else {
-        setError(error.message)
-      }
+      setError(error.message)
       setIsLoading(false)
       return
     }
@@ -41,13 +33,6 @@ export function LoginPage() {
     useAuthStore.getState().setUser(data.user)
 
     navigate(PATHS.dashboard, { replace: true, state: { fromAuth: true } })
-  }
-
-  const handleResend = async () => {
-    setResendLoading(true)
-    await supabase.auth.resend({ type: 'signup', email })
-    setResendLoading(false)
-    setResendSent(true)
   }
 
   return (
@@ -85,30 +70,6 @@ export function LoginPage() {
           placeholder="••••••••"
           autoComplete="current-password"
         />
-
-        {unconfirmed ? (
-          <div className="rounded-md border border-border bg-surface-raised p-3 space-y-2">
-            <p className="text-sm text-text">
-              Your email address hasn&apos;t been confirmed yet.
-            </p>
-            <p className="text-sm text-text-muted">
-              Check your inbox for the confirmation link we sent when you signed up.
-            </p>
-            {resendSent ? (
-              <p className="text-sm text-feedback-success">
-                Confirmation email resent — check your inbox.
-              </p>
-            ) : (
-              <button
-                onClick={handleResend}
-                disabled={resendLoading}
-                className="text-sm text-brand hover:underline disabled:opacity-50"
-              >
-                {resendLoading ? 'Sending…' : 'Resend confirmation email'}
-              </button>
-            )}
-          </div>
-        ) : null}
 
         {error ? <p className="text-sm text-feedback-error">{error}</p> : null}
 

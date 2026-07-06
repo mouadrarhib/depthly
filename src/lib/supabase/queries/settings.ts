@@ -78,6 +78,10 @@ export async function checkSlugAvailable(slug: string, currentUserId: string): P
   return data === null
 }
 
+// NOTE: email change confirmation is
+// disabled until custom SMTP is configured
+// Users should be warned change takes
+// effect immediately without confirmation
 export async function updateEmail(newEmail: string): Promise<void> {
   const { error } = await supabase.auth.updateUser({ email: newEmail })
   if (error) throw error

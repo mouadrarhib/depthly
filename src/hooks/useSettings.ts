@@ -59,7 +59,7 @@ export function useUpdateEmail() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const mutation = useMutation({
     mutationFn: (newEmail: string) => updateEmail(newEmail),
-    onSuccess:  () => setSuccessMessage('Check your email to confirm the change'),
+    onSuccess:  () => setSuccessMessage('Email updated successfully'),
   })
   return { ...mutation, successMessage }
 }

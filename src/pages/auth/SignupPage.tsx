@@ -17,13 +17,9 @@ export function SignupPage() {
     setIsLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/email-confirmed`,
-      },
-    })
+    // Email confirmation is disabled in Supabase, so signUp() returns a
+    // session immediately — no "check your email" step needed.
+    const { error } = await supabase.auth.signUp({ email, password })
 
     if (error) {
       setError(error.message)
