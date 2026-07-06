@@ -76,9 +76,14 @@ Reused from the app: `Logo`, `Button` (asChild + Link), `ProgressRing`,
    - **C — Leaderboard** (mockup left): LeaderboardMockup + 3 blocks;
      "Streak momentum" block uses the streak green icon (explicit streak
      reference — the allowed exception)
-5. **Pricing** (`#pricing`) — Free $0 / Pro $5/mo or $39/yr (2px brand
-   border + "Most popular" badge) / Lifetime $79 ("Founding member" badge
-   in streak green). All CTAs → `/signup`.
+5. **Pricing** (`#pricing`) — Monthly/Yearly segmented toggle (same Radix
+   Tabs styling as `TimerModeSelector`, local `useState<PlanInterval>`)
+   above three cards: Free $0 / Pro (2px brand border + "Most popular"
+   badge; $5/mo, or $39/yr with "$3.25/mo" subtext + "Save 35%" pill when
+   Yearly is selected) / Lifetime $79 ("Founding member" badge in streak
+   green — unaffected by the toggle). Pro's CTA carries the interval for
+   checkout wiring: `/signup?plan=pro&interval=monthly|annual`; Lifetime
+   links to `/signup?plan=lifetime`.
 6. **Closing CTA** — `#141417` band, "Ready to work at depth?" + one button.
 7. **Footer** — Product (`#features`, `#pricing`, Changelog `#`), Company
    (About `#`, Contact mailto), Legal (Terms/Privacy `#`), copyright line.
@@ -109,11 +114,25 @@ section components stay animation-free:
 
 | Attribute | Effect |
 |-----------|--------|
-| `data-hero` | Load-time entrance: fade-up, 0.12s stagger |
-| `data-reveal-group` | Container; ScrollTrigger at `top 80%`, `once: true` |
+| `data-hero` | Load-sequence entrance: fade-up, 0.12s stagger |
+| `data-reveal-group` | Container for `data-reveal` children (see below) |
 | `data-reveal` | Child of a group: y+30 fade-up, 0.1s stagger |
 | `data-heatmap` / `data-heat-cell` | Cells pop in (`back.out`, 0.018s stagger) |
 | `data-countup` (+ `data-suffix`) | Number counts up from 0 on scroll |
+
+Reveal groups are partitioned at mount:
+
+- **Visible in the initial viewport** (group top < `window.innerHeight`) —
+  joins the *load sequence*: a timeline chained after the hero entrance
+  (group *i* starts at 0.55s + i×0.2s). A scroll trigger here would either
+  fire on mount with no visible transition or sit unfired until a tiny
+  scroll.
+- **Below the fold** — ScrollTrigger at `top 80%`, `once: true`.
+
+The load sequence waits for the `LogoIntro` splash (~3.7s overlay in
+App.tsx) to unmount (via MutationObserver on `.logo-intro`) — otherwise
+the entrance would play hidden underneath it. Load-sequence elements are
+`gsap.set` to hidden before first paint, so nothing flashes while waiting.
 
 Everything is wrapped in
 `gsap.matchMedia('(prefers-reduced-motion: no-preference)')` — reduced-motion

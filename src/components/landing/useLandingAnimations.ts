@@ -10,12 +10,21 @@ gsap.registerPlugin(ScrollTrigger)
  * Landing page animation system (GSAP + ScrollTrigger).
  *
  * Opt-in via data attributes — components stay free of animation code:
- *   data-hero          — hero entrance timeline (staggered fade-up on load)
+ *   data-hero          — hero entrance (staggered fade-up, part of the
+ *                        load sequence)
  *   data-reveal-group  — container whose [data-reveal] children fade-up
- *                        with a stagger when scrolled into view
+ *                        with a stagger. Groups already inside the initial
+ *                        viewport join the load sequence (chained after the
+ *                        hero) since their scroll trigger point is met on
+ *                        mount and could never show a visible transition;
+ *                        groups below the fold reveal on scroll.
  *   data-reveal        — an element revealed by its nearest group
  *   data-heatmap       — container whose [data-heat-cell] children pop in
  *   data-countup       — numeric text counted up from 0 (optional data-suffix)
+ *
+ * The load sequence waits for the app's LogoIntro splash (~3.7s overlay on
+ * every load) to unmount — otherwise the entrance would play hidden
+ * underneath it and the page would look settled when the splash lifts.
  *
  * Everything is skipped for users with prefers-reduced-motion: content
  * renders fully visible with no motion.
@@ -28,33 +37,76 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
     const mm = gsap.matchMedia()
 
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      // ── Hero entrance ────────────────────────────────────────────────
       const heroItems = root.querySelectorAll('[data-hero]')
-      if (heroItems.length) {
-        gsap.fromTo(
-          heroItems,
-          { y: 26, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.9, ease: 'power3.out', stagger: 0.12, delay: 0.05 },
-        )
-      }
 
-      // ── Scroll reveals — each group staggers its children ────────────
+      // Partition reveal groups: in-viewport ones join the load sequence,
+      // the rest get scroll triggers.
+      const loadGroups: NodeListOf<Element>[] = []
       root.querySelectorAll<HTMLElement>('[data-reveal-group]').forEach((group) => {
         const items = group.querySelectorAll('[data-reveal]')
         if (!items.length) return
-        gsap.fromTo(
-          items,
-          { y: 30, opacity: 0 },
-          {
+
+        // Any group visible at all in the initial viewport joins the load
+        // sequence — its 'top 80%' scroll trigger would either fire on mount
+        // (no visible transition) or sit unfired until a tiny scroll.
+        if (group.getBoundingClientRect().top < window.innerHeight) {
+          loadGroups.push(items)
+        } else {
+          gsap.fromTo(
+            items,
+            { y: 30, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.8,
+              ease: 'power3.out',
+              stagger: 0.1,
+              scrollTrigger: { trigger: group, start: 'top 80%', once: true },
+            },
+          )
+        }
+      })
+
+      // Hide load-sequence elements up front (before first paint) so there
+      // is no flash while we wait for the splash to clear.
+      gsap.set(heroItems, { y: 26, opacity: 0 })
+      loadGroups.forEach((items) => gsap.set(items, { y: 30, opacity: 0 }))
+
+      const playLoadSequence = () => {
+        const tl = gsap.timeline()
+        if (heroItems.length) {
+          tl.to(heroItems, {
             y: 0,
             opacity: 1,
-            duration: 0.8,
+            duration: 0.9,
             ease: 'power3.out',
-            stagger: 0.1,
-            scrollTrigger: { trigger: group, start: 'top 80%', once: true },
-          },
-        )
-      })
+            stagger: 0.12,
+          })
+        }
+        // Chain each above-fold group shortly after the hero starts settling
+        loadGroups.forEach((items, i) => {
+          tl.to(
+            items,
+            { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out', stagger: 0.1 },
+            heroItems.length ? 0.55 + i * 0.2 : 0.1 + i * 0.2,
+          )
+        })
+      }
+
+      // Wait for the LogoIntro splash overlay to unmount before playing.
+      let observer: MutationObserver | undefined
+      if (document.querySelector('.logo-intro')) {
+        observer = new MutationObserver(() => {
+          if (!document.querySelector('.logo-intro')) {
+            observer?.disconnect()
+            observer = undefined
+            playLoadSequence()
+          }
+        })
+        observer.observe(document.body, { childList: true, subtree: true })
+      } else {
+        playLoadSequence()
+      }
 
       // ── Heatmap cells pop in ─────────────────────────────────────────
       root.querySelectorAll<HTMLElement>('[data-heatmap]').forEach((map) => {
@@ -90,6 +142,8 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
           },
         })
       })
+
+      return () => observer?.disconnect()
     })
 
     return () => mm.revert()
