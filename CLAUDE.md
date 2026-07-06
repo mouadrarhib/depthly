@@ -176,6 +176,7 @@ Read the relevant doc before touching a feature:
 - Timer:     docs/timer.md
 - Projects:  docs/PROJECTS.md
 - Tasks:     docs/TASKS.md
+- Landing:   docs/LANDING.md
 
 These docs reflect what is actually built.
 They are the source of truth for implementation

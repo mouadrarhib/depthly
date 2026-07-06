@@ -1,6 +1,7 @@
 # Dashboard
 
-The dashboard (`/`) is the first screen users see after login.
+The dashboard (`/dashboard`) is the first screen users see after login.
+(The root `/` serves the public marketing landing page — see LANDING.md.)
 It combines the focus timer with an at-a-glance view of today's
 stats, recent activity, and quick navigation.
 
