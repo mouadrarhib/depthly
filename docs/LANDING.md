@@ -84,7 +84,12 @@ Reused from the app: `Logo`, `Button` (asChild + Link), `ProgressRing`,
    green — unaffected by the toggle). Pro's CTA carries the interval for
    checkout wiring: `/signup?plan=pro&interval=monthly|annual`; Lifetime
    links to `/signup?plan=lifetime`.
-6. **Closing CTA** — `#141417` band, "Ready to work at depth?" + one button.
+6. **Closing CTA** — `#141417` band bounded by top/bottom 0.5px borders,
+   6rem vertical padding (matches the hero). Muted ring-mark icon (bare
+   `<Logo>`, no wordmark) → "Ready to work at depth?" → one-line subtext →
+   primary "Get started free" + ghost "View pricing" (anchor-scrolls to
+   `#pricing`) → the hero's trust line ("Free forever • No credit card
+   required").
 7. **Footer** — Product (`#features`, `#pricing`, Changelog `#`), Company
    (About `#`, Contact mailto), Legal (Terms/Privacy `#`), copyright line.
    Placeholder `#` links need real pages before launch.
