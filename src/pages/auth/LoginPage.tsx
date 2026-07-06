@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { supabase } from '@/lib/supabase/client'
 import { PATHS } from '@/routes/paths'
+import { useAuthStore } from '@/store'
 import { Button, GoogleButton, Input } from '@/components/ui'
 
 export function LoginPage() {
@@ -21,7 +22,7 @@ export function LoginPage() {
     setError(null)
     setUnconfirmed(false)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
       if (error.message === 'Email not confirmed') {
@@ -33,7 +34,13 @@ export function LoginPage() {
       return
     }
 
-    navigate(PATHS.dashboard, { replace: true })
+    // signInWithPassword already gives us the signed-in user — write it to the
+    // store synchronously so ProtectedRoute sees it on the very next render,
+    // instead of racing the async onAuthStateChange listener (which was
+    // causing a bounce back to /login before the store had caught up).
+    useAuthStore.getState().setUser(data.user)
+
+    navigate(PATHS.dashboard, { replace: true, state: { fromAuth: true } })
   }
 
   const handleResend = async () => {

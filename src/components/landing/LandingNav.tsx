@@ -122,7 +122,7 @@ export function LandingNav() {
         {user ? (
           <div className="flex items-center gap-4">
             <Button asChild size="sm" style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}>
-              <Link to={PATHS.dashboard}>Go to app</Link>
+              <Link to={PATHS.dashboard} state={{ fromAuth: true }}>Go to app</Link>
             </Button>
 
             <Divider />

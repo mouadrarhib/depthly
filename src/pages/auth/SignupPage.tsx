@@ -31,7 +31,7 @@ export function SignupPage() {
       return
     }
 
-    navigate(PATHS.dashboard, { replace: true })
+    navigate(PATHS.dashboard, { replace: true, state: { fromAuth: true } })
   }
 
   return (
