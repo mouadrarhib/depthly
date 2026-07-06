@@ -37,7 +37,7 @@ function getAvatarColor(name: string): string {
 interface NavItem { label: string; path: string; Icon: LucideIcon }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard',   path: PATHS.home,        Icon: LayoutDashboard },
+  { label: 'Dashboard',   path: PATHS.dashboard,   Icon: LayoutDashboard },
   { label: 'Timer',       path: PATHS.timer,       Icon: Clock           },
   { label: 'Projects',    path: PATHS.projects,    Icon: FolderOpen      },
   { label: 'Sessions',    path: PATHS.sessions,    Icon: History         },
@@ -214,7 +214,7 @@ export function Sidebar() {
         <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {NAV_ITEMS.map(({ label, path, Icon }) => {
             const link = (
-              <NavLink key={label} to={path} end={path === PATHS.home}>
+              <NavLink key={label} to={path} end={path === PATHS.dashboard}>
                 {({ isActive }) => (
                   <div
                     style={{

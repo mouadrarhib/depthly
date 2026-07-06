@@ -11,6 +11,7 @@ import { YearlyView }      from '@/components/analytics/YearlyView'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { useProfile } from '@/hooks/useAnalytics'
+import { PATHS } from '@/routes/paths'
 
 type Period = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
@@ -71,7 +72,7 @@ export function AnalyticsPage() {
             </p>
             <Button
               variant="primary"
-              onClick={() => navigate('/')}
+              onClick={() => navigate(PATHS.timer)}
               className="mt-5"
             >
               Start the Timer

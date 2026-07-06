@@ -33,7 +33,7 @@ export function LoginPage() {
       return
     }
 
-    navigate(PATHS.home, { replace: true })
+    navigate(PATHS.dashboard, { replace: true })
   }
 
   const handleResend = async () => {

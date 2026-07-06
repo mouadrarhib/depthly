@@ -16,11 +16,12 @@ export const PATHS = {
   resetPassword:    '/reset-password',
   emailConfirmed:   '/email-confirmed',
 
-  // App — Dashboard at root; timer is embedded in the dashboard.
-  // Uncomment each as you build its page (matches Sidebar NAV_ITEMS).
-  home:      '/',            // Dashboard
-  dashboard: '/dashboard',   // Alias — redirects to /
-  timer:     '/timer',       // Alias — redirects to / (timer is embedded in dashboard)
+  // Public marketing site
+  home:      '/',            // Landing page (logged-out visitors)
+
+  // App — authenticated area starts at /dashboard.
+  dashboard: '/dashboard',   // Dashboard
+  timer:     '/timer',
   settings:  '/settings',
   projects:  '/projects',
   sessions:  '/sessions',

@@ -348,7 +348,7 @@ export function WeeklyView({ date }: WeeklyViewProps) {
                   No data — start the timer to begin tracking your projects
                 </p>
                 <Link
-                  to={PATHS.home}
+                  to={PATHS.timer}
                   style={{ fontSize: 13, color: '#4B9EFF', marginTop: 8, textDecoration: 'none' }}
                 >
                   Go to Timer →
@@ -364,7 +364,7 @@ export function WeeklyView({ date }: WeeklyViewProps) {
         <div style={{ textAlign: 'center', padding: '16px 0 8px' }}>
           <p style={{ fontSize: 13, color: '#7A7890' }}>No sessions this week yet</p>
           <Link
-            to={PATHS.home}
+            to={PATHS.timer}
             style={{ fontSize: 13, color: '#4B9EFF', marginTop: 6, display: 'block', textDecoration: 'none' }}
           >
             Start tracking →

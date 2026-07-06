@@ -263,7 +263,7 @@ export function SessionsPage() {
           </p>
           <div className="flex gap-3" style={{ marginTop: 20 }}>
             <Button variant="ghost" size="sm" asChild>
-              <Link to={PATHS.home}>Start Timer</Link>
+              <Link to={PATHS.timer}>Start Timer</Link>
             </Button>
             <Button variant="primary" size="sm" onClick={openCreate}>
               Add Session

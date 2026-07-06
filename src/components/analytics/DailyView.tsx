@@ -396,7 +396,7 @@ export function DailyView({ date }: DailyViewProps) {
                   No focus sessions for this day.
                 </p>
                 <Link
-                  to={PATHS.home}
+                  to={PATHS.timer}
                   style={{ fontSize: 13, color: '#4B9EFF', marginTop: 8, textDecoration: 'none' }}
                 >
                   Start the timer →
@@ -413,7 +413,7 @@ export function DailyView({ date }: DailyViewProps) {
           <p style={{ fontSize: 13, color: '#7A7890' }}>No sessions on this day</p>
           {dateKey === formatPeriodKey(new Date(), 'daily') && (
             <Link
-              to={PATHS.home}
+              to={PATHS.timer}
               style={{ fontSize: 13, color: '#4B9EFF', marginTop: 6, display: 'block', textDecoration: 'none' }}
             >
               Start a session →

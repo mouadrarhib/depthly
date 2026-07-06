@@ -19,7 +19,7 @@ export function NotFoundPage() {
           'transition-colors'
         )}
       >
-        Back to Timer
+        Back to home
       </Link>
     </div>
   )

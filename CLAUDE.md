@@ -145,7 +145,7 @@ Check limits via `usePlan().checkLimit(type)` — never inline the limit logic.
 - [ ] Stripe checkout end-to-end smoke test (create-checkout-session edge function, webhook, profiles.plan update)
 - [ ] Seed data cleanup (manual DB step via DBeaver)
 - [ ] Dark/light theme toggle (deferred from Phase 8)
-- [ ] Landing page / marketing copy
+- [x] Landing page / marketing copy — public landing at `/` (src/pages/LandingPage.tsx + src/components/landing/), authenticated app moved to /dashboard, GSAP scroll animations
 - [ ] Custom domain + Vercel production deployment
 - [ ] Error monitoring (Sentry or equivalent)
 

@@ -1,7 +1,8 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router-dom'
 
 import { AppLayout } from '@/components/layout/AppLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
+import { LandingPage } from '@/pages/LandingPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
 import { EmailConfirmedPage } from '@/pages/auth/EmailConfirmedPage'
@@ -25,6 +26,9 @@ import { ProtectedRoute } from './ProtectedRoute'
 
 export const router = createBrowserRouter(
   [
+    // ── Public marketing site ──────────────────────────────────────────────
+    { path: '/', element: <LandingPage /> },
+
     // ── Auth routes (no sidebar, no auth required) ─────────────────────────
     {
       element: <AuthLayout />,
@@ -44,8 +48,7 @@ export const router = createBrowserRouter(
         {
           element: <AppLayout />,
           children: [
-            { path: '/',             element: <ErrorBoundary><DashboardPage /></ErrorBoundary> },
-            { path: '/dashboard',    element: <Navigate to="/" replace /> },
+            { path: '/dashboard',    element: <ErrorBoundary><DashboardPage /></ErrorBoundary> },
             { path: '/timer',        element: <ErrorBoundary><TimerPage /></ErrorBoundary> },
             { path: '/settings',     element: <ErrorBoundary><SettingsPage /></ErrorBoundary> },
             { path: '/projects',     element: <ErrorBoundary><ProjectsPage /></ErrorBoundary> },

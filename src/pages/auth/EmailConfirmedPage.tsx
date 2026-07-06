@@ -13,7 +13,7 @@ export function EmailConfirmedPage() {
 
   useEffect(() => {
     const exit  = setTimeout(() => setIsExiting(true), REDIRECT_DELAY_MS - 500)
-    const redir = setTimeout(() => navigate(PATHS.home, { replace: true }), REDIRECT_DELAY_MS)
+    const redir = setTimeout(() => navigate(PATHS.dashboard, { replace: true }), REDIRECT_DELAY_MS)
     return () => { clearTimeout(exit); clearTimeout(redir) }
   }, [navigate])
 

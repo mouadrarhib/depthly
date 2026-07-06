@@ -31,7 +31,7 @@ export function SignupPage() {
       return
     }
 
-    navigate(PATHS.home, { replace: true })
+    navigate(PATHS.dashboard, { replace: true })
   }
 
   return (
