@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useProfile } from '@/hooks/useAnalytics'
 import { usePlan } from '@/hooks/usePlan'
 import { supabase } from '@/lib/supabase/client'
 import { PATHS } from '@/routes/paths'
@@ -49,12 +50,15 @@ export function LandingNav() {
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
   const { plan } = usePlan()
+  const { data: profile } = useProfile()
 
   const displayName =
+    profile?.display_name ??
     (user?.user_metadata?.display_name as string | undefined) ??
     (user?.user_metadata?.full_name as string | undefined) ??
     user?.email ??
     ''
+  const avatarUrl = profile?.avatar_url ?? null
   const initial = displayName.charAt(0).toUpperCase() || '?'
 
   const planLabel =
@@ -127,11 +131,11 @@ export function LandingNav() {
               <DropdownMenuTrigger asChild>
                 <button
                   aria-label="User menu"
-                  className="flex items-center justify-center rounded-full"
+                  className="flex items-center justify-center overflow-hidden rounded-full"
                   style={{
                     width: 32,
                     height: 32,
-                    backgroundColor: avatarColor(displayName),
+                    backgroundColor: avatarUrl ? undefined : avatarColor(displayName),
                     color: '#FFFFFF',
                     fontSize: 13,
                     fontWeight: 600,
@@ -149,7 +153,15 @@ export function LandingNav() {
                     e.currentTarget.style.transform = 'scale(1)'
                   }}
                 >
-                  {initial}
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    initial
+                  )}
                 </button>
               </DropdownMenuTrigger>
 
