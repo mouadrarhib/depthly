@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { OAUTH_PENDING_KEY } from '@/components/ui/GoogleButton'
+import { clearOAuthPending, isOAuthPending } from '@/lib/oauthPending'
 import { supabase } from '@/lib/supabase/client'
 import { PATHS } from '@/routes/paths'
 import { useAuthStore } from '@/store'
@@ -25,6 +25,13 @@ export function useAuth() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       setIsLoading(false)
+
+      // A pending flag with no resulting session means the OAuth attempt
+      // was abandoned/denied — clear it so it can't misfire on some later,
+      // unrelated visit to /dashboard in this tab.
+      if (!session && isOAuthPending()) {
+        clearOAuthPending()
+      }
     })
 
     // 2. Subscribe to future changes (login, logout, token refresh)
@@ -33,12 +40,11 @@ export function useAuth() {
     } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
 
-      // Google OAuth redirects can land on / (unlisted redirect URL) or land
-      // directly on /dashboard (a hard navigation, so it carries no router
-      // state) — either way, re-navigate with fromAuth so the LogoIntro gate
-      // in App.tsx sees a proper auth arrival.
-      if (event === 'SIGNED_IN' && session && sessionStorage.getItem(OAUTH_PENDING_KEY)) {
-        sessionStorage.removeItem(OAUTH_PENDING_KEY)
+      // Falls back to a client-side hop only when Supabase lands the OAuth
+      // redirect on / (unlisted redirect URL) instead of /dashboard directly
+      // — App.tsx's own isOAuthPending() check handles the direct-landing
+      // case synchronously, before this async listener even runs.
+      if (event === 'SIGNED_IN' && session && isOAuthPending()) {
         navigate(PATHS.dashboard, { replace: true, state: { fromAuth: true } })
       }
     })

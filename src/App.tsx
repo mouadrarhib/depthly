@@ -3,6 +3,7 @@ import type { Location } from 'react-router-dom'
 import { RouterProvider } from 'react-router-dom'
 
 import { LogoIntro } from '@/components/LogoIntro'
+import { clearOAuthPending, isOAuthPending } from '@/lib/oauthPending'
 import { router } from '@/routes'
 
 interface DashboardArrivalState {
@@ -10,14 +11,20 @@ interface DashboardArrivalState {
 }
 
 function isAuthArrivalAtDashboard(location: Location) {
-  return (
-    location.pathname === '/dashboard' &&
-    (location.state as DashboardArrivalState | null)?.fromAuth === true
-  )
+  if (location.pathname !== '/dashboard') return false
+
+  const hasFromAuthState = (location.state as DashboardArrivalState | null)?.fromAuth === true
+  // Google OAuth can land here via a hard navigation (unloaded/reloaded
+  // page), which carries no router state at all — isOAuthPending() is the
+  // only signal that survives that trip, and it's readable synchronously
+  // here so the intro is already showing on the very first paint, before
+  // the dashboard underneath ever gets a chance to render.
+  return hasFromAuthState || isOAuthPending()
 }
 
 function clearNavigationState(location: Location) {
   window.history.replaceState({}, '', location.pathname + location.search)
+  clearOAuthPending()
 }
 
 /**

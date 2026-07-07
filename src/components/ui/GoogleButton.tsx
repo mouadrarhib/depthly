@@ -1,14 +1,10 @@
 import { useState } from 'react'
 
+import { markOAuthPending } from '@/lib/oauthPending'
 import { supabase } from '@/lib/supabase/client'
 import { PATHS } from '@/routes/paths'
 
 import { Button } from './button'
-
-// Set right before the redirect to Google so useAuth's listener can tell a
-// fresh OAuth sign-in apart from a token refresh, even when Supabase lands
-// the browser on /dashboard directly (a hard navigation carries no router state).
-export const OAUTH_PENDING_KEY = 'depthly:oauth-pending'
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -28,7 +24,7 @@ export function GoogleButton({ label = 'Continue with Google' }: GoogleButtonPro
 
   const handleClick = async () => {
     setIsLoading(true)
-    sessionStorage.setItem(OAUTH_PENDING_KEY, '1')
+    markOAuthPending()
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
