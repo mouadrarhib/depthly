@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { CheckSquare, FileText } from 'lucide-react'
 
 import { useTimerStore } from '@/store/timerStore'
+import { useUiStore } from '@/store'
 import { useTimerEffects } from '@/hooks/useTimerEffects'
 import { useSaveSession } from '@/hooks/useSaveSession'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
+import { TimerNotesPanel } from '@/components/timer/TimerNotesPanel'
+import { TimerTodoPanel } from '@/components/timer/TimerTodoPanel'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { PATHS } from '@/routes/paths'
 
@@ -35,6 +39,9 @@ export function TimerWidget() {
   const { saveSession, saveAndStop, isSessionLimitReached } = useSaveSession()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const savedRef = useRef(false)
+
+  const toggleLog  = useUiStore((s) => s.toggleLog)
+  const toggleTodo = useUiStore((s) => s.toggleTodo)
 
   const isFree    = mode === 'free'
   const progress  = isFree || duration === 0 ? 0 : elapsed / duration
@@ -158,7 +165,19 @@ export function TimerWidget() {
         </div>
       )}
 
-      {/* Link to full timer */}
+      {/* Log / Todo — same panels as /timer, shared uiStore + timerStore state */}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <ChipBtn onClick={toggleLog}>
+          <FileText size={13} />
+          Log
+        </ChipBtn>
+        <ChipBtn onClick={toggleTodo}>
+          <CheckSquare size={13} />
+          Todo
+        </ChipBtn>
+      </div>
+
+      {/* Link to full timer (fullscreen + settings stay /timer-only) */}
       <Link
         to={PATHS.timer}
         style={{
@@ -168,7 +187,7 @@ export function TimerWidget() {
         onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-brand)' }}
         onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-muted)' }}
       >
-        Open Timer →
+        Full timer →
       </Link>
 
       <UpgradeModal
@@ -176,6 +195,9 @@ export function TimerWidget() {
         onClose={() => setUpgradeOpen(false)}
         trigger="sessions"
       />
+
+      <TimerNotesPanel />
+      <TimerTodoPanel />
     </div>
   )
 }
@@ -231,6 +253,43 @@ function Btn({
         el.style.background = v.bg
         el.style.borderColor = v.border
         el.style.color = v.color
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+// ── Small chip button — matches BottomActionRow's Configure/Fullscreen style ──
+
+function ChipBtn({
+  onClick, children,
+}: {
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        background: 'var(--color-surface-overlay)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 10, padding: '7px 12px',
+        fontSize: 12, fontWeight: 500,
+        color: 'var(--color-text-muted)',
+        cursor: 'pointer',
+        transition: 'color 0.15s, background 0.15s',
+      }}
+      onMouseEnter={(e) => {
+        const el = e.currentTarget
+        el.style.color = 'var(--color-text)'
+        el.style.background = 'var(--color-surface-raised)'
+      }}
+      onMouseLeave={(e) => {
+        const el = e.currentTarget
+        el.style.color = 'var(--color-text-muted)'
+        el.style.background = 'var(--color-surface-overlay)'
       }}
     >
       {children}
