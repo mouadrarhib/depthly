@@ -1,4 +1,5 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { Clock, Flame, Globe, SlidersHorizontal, TimerReset, TrendingUp, Users } from 'lucide-react'
 
@@ -15,6 +16,7 @@ import { TimerMockup } from '@/components/landing/TimerMockup'
 import { FeatureBlock } from '@/components/landing/primitives'
 import { useLandingAnimations } from '@/components/landing/useLandingAnimations'
 import { useAuth } from '@/hooks/shared/useAuth'
+import { PATHS } from '@/routes/paths'
 
 /**
  * Public marketing landing page, served at "/".
@@ -22,7 +24,14 @@ import { useAuth } from '@/hooks/shared/useAuth'
  */
 export function LandingPage() {
   // Sync Supabase session into the store (this page renders outside AppLayout).
-  useAuth()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user) {
+      navigate(PATHS.dashboard, { replace: true, state: { fromAuth: true } })
+    }
+  }, [user, navigate])
 
   const rootRef = useRef<HTMLDivElement>(null)
   useLandingAnimations(rootRef)

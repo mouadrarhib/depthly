@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { supabase } from '@/lib/supabase/client'
+import { PATHS } from '@/routes/paths'
 
 import { Button } from './button'
 
@@ -25,7 +26,7 @@ export function GoogleButton({ label = 'Continue with Google' }: GoogleButtonPro
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: `${window.location.origin}${PATHS.dashboard}`,
       },
     })
     // Page navigates away — no need to setIsLoading(false)

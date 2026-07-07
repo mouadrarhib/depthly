@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { supabase } from '@/lib/supabase/client'
+import { PATHS } from '@/routes/paths'
 import { useAuthStore } from '@/store'
 
 /**
@@ -15,6 +17,7 @@ import { useAuthStore } from '@/store'
  */
 export function useAuth() {
   const { user, isLoading, setUser, setIsLoading } = useAuthStore()
+  const navigate = useNavigate()
 
   useEffect(() => {
     // 1. Resolve the current session immediately on mount
@@ -26,12 +29,18 @@ export function useAuth() {
     // 2. Subscribe to future changes (login, logout, token refresh)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+
+      // OAuth (Google) redirects land back on the landing page before this
+      // listener fires — bounce straight to the dashboard once signed in.
+      if (event === 'SIGNED_IN' && session && window.location.pathname === PATHS.home) {
+        navigate(PATHS.dashboard, { replace: true, state: { fromAuth: true } })
+      }
     })
 
     return () => subscription.unsubscribe()
-  }, [setUser, setIsLoading])
+  }, [setUser, setIsLoading, navigate])
 
   return { user, isLoading }
 }
