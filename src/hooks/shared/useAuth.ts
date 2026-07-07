@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { OAUTH_PENDING_KEY } from '@/components/ui/GoogleButton'
 import { supabase } from '@/lib/supabase/client'
 import { PATHS } from '@/routes/paths'
 import { useAuthStore } from '@/store'
@@ -32,9 +33,12 @@ export function useAuth() {
     } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
 
-      // OAuth (Google) redirects land back on the landing page before this
-      // listener fires — bounce straight to the dashboard once signed in.
-      if (event === 'SIGNED_IN' && session && window.location.pathname === PATHS.home) {
+      // Google OAuth redirects can land on / (unlisted redirect URL) or land
+      // directly on /dashboard (a hard navigation, so it carries no router
+      // state) — either way, re-navigate with fromAuth so the LogoIntro gate
+      // in App.tsx sees a proper auth arrival.
+      if (event === 'SIGNED_IN' && session && sessionStorage.getItem(OAUTH_PENDING_KEY)) {
+        sessionStorage.removeItem(OAUTH_PENDING_KEY)
         navigate(PATHS.dashboard, { replace: true, state: { fromAuth: true } })
       }
     })
