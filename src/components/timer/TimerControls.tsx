@@ -1,4 +1,5 @@
 import { useTimerStore } from '@/store/timerStore'
+import { useSaveSession } from '@/hooks/useSaveSession'
 import { cn } from '@/lib/utils'
 
 const base = 'inline-flex items-center justify-center font-medium cursor-pointer transition-all disabled:pointer-events-none disabled:opacity-50 select-none'
@@ -8,46 +9,54 @@ interface TimerControlsProps {
 }
 
 export function TimerControls({ onStop }: TimerControlsProps = {}) {
-  const { isRunning, isPaused, sessionType, start, pause, resume, stop, skipBreak } =
+  const { isRunning, isPaused, sessionType, start, pause, resume, skipBreak } =
     useTimerStore()
 
-  const handleStop = onStop ?? stop
+  // Default to the real save-and-stop flow (not the raw store reset) so a
+  // caller that doesn't pass onStop — e.g. TimerFullscreen — still persists
+  // the session instead of silently discarding it.
+  const { saveAndStop, toastMessage } = useSaveSession()
+  const handleStop = onStop ?? saveAndStop
 
   const isIdle = !isRunning && !isPaused
 
   if (isIdle) {
     return (
-      <button
-        onClick={start}
-        className={cn(base, 'w-full max-w-[220px] h-[48px] sm:h-[52px] rounded-[14px] text-[14px] sm:text-[15px] font-semibold tracking-wide')}
-        style={{
-          background:  'rgba(75, 158, 255, 0.08)',
-          border:      '1px solid rgba(75, 158, 255, 0.22)',
-          color:       '#B8D4FF',
-          boxShadow:   'inset 0 1px 0 rgba(255,255,255,0.04)',
-        }}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget
-          el.style.background = 'rgba(75, 158, 255, 0.14)'
-          el.style.borderColor = 'rgba(75, 158, 255, 0.38)'
-          el.style.color       = '#D0E4FF'
-          el.style.boxShadow   = 'inset 0 1px 0 rgba(255,255,255,0.06), 0 0 22px rgba(75,158,255,0.12)'
-        }}
-        onMouseLeave={(e) => {
-          const el = e.currentTarget
-          el.style.background  = 'rgba(75, 158, 255, 0.08)'
-          el.style.borderColor = 'rgba(75, 158, 255, 0.22)'
-          el.style.color       = '#B8D4FF'
-          el.style.boxShadow   = 'inset 0 1px 0 rgba(255,255,255,0.04)'
-        }}
-      >
-        Start Focus Session
-      </button>
+      <>
+        <button
+          onClick={start}
+          className={cn(base, 'w-full max-w-[220px] h-[48px] sm:h-[52px] rounded-[14px] text-[14px] sm:text-[15px] font-semibold tracking-wide')}
+          style={{
+            background:  'rgba(75, 158, 255, 0.08)',
+            border:      '1px solid rgba(75, 158, 255, 0.22)',
+            color:       '#B8D4FF',
+            boxShadow:   'inset 0 1px 0 rgba(255,255,255,0.04)',
+          }}
+          onMouseEnter={(e) => {
+            const el = e.currentTarget
+            el.style.background = 'rgba(75, 158, 255, 0.14)'
+            el.style.borderColor = 'rgba(75, 158, 255, 0.38)'
+            el.style.color       = '#D0E4FF'
+            el.style.boxShadow   = 'inset 0 1px 0 rgba(255,255,255,0.06), 0 0 22px rgba(75,158,255,0.12)'
+          }}
+          onMouseLeave={(e) => {
+            const el = e.currentTarget
+            el.style.background  = 'rgba(75, 158, 255, 0.08)'
+            el.style.borderColor = 'rgba(75, 158, 255, 0.22)'
+            el.style.color       = '#B8D4FF'
+            el.style.boxShadow   = 'inset 0 1px 0 rgba(255,255,255,0.04)'
+          }}
+        >
+          Start Focus Session
+        </button>
+        <SaveToast message={toastMessage} />
+      </>
     )
   }
 
   if (isPaused) {
     return (
+      <>
       <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
         {/* Resume — same crystal blue */}
         <button
@@ -102,11 +111,14 @@ export function TimerControls({ onStop }: TimerControlsProps = {}) {
           Stop
         </button>
       </div>
+      <SaveToast message={toastMessage} />
+      </>
     )
   }
 
   // Running
   return (
+    <>
     <div className="flex items-center gap-3">
       {/* Pause — neutral surface chip */}
       <button
@@ -184,5 +196,45 @@ export function TimerControls({ onStop }: TimerControlsProps = {}) {
         </button>
       ) : null}
     </div>
+    <SaveToast message={toastMessage} />
+    </>
+  )
+}
+
+// ── Save toast — fixed, auto-fading confirmation for background saves ─────
+
+function SaveToast({ message }: { message: string | null }) {
+  if (!message) return null
+
+  return (
+    <>
+      <style>{`
+        @keyframes timerControlsToastFade {
+          0%, 80% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+      `}</style>
+      <div
+        style={{
+          position:      'fixed',
+          bottom:        32,
+          left:          '50%',
+          transform:     'translateX(-50%)',
+          background:    'var(--color-surface-raised)',
+          border:        '1px solid var(--color-border)',
+          borderRadius:  10,
+          padding:       '10px 18px',
+          fontSize:      13,
+          fontWeight:    500,
+          color:         'var(--color-text)',
+          boxShadow:     '0 8px 24px rgba(0,0,0,0.35)',
+          zIndex:        200,
+          pointerEvents: 'none',
+          animation:     'timerControlsToastFade 3s ease forwards',
+        }}
+      >
+        {message}
+      </div>
+    </>
   )
 }

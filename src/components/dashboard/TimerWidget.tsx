@@ -36,7 +36,7 @@ export function TimerWidget() {
     start, pause, resume,
   } = useTimerStore()
 
-  const { saveSession, saveAndStop, isSessionLimitReached } = useSaveSession()
+  const { saveSession, saveAndStop, isSessionLimitReached, toastMessage } = useSaveSession()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const savedRef = useRef(false)
 
@@ -198,6 +198,7 @@ export function TimerWidget() {
 
       <TimerNotesPanel />
       <TimerTodoPanel />
+      <SaveToast message={toastMessage} />
     </div>
   )
 }
@@ -294,5 +295,45 @@ function ChipBtn({
     >
       {children}
     </button>
+  )
+}
+
+// ── Save toast — fixed, auto-fading confirmation for background saves ─────
+// (Same shape as TimerControls' — TimerWidget renders its own Stop buttons
+// rather than <TimerControls>, so it needs its own toast host.)
+
+function SaveToast({ message }: { message: string | null }) {
+  if (!message) return null
+
+  return (
+    <>
+      <style>{`
+        @keyframes timerWidgetToastFade {
+          0%, 80% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+      `}</style>
+      <div
+        style={{
+          position:      'fixed',
+          bottom:        32,
+          left:          '50%',
+          transform:     'translateX(-50%)',
+          background:    'var(--color-surface-raised)',
+          border:        '1px solid var(--color-border)',
+          borderRadius:  10,
+          padding:       '10px 18px',
+          fontSize:      13,
+          fontWeight:    500,
+          color:         'var(--color-text)',
+          boxShadow:     '0 8px 24px rgba(0,0,0,0.35)',
+          zIndex:        200,
+          pointerEvents: 'none',
+          animation:     'timerWidgetToastFade 3s ease forwards',
+        }}
+      >
+        {message}
+      </div>
+    </>
   )
 }
