@@ -37,10 +37,10 @@ interface HourSlot {
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function formatHour(h: number): string {
-  if (h === 0)  return '12a'
-  if (h < 12)   return `${h}a`
-  if (h === 12) return '12p'
-  return `${h - 12}p`
+  if (h === 0)  return '12 AM'
+  if (h < 12)   return `${h} AM`
+  if (h === 12) return '12 PM'
+  return `${h - 12} PM`
 }
 
 // ─── card base style ─────────────────────────────────────────────────────────
