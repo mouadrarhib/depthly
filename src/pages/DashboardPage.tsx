@@ -33,14 +33,24 @@ const QUICK_LINKS = [
   { label: 'Sessions',    icon: <History    size={24} style={{ color: '#A78BFA' }} />, path: PATHS.sessions    },
 ]
 
+const GREETINGS = {
+  night:     ['Good night', 'Burning the midnight oil', 'Still going strong'],
+  morning:   ['Good morning', 'Rise and focus', 'Fresh start'],
+  afternoon: ['Good afternoon', 'Keep the momentum'],
+  evening:   ['Good evening', 'Wrapping up strong'],
+} as const satisfies Record<string, readonly string[]>
+
 function getGreeting(): string {
   const h = new Date().getHours()
-  if (h < 12) return 'Good morning'
-  if (h < 17) return 'Good afternoon'
-  return 'Good evening'
+  const bucket = h < 5 ? 'night' : h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'
+  const options = GREETINGS[bucket]
+  return options[Math.floor(Math.random() * options.length)]
 }
 
 export function DashboardPage() {
+  // Picked once per page load, not re-rolled on every re-render.
+  const greeting = useMemo(getGreeting, [])
+
   const today = useMemo(() => formatPeriodKey(new Date(), 'daily'), [])
   const weekDays = useMemo(() => getDaysInWeek(new Date()), [])
   const weekStart = useMemo(() => formatPeriodKey(weekDays[0], 'daily'), [weekDays])
@@ -228,7 +238,7 @@ export function DashboardPage() {
               <Skeleton width={200} height={28} borderRadius={6} />
             ) : (
               <p className="text-[18px] font-medium text-ink-primary">
-                {displayName ? `${getGreeting()}, ${displayName} 👋` : `${getGreeting()} 👋`}
+                {displayName ? `${greeting}, ${displayName} 👋` : `${greeting} 👋`}
               </p>
             )}
           </div>
