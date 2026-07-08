@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { useExportSessions } from '@/hooks/useSessions'
 import { usePlan } from '@/hooks/usePlan'
@@ -45,10 +46,11 @@ export function ExportPanel({ projects, totalCount }: ExportPanelProps) {
   const { isPro } = usePlan()
   const { exportSessions, isExporting } = useExportSessions()
 
-  const [fromDate,    setFromDate]    = useState('')
-  const [toDate,      setToDate]      = useState('')
-  const [projectId,   setProjectId]   = useState<string>('all')
-  const [upgradeOpen, setUpgradeOpen] = useState(false)
+  const [fromDate,      setFromDate]      = useState('')
+  const [toDate,        setToDate]        = useState('')
+  const [projectId,     setProjectId]     = useState<string>('all')
+  const [includeBreaks, setIncludeBreaks] = useState(false)
+  const [upgradeOpen,   setUpgradeOpen]   = useState(false)
 
   if (!isPro) {
     return (
@@ -85,9 +87,10 @@ export function ExportPanel({ projects, totalCount }: ExportPanelProps) {
 
   function handleExport() {
     exportSessions({
-      startDate: fromDate  || undefined,
-      endDate:   toDate    || undefined,
-      projectId: projectId === 'all' ? undefined : projectId,
+      startDate:     fromDate  || undefined,
+      endDate:       toDate    || undefined,
+      projectId:     projectId === 'all' ? undefined : projectId,
+      includeBreaks,
     })
   }
 
@@ -193,6 +196,18 @@ export function ExportPanel({ projects, totalCount }: ExportPanelProps) {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Include breaks */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={LABEL_STYLE}>Include breaks</span>
+          <div style={{ display: 'flex', alignItems: 'center', height: 36 }}>
+            <Switch
+              checked={includeBreaks}
+              onCheckedChange={setIncludeBreaks}
+              className="h-[22px] w-[40px] data-[state=checked]:bg-[var(--color-brand)] data-[state=unchecked]:bg-[var(--color-surface-overlay)]"
+            />
+          </div>
         </div>
 
         {/* Session count — right-aligned */}

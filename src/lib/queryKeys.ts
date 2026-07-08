@@ -7,8 +7,8 @@ export const projectKeys = {
 }
 
 export const sessionKeys = {
-  paginated: (userId: string, page: number) =>
-             ['sessions', 'paginated', userId, page] as const,
+  paginated: (userId: string, page: number, type: string = 'focus') =>
+             ['sessions', 'paginated', userId, page, type] as const,
   byProject: (id: string) => ['sessions', 'project', id] as const,
 }
 

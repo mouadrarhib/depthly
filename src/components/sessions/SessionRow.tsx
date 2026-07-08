@@ -13,6 +13,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { Badge } from '@/components/ui/Badge'
+import { cn } from '@/lib/utils'
 import type { SessionWithRelations } from '@/lib/supabase/queries/sessions'
 
 interface SessionRowProps {
@@ -37,12 +39,16 @@ function formatDuration(mins: number): string {
 }
 
 export function SessionRow({ session, onEdit, onDelete }: SessionRowProps) {
+  const isBreak = session.type === 'break'
+
   return (
     <div
-      className="group flex items-center gap-4 rounded-[10px] border
-                 border-depth-border
-                 px-[18px] py-[14px]
-                 transition-all duration-150"
+      className={cn(
+        'group flex items-center gap-4 rounded-[10px] border',
+        'border-depth-border',
+        'transition-all duration-150',
+        isBreak ? 'px-[18px] py-[10px]' : 'px-[18px] py-[14px]',
+      )}
       style={{ backgroundColor: '#1A1A20' }}
       onMouseEnter={e => {
         const el = e.currentTarget
@@ -57,14 +63,26 @@ export function SessionRow({ session, onEdit, onDelete }: SessionRowProps) {
     >
       {/* TIME — fixed 80px */}
       <div style={{ width: 80, flexShrink: 0 }}>
-        <span className="font-data text-[14px] font-medium text-ink-primary whitespace-nowrap">
+        <span
+          className={cn(
+            'font-data text-[14px] font-medium whitespace-nowrap',
+            isBreak ? 'text-ink-muted' : 'text-ink-primary',
+          )}
+        >
           {formatTime(session.started_at)}
         </span>
       </div>
 
-      {/* PROJECT + TASK — flex-1 */}
+      {/* PROJECT + TASK, or a Break badge — flex-1 */}
       <div className="min-w-0 flex-1">
-        {session.projects ? (
+        {isBreak ? (
+          <Badge
+            variant="outline"
+            className="gap-1 border-depth-border bg-depth-raised text-ink-muted font-medium"
+          >
+            ☕ Break
+          </Badge>
+        ) : session.projects ? (
           <div className="flex items-center gap-2">
             <span
               className="inline-block shrink-0 rounded-full"
@@ -77,7 +95,7 @@ export function SessionRow({ session, onEdit, onDelete }: SessionRowProps) {
         ) : (
           <span className="text-[13px] text-ink-muted">—</span>
         )}
-        {session.tasks && (
+        {!isBreak && session.tasks && (
           <p className="truncate text-[12px] text-ink-muted" style={{ marginTop: 2 }}>
             {session.tasks.title}
           </p>
@@ -110,7 +128,12 @@ export function SessionRow({ session, onEdit, onDelete }: SessionRowProps) {
 
       {/* DURATION — fixed 80px, right-aligned */}
       <div className="shrink-0 text-right" style={{ width: 80 }}>
-        <span className="font-data text-[15px] font-semibold text-ink-primary">
+        <span
+          className={cn(
+            'font-data text-[15px] font-semibold',
+            isBreak ? 'text-ink-muted' : 'text-ink-primary',
+          )}
+        >
           {formatDuration(session.duration_mins)}
         </span>
       </div>

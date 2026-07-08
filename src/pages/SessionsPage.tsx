@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ExportPanel } from '@/components/sessions/ExportPanel'
 import { SessionModal } from '@/components/sessions/SessionModal'
 import { SessionRow } from '@/components/sessions/SessionRow'
@@ -19,7 +20,7 @@ import { useProjects } from '@/hooks/useProjects'
 import { usePlan } from '@/hooks/usePlan'
 import { formatPeriodKey } from '@/lib/utils/analytics'
 import { PATHS } from '@/routes/paths'
-import type { SessionWithRelations } from '@/lib/supabase/queries/sessions'
+import type { SessionWithRelations, SessionTypeFilter } from '@/lib/supabase/queries/sessions'
 
 const PAGE_SIZE = 20
 
@@ -84,6 +85,12 @@ function SkeletonGroup() {
 
 type DurationFilter = 'all' | 'short' | 'medium' | 'long'
 
+const TYPE_OPTIONS: { value: SessionTypeFilter; label: string }[] = [
+  { value: 'all',   label: 'All'    },
+  { value: 'focus', label: 'Focus'  },
+  { value: 'break', label: 'Breaks' },
+]
+
 export function SessionsPage() {
   const [currentPage,     setCurrentPage]    = useState(0)
   const [isModalOpen,     setIsModalOpen]    = useState(false)
@@ -96,8 +103,9 @@ export function SessionsPage() {
   const [toDate,         setToDate]         = useState('')
   const [projectFilter,  setProjectFilter]  = useState('all')
   const [durationFilter, setDurationFilter] = useState<DurationFilter>('all')
+  const [typeFilter,     setTypeFilter]     = useState<SessionTypeFilter>('all')
 
-  const query      = useSessionsPaginated(currentPage)
+  const query      = useSessionsPaginated(currentPage, typeFilter)
   const sessions   = query.data?.sessions   ?? []
   const totalCount = query.data?.totalCount ?? 0
   const isPending  = query.isPending
@@ -132,7 +140,8 @@ export function SessionsPage() {
     fromDate   !== '' ||
     toDate     !== '' ||
     projectFilter  !== 'all' ||
-    durationFilter !== 'all'
+    durationFilter !== 'all' ||
+    typeFilter     !== 'all'
 
   // Client-side filtering applied to the fetched sessions
   const filteredSessions = useMemo(() => {
@@ -183,6 +192,15 @@ export function SessionsPage() {
     setToDate('')
     setProjectFilter('all')
     setDurationFilter('all')
+    setTypeFilter('all')
+    setCurrentPage(0)
+  }
+
+  // Type filter changes the underlying server query (not a client-side
+  // filter like the others), so the page count can differ — reset to page 1.
+  function handleTypeFilterChange(next: SessionTypeFilter) {
+    setTypeFilter(next)
+    setCurrentPage(0)
   }
 
   function openCreate() {
@@ -314,6 +332,37 @@ export function SessionsPage() {
 
             {/* Row 2 — Filter pills */}
             <div className="flex flex-wrap items-end gap-3">
+
+              {/* Type filter */}
+              <div>
+                <p className="mb-1 text-[11px] text-ink-muted">Type</p>
+                <Tabs
+                  value={typeFilter}
+                  onValueChange={v => handleTypeFilterChange(v as SessionTypeFilter)}
+                >
+                  <TabsList
+                    className="h-9 rounded-full p-1 gap-0.5"
+                    style={{ background: 'var(--color-surface-overlay)' }}
+                  >
+                    {TYPE_OPTIONS.map(({ value, label }) => (
+                      <TabsTrigger
+                        key={value}
+                        value={value}
+                        className={[
+                          'rounded-full text-[13px] font-medium px-[14px] py-[4px]',
+                          'transition-all shadow-none',
+                          'data-[state=inactive]:bg-transparent data-[state=inactive]:text-[var(--color-text-faint)]',
+                          'data-[state=active]:bg-[var(--color-surface-raised)] data-[state=active]:text-[var(--color-brand)]',
+                          'data-[state=active]:border data-[state=active]:border-[rgba(75,158,255,0.3)]',
+                          'data-[state=active]:shadow-none',
+                        ].join(' ')}
+                      >
+                        {label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </div>
 
               {/* Date range */}
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end">

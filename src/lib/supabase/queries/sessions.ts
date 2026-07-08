@@ -68,19 +68,30 @@ export async function fetchSessionsByProject(projectId: string): Promise<Session
   return data
 }
 
+// 'all' returns both focus and break sessions. Defaults to 'focus' so every
+// existing caller (e.g. the dashboard's recent-sessions list) keeps its
+// current behavior unchanged.
+export type SessionTypeFilter = 'all' | 'focus' | 'break'
+
 export async function fetchSessionsPaginated(
   userId: string,
   page: number,
   pageSize: number = 20,
+  typeFilter: SessionTypeFilter = 'focus',
 ): Promise<{ sessions: SessionWithRelations[]; totalCount: number }> {
   const from = page * pageSize
   const to   = page * pageSize + pageSize - 1
 
-  const { data, error, count } = await supabase
+  let query = supabase
     .from('sessions')
     .select('*, projects(name, color), tasks(title)', { count: 'exact' })
     .eq('user_id', userId)
-    .eq('type', 'focus')
+
+  if (typeFilter !== 'all') {
+    query = query.eq('type', typeFilter)
+  }
+
+  const { data, error, count } = await query
     .order('started_at', { ascending: false })
     .range(from, to)
 
@@ -145,9 +156,10 @@ export async function fetchSessionsThisMonth(userId: string): Promise<number> {
 }
 
 export type ExportFilters = {
-  startDate?: string
-  endDate?: string
-  projectId?: string | null
+  startDate?:     string
+  endDate?:       string
+  projectId?:     string | null
+  includeBreaks?: boolean // defaults to false — export is focus sessions only unless opted in
 }
 
 export async function fetchSessionsForExport(
@@ -158,8 +170,11 @@ export async function fetchSessionsForExport(
     .from('sessions')
     .select('*, projects(name, color), tasks(title)')
     .eq('user_id', userId)
-    .eq('type', 'focus')
     .order('started_at', { ascending: false })
+
+  if (!filters.includeBreaks) {
+    query = query.eq('type', 'focus')
+  }
 
   if (filters.startDate) {
     query = query.gte('started_at', filters.startDate)

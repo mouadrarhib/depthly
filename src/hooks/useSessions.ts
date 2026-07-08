@@ -14,6 +14,7 @@ import type {
   UpdateSessionInput,
   CreateManualSessionInput,
   ExportFilters,
+  SessionTypeFilter,
 } from '@/lib/supabase/queries/sessions'
 import {
   convertSessionsToCSV,
@@ -29,11 +30,11 @@ export function useSessionsByProject(projectId: string) {
   })
 }
 
-export function useSessionsPaginated(page: number) {
+export function useSessionsPaginated(page: number, type: SessionTypeFilter = 'focus') {
   const userId = useAuthStore(s => s.user?.id ?? '')
   return useQuery({
-    queryKey: sessionKeys.paginated(userId, page),
-    queryFn:  () => fetchSessionsPaginated(userId, page),
+    queryKey: sessionKeys.paginated(userId, page, type),
+    queryFn:  () => fetchSessionsPaginated(userId, page, 20, type),
     enabled:  !!userId,
   })
 }
