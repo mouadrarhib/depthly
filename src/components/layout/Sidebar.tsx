@@ -8,30 +8,17 @@ import type { LucideIcon } from 'lucide-react'
 
 import { useUiStore, useAuthStore } from '@/store'
 import { usePlan } from '@/hooks/usePlan'
+import { useTodayStats } from '@/hooks/useTodayStats'
 import { PATHS } from '@/routes/paths'
 import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils/cn'
+import { Avatar } from '@/components/ui/Avatar'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-
-// ── Avatar color helper ──────────────────────────────────────────────────────
-const AVATAR_COLORS = [
-  '#4B9EFF', '#3DD68C', '#F5A623',
-  '#F25C5C', '#A78BFA', '#F472B6',
-  '#FB923C', '#34D399',
-]
-
-function getAvatarColor(name: string): string {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
-}
 
 // ── Nav items ────────────────────────────────────────────────────────────────
 interface NavItem { label: string; path: string; Icon: LucideIcon }
@@ -121,9 +108,10 @@ export function Sidebar() {
   const user                           = useAuthStore(s => s.user)
   const { plan }                       = usePlan()
   const navigate                       = useNavigate()
+  const { avatarUrl, displayName: profileDisplayName } = useTodayStats()
 
   const meta        = user?.user_metadata as Record<string, string> | undefined
-  const displayName = meta?.full_name ?? meta?.name ?? user?.email?.split('@')[0] ?? 'User'
+  const displayName = profileDisplayName ?? meta?.full_name ?? meta?.name ?? user?.email?.split('@')[0] ?? 'User'
 
   const planLabel =
     plan === 'pro'      ? '⚡ Pro'      :
@@ -141,25 +129,7 @@ export function Sidebar() {
     </svg>
   )
 
-  const avatar = (
-    <div
-      style={{
-        width:          32,
-        height:         32,
-        borderRadius:   '50%',
-        background:     getAvatarColor(displayName),
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'center',
-        fontSize:       13,
-        fontWeight:     600,
-        color:          'white',
-        flexShrink:     0,
-      }}
-    >
-      {displayName[0]?.toUpperCase() ?? '?'}
-    </div>
-  )
+  const avatar = <Avatar avatarUrl={avatarUrl} name={displayName} size={32} />
 
   return (
     <TooltipProvider delayDuration={200}>
