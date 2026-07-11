@@ -121,22 +121,26 @@ export function DashboardPage() {
         </div>
       )}
 
-      {/* Two-column responsive grid */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[3fr_2fr]">
+      {/* Two-column responsive grid. On mobile the two column wrappers below
+          become `contents` so their children act as direct siblings here —
+          that lets the order-* utilities below reorder sections across what
+          are visually two columns on desktop (lg:) without touching the
+          desktop layout, which keeps its original two-column DOM/box structure. */}
+      <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[3fr_2fr] lg:gap-5">
 
         {/* ── LEFT COLUMN ──────────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-3">
+        <div className="contents lg:flex lg:flex-col lg:gap-3">
 
           {/* Lightweight timer widget — full controls available at /timer */}
           <div
-            className="rounded-2xl border border-depth-border bg-depth-surface"
+            className="order-3 rounded-2xl border border-depth-border bg-depth-surface lg:order-none"
             style={{ padding: '24px' }}
           >
             <TimerWidget />
           </div>
 
           {/* Today's stats row */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="order-4 grid grid-cols-3 gap-3 lg:order-none">
             {profileLoading ? (
               /* Skeleton stat cards */
               <>
@@ -199,7 +203,7 @@ export function DashboardPage() {
           </div>
 
           {/* Recent sessions */}
-          <div className="rounded-xl border border-depth-border bg-depth-surface p-4">
+          <div className="order-5 rounded-xl border border-depth-border bg-depth-surface p-4 lg:order-none">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-[14px] font-medium text-ink-primary">Recent Sessions</span>
               <Link to={PATHS.sessions} className="text-[12px] text-brand hover:underline">
@@ -227,11 +231,11 @@ export function DashboardPage() {
         </div>
 
         {/* ── RIGHT COLUMN ─────────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-3">
+        <div className="contents lg:flex lg:flex-col lg:gap-3">
 
           {/* Greeting */}
           <div
-            className="rounded-xl border border-depth-border bg-depth-surface"
+            className="order-1 rounded-xl border border-depth-border bg-depth-surface lg:order-none"
             style={{ padding: '16px 20px' }}
           >
             {profileLoading ? (
@@ -245,7 +249,7 @@ export function DashboardPage() {
 
           {/* Streak */}
           <div
-            className="rounded-xl border border-depth-border bg-depth-surface"
+            className="order-2 rounded-xl border border-depth-border bg-depth-surface lg:order-none"
             style={{ padding: '16px 20px' }}
           >
             {profileLoading ? (
@@ -285,7 +289,7 @@ export function DashboardPage() {
           </div>
 
           {/* This Week mini chart */}
-          <div className="rounded-xl border border-depth-border bg-depth-surface p-5">
+          <div className="order-6 rounded-xl border border-depth-border bg-depth-surface p-5 lg:order-none">
             <p className="mb-3 text-[13px] font-medium text-ink-primary">This Week</p>
             <ResponsiveContainer width="100%" height={60}>
               <BarChart
@@ -309,7 +313,7 @@ export function DashboardPage() {
           </div>
 
           {/* Quick links */}
-          <div className="rounded-xl border border-depth-border bg-depth-surface p-5">
+          <div className="order-7 rounded-xl border border-depth-border bg-depth-surface p-5 lg:order-none">
             <p className="mb-3 text-[12px] font-medium uppercase tracking-wider text-ink-muted">
               Quick access
             </p>
