@@ -151,7 +151,14 @@ function BottomActionRow() {
       <button
         style={btnStyle}
         onClick={() => {
-          document.documentElement.requestFullscreen().catch(() => {})
+          // Native Fullscreen API is unsupported on iOS Safari and some mobile
+          // WebViews (documentElement.requestFullscreen is undefined there),
+          // so it must be feature-detected — otherwise the throw aborts this
+          // handler before toggleFullscreen() runs and the app's own
+          // fullscreen overlay never opens.
+          if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {})
+          }
           toggleFullscreen()
         }}
         onMouseEnter={(e) => {
