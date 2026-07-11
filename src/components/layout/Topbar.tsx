@@ -6,6 +6,7 @@ import { useAuthStore, useUiStore } from '@/store'
 import { useTodayStats }  from '@/hooks/useTodayStats'
 import { usePlan }        from '@/hooks/usePlan'
 import { PATHS }          from '@/routes/paths'
+import { Avatar }         from '@/components/ui/Avatar'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -40,10 +41,7 @@ export function Topbar() {
     await supabase.auth.signOut()
   }
 
-  const initials = (displayName ?? user?.email ?? '?')
-    .replace(/@.*$/, '')
-    .slice(0, 2)
-    .toUpperCase()
+  const name = displayName ?? user?.email?.split('@')[0] ?? '?'
 
   const planLabel =
     plan === 'pro'      ? 'Pro'      :
@@ -108,28 +106,11 @@ export function Topbar() {
               aria-label="Account menu"
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: 26, height: 26, borderRadius: '50%',
-                backgroundColor: '#4B9EFF',
-                overflow: 'hidden', flexShrink: 0,
                 cursor: 'pointer', border: 'none', padding: 0,
-                outline: 'none',
+                background: 'none', outline: 'none',
               }}
             >
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt="avatar"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                <span style={{
-                  fontSize: 10, fontWeight: 700,
-                  color: '#0D0D10', userSelect: 'none',
-                  fontFamily: 'Inter, system-ui, sans-serif',
-                }}>
-                  {initials}
-                </span>
-              )}
+              <Avatar avatarUrl={avatarUrl} name={name} size={26} fontSize={10} />
             </button>
           </DropdownMenuTrigger>
 
