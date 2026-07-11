@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CheckCircle, Crown } from 'lucide-react'
+import { FunctionsHttpError } from '@supabase/supabase-js'
 
 import {
   Dialog,
@@ -9,6 +10,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { supabase } from '@/lib/supabase/client'
 
 type Trigger =
   | 'projects'
@@ -17,6 +19,8 @@ type Trigger =
   | 'export'
   | 'leaderboard'
   | 'kanban'
+
+type PlanCheckoutType = 'pro_monthly' | 'pro_yearly' | 'lifetime'
 
 interface UpgradeModalProps {
   open:      boolean
@@ -44,18 +48,44 @@ const FEATURES: Array<{ title: string; desc: string }> = [
   { title: 'All Future Pro Features',        desc: 'Instant access to everything we ship next' },
 ]
 
-const COMING_SOON_MSG = 'Checkout coming soon — Lemon Squeezy verification pending'
+// create-checkout returns { error: string } in its response body on failure.
+// supabase-js only exposes that body via error.context (the raw Response),
+// not error.message — so it has to be read and parsed explicitly here.
+async function extractErrorMessage(err: unknown): Promise<string> {
+  if (err instanceof FunctionsHttpError) {
+    try {
+      const body = await err.context.json()
+      if (typeof body?.error === 'string') return body.error
+    } catch {
+      // context wasn't JSON — fall through to the generic message below
+    }
+  }
+  return err instanceof Error ? err.message : 'Could not start checkout. Please try again.'
+}
 
 export function UpgradeModal({ open, onClose, trigger }: UpgradeModalProps) {
-  const [notice, setNotice] = useState(false)
+  const [loadingPlan, setLoadingPlan] = useState<PlanCheckoutType | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  function handleChoose() {
-    // TODO: wire Lemon Squeezy checkout URL
-    setNotice(true)
+  async function handleChoose(planType: PlanCheckoutType) {
+    setError(null)
+    setLoadingPlan(planType)
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke<{ url: string }>(
+        'create-checkout',
+        { body: { planType } },
+      )
+      if (invokeError || !data?.url) throw invokeError ?? new Error('No checkout URL returned')
+      window.location.href = data.url
+    } catch (err) {
+      console.error('Failed to start Lemon Squeezy checkout:', err)
+      setError(await extractErrorMessage(err))
+      setLoadingPlan(null)
+    }
   }
 
   function handleClose() {
-    setNotice(false)
+    setError(null)
     onClose()
   }
 
@@ -147,7 +177,9 @@ export function UpgradeModal({ open, onClose, trigger }: UpgradeModalProps) {
                   size="sm"
                   className="w-full text-[12px]"
                   style={{ border: '1px solid #2E2E38' }}
-                  onClick={handleChoose}
+                  isLoading={loadingPlan === 'pro_monthly'}
+                  disabled={loadingPlan !== null}
+                  onClick={() => handleChoose('pro_monthly')}
                 >
                   Choose
                 </Button>
@@ -209,7 +241,9 @@ export function UpgradeModal({ open, onClose, trigger }: UpgradeModalProps) {
                     variant="primary"
                     size="sm"
                     className="w-full text-[12px]"
-                    onClick={handleChoose}
+                    isLoading={loadingPlan === 'pro_yearly'}
+                    disabled={loadingPlan !== null}
+                    onClick={() => handleChoose('pro_yearly')}
                   >
                     Choose
                   </Button>
@@ -250,7 +284,9 @@ export function UpgradeModal({ open, onClose, trigger }: UpgradeModalProps) {
                   size="sm"
                   className="w-full text-[12px]"
                   style={{ border: '1px solid #2E2E38' }}
-                  onClick={handleChoose}
+                  isLoading={loadingPlan === 'lifetime'}
+                  disabled={loadingPlan !== null}
+                  onClick={() => handleChoose('lifetime')}
                 >
                   Choose
                 </Button>
@@ -258,10 +294,10 @@ export function UpgradeModal({ open, onClose, trigger }: UpgradeModalProps) {
             </div>
           </div>
 
-          {/* Coming soon notice */}
-          {notice && (
+          {/* Checkout error notice */}
+          {error && (
             <p className="text-[12px] text-ink-secondary text-center rounded-md bg-depth-raised px-3 py-2 mt-4">
-              {COMING_SOON_MSG}
+              {error}
             </p>
           )}
 

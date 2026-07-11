@@ -1,0 +1,6 @@
+project_id = "wzwabskeqxqrtgvyjede"
+
+# Lemon Squeezy calls this endpoint directly and cannot send a Supabase auth
+# JWT — only the X-Signature header, which the function verifies itself.
+[functions.lemonsqueezy-webhook]
+verify_jwt = false
