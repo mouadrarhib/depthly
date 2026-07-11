@@ -8,9 +8,11 @@ import {
   useUploadAvatar,
   useCheckSlugAvailable,
 } from '@/hooks/useSettings'
+import { useCanAppearOnLeaderboard } from '@/hooks/usePlanLimits'
 import { useAuthStore } from '@/store/authStore'
 import { analyticsKeys, settingsKeys } from '@/lib/queryKeys'
 import { deleteAvatar } from '@/lib/supabase/storage'
+import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/Input'
 import { Switch } from '@/components/ui/switch'
@@ -42,6 +44,8 @@ export function ProfileSection() {
   const userId        = useAuthStore(s => s.user?.id ?? '')
   const user          = useAuthStore(s => s.user)
   const setUser       = useAuthStore(s => s.setUser)
+  const { canAppear }  = useCanAppearOnLeaderboard()
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
 
   // Stable ref so the debounce closure always calls the latest version
   const checkSlugRef = useRef(checkSlug)
@@ -360,7 +364,13 @@ export function ProfileSection() {
             </div>
             <Switch
               checked={profile?.is_public ?? false}
-              onCheckedChange={checked => updateProfile.mutate({ is_public: checked })}
+              onCheckedChange={checked => {
+                if (checked && !canAppear) {
+                  setUpgradeOpen(true)
+                  return
+                }
+                updateProfile.mutate({ is_public: checked })
+              }}
               disabled={updateProfile.isPending}
             />
           </div>
@@ -419,6 +429,8 @@ export function ProfileSection() {
           </div>
         </div>
       </div>
+
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="leaderboard" />
     </TooltipProvider>
   )
 }

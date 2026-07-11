@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Clock, BarChart2, Tag, Calendar } from 'lucide-react'
+import { Clock, BarChart2, Tag, Calendar, Lock } from 'lucide-react'
 import {
   PieChart, Pie, Cell,
   BarChart, Bar, XAxis, YAxis,
@@ -7,9 +8,11 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
+import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { useDailySummary, useSessionsForDay, useDailySummariesRange } from '@/hooks/useAnalytics'
 import { useGoals } from '@/hooks/useGoals'
 import { useGoalCelebration } from '@/hooks/useGoalCelebration'
+import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
 import { formatPeriodKey, formatMinutesToHours, getGoalProgress, getDaysInWeek } from '@/lib/utils/analytics'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { ConfettiBurst } from '@/components/ui/ConfettiBurst'
@@ -192,6 +195,14 @@ export function DailyView({ date }: DailyViewProps) {
 
   const isLoading = loadingSummary || loadingSessions
 
+  const { windowDays, isPro } = useAnalyticsWindow()
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
+
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - windowDays)
+  const cutoffKey   = formatPeriodKey(cutoff, 'daily')
+  const showOverlay = !isPro && dateKey < cutoffKey
+
   const focusMinutes = summary?.focus_minutes ?? 0
   const sessionCount = summary?.session_count ?? 0
 
@@ -228,6 +239,7 @@ export function DailyView({ date }: DailyViewProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ position: 'relative' }}>
 
       {/*
         Two independent flex columns, not a row-synchronized grid. Every
@@ -538,6 +550,25 @@ export function DailyView({ date }: DailyViewProps) {
           )}
         </div>
       )}
+
+      {showOverlay && (
+        <>
+          <div style={{ position: 'absolute', inset: 0, backdropFilter: 'blur(4px)', pointerEvents: 'none', zIndex: 1, borderRadius: 14 }} />
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, zIndex: 2 }}>
+            <Lock size={20} color="#7A7890" />
+            <span style={{ fontSize: 14, color: '#E8E6F0', fontWeight: 500 }}>Unlock full history</span>
+            <button
+              onClick={() => setUpgradeOpen(true)}
+              style={{ background: '#4B9EFF', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+            >
+              Upgrade to Pro
+            </button>
+          </div>
+        </>
+      )}
+      </div>
+
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="analytics" />
     </div>
   )
 }
