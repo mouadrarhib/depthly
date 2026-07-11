@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CheckCircle } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 
 import { usePlan, FREE_LIMITS } from '@/hooks/usePlan'
+import { useProfile } from '@/hooks/useAnalytics'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,11 +12,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { useAuthStore } from '@/store/authStore'
-import { supabase } from '@/lib/supabase/client'
-import type { Tables } from '@/types/database'
-
-type Subscription = Tables<'subscriptions'>
 
 const FEATURES = [
   'Unlimited projects',
@@ -35,28 +31,29 @@ const cardStyle: React.CSSProperties = {
 }
 
 export function BillingPage() {
-  const { plan, isPro } = usePlan()
-  const userId = useAuthStore(s => s.user?.id ?? '')
+  const { plan } = usePlan()
+  // profiles.plan/plan_interval/subscription_current_period_end is the fast-read
+  // billing state and the source of truth for display (see CLAUDE.md) — NOT the
+  // subscriptions table, which can hold rows for older/unrelated subscriptions
+  // (e.g. a Pro trial before upgrading to Lifetime) that would otherwise show
+  // stale billing info here.
+  const { data: profile } = useProfile()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
 
-  const { data: subscription } = useQuery<Subscription | null>({
-    queryKey: ['subscription', userId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      if (error) throw error
-      return data
-    },
-    enabled: !!userId && isPro,
-  })
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [showCheckoutSuccess, setShowCheckoutSuccess] = useState(searchParams.get('checkout') === 'success')
 
-  const billingDate = subscription?.current_period_end
-    ? new Date(subscription.current_period_end).toLocaleDateString('en-US', {
+  useEffect(() => {
+    if (!showCheckoutSuccess) return
+    searchParams.delete('checkout')
+    setSearchParams(searchParams, { replace: true })
+    const timer = setTimeout(() => setShowCheckoutSuccess(false), 6000)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const billingDate = profile?.subscription_current_period_end
+    ? new Date(profile.subscription_current_period_end).toLocaleDateString('en-US', {
         year:  'numeric',
         month: 'long',
         day:   'numeric',
@@ -64,9 +61,8 @@ export function BillingPage() {
     : '—'
 
   const planInterval =
-    subscription?.plan_interval === 'monthly' ? 'Monthly' :
-    subscription?.plan_interval === 'annual'  ? 'Annual'  :
-    subscription?.plan_interval === 'lifetime' ? 'Lifetime' : '—'
+    profile?.plan_interval === 'monthly' ? 'Monthly' :
+    profile?.plan_interval === 'annual'  ? 'Annual'  : '—'
 
   return (
     <div className="px-4 py-4 sm:px-8 sm:py-6">
@@ -79,6 +75,22 @@ export function BillingPage() {
         >
           Billing
         </h1>
+
+        {/* Post-checkout notice — webhook may take a second or two to sync */}
+        {showCheckoutSuccess && (
+          <div
+            style={{
+              backgroundColor: 'rgba(61,214,140,0.1)',
+              border:          '1px solid rgba(61,214,140,0.3)',
+              borderRadius:    10,
+              padding:         '10px 14px',
+              fontSize:        13,
+              color:           '#3DD68C',
+            }}
+          >
+            Payment received — updating your plan…
+          </div>
+        )}
 
         {/* Current Plan Card */}
         <div style={cardStyle}>
@@ -107,6 +119,30 @@ export function BillingPage() {
               <Button variant="primary" className="w-full" onClick={() => setUpgradeOpen(true)}>
                 Upgrade to Pro
               </Button>
+            </>
+          ) : plan === 'founding' ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <h2 style={{ fontSize: 18, fontWeight: 600, color: '#E8E6F0', margin: 0 }}>
+                  Depthly Lifetime
+                </h2>
+                <span style={{
+                  fontSize:      11,
+                  fontWeight:    600,
+                  color:         '#F5A623',
+                  background:    'rgba(245,166,35,0.15)',
+                  border:        '1px solid rgba(245,166,35,0.3)',
+                  borderRadius:  999,
+                  padding:       '2px 8px',
+                  letterSpacing: '0.05em',
+                }}>
+                  FOUNDING MEMBER
+                </span>
+              </div>
+
+              <p style={{ fontSize: 12, color: '#7A7890', marginBottom: 20, lineHeight: 1.5 }}>
+                One-time purchase — lifetime access to every Pro feature, forever. No renewal, no billing date.
+              </p>
             </>
           ) : (
             <>
