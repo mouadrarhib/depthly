@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Clock, BarChart2, Tag, Calendar, Lock } from 'lucide-react'
+import { Clock, BarChart2, Calendar, Lock } from 'lucide-react'
 import {
-  PieChart, Pie, Cell,
   BarChart, Bar, XAxis, YAxis,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
+  Cell,
 } from 'recharts'
 
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
+import { ProjectBreakdownCard, type ProjectEntry } from '@/components/analytics/ProjectBreakdownCard'
 import { useDailySummary, useSessionsForDay, useDailySummariesRange } from '@/hooks/useAnalytics'
 import { useGoals } from '@/hooks/useGoals'
 import { useGoalCelebration } from '@/hooks/useGoalCelebration'
@@ -21,13 +22,6 @@ import { PATHS } from '@/routes/paths'
 
 interface DailyViewProps {
   date: Date
-}
-
-interface ProjectEntry {
-  name:    string
-  color:   string
-  minutes: number
-  pct:     number
 }
 
 interface HourSlot {
@@ -93,27 +87,6 @@ function StatCardSkeleton() {
   )
 }
 
-function ProjectCardSkeleton() {
-  return (
-    <div style={card}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div className="bg-depth-raised animate-pulse" style={{ width: 26, height: 26, borderRadius: 6 }} />
-        <div className="bg-depth-raised animate-pulse rounded" style={{ height: 13, width: 140 }} />
-      </div>
-      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 11, width: 220, marginTop: 6 }} />
-      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 1, margin: '12px 0' }} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-        <div className="bg-depth-raised animate-pulse" style={{ width: 96, height: 96, borderRadius: '50%', flexShrink: 0 }} />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {[85, 65, 75].map((w, i) => (
-            <div key={i} className="bg-depth-raised animate-pulse rounded" style={{ height: 14, width: `${w}%` }} />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function TimelineCardSkeleton() {
   return (
     <div style={card}>
@@ -151,30 +124,6 @@ function TimelineTooltip({ active, payload }: TimelineTooltipProps) {
       <div className="font-data" style={{ fontSize: 13, color: '#E8E6F0', marginTop: 2 }}>
         {formatMinutesToHours(slot.minutes)}
       </div>
-    </div>
-  )
-}
-
-// ─── custom tooltip for project donut ────────────────────────────────────────
-
-interface ProjectTooltipProps {
-  active?:  boolean
-  payload?: Array<{ payload: ProjectEntry }>
-}
-
-function ProjectTooltip({ active, payload }: ProjectTooltipProps) {
-  if (!active || !payload?.length) return null
-  const entry = payload[0].payload
-  return (
-    <div style={{
-      backgroundColor: '#141417',
-      border:          '1px solid #2E2E38',
-      borderRadius:    8,
-      padding:         '8px 12px',
-    }}>
-      <span style={{ fontSize: 13, color: '#E8E6F0' }}>
-        {entry.name}: {formatMinutesToHours(entry.minutes)} ({entry.pct}%)
-      </span>
     </div>
   )
 }
@@ -369,99 +318,12 @@ export function DailyView({ date }: DailyViewProps) {
             column whatsoever. */}
         <div className="flex flex-col gap-4 sm:flex-[2]">
 
-        {isLoading ? <ProjectCardSkeleton /> : (
-          <div style={{ ...card, flex: '1 1 auto' }}>
-            <CardHeader
-              icon={<Tag size={16} style={{ color: '#4B9EFF', flexShrink: 0 }} />}
-              title="Focus Time by Project"
-              subtitle="See how you spent your focus time across different projects"
-            />
-
-            {hasSessions ? (
-              <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-center">
-                {/* Donut — 176px, a Kairu-style ring: no center label, big
-                    enough to be the visual anchor of the card. Hover
-                    tooltip replaces the old static center text. */}
-                <div style={{ position: 'relative', flexShrink: 0 }}>
-                  <PieChart width={176} height={176}>
-                    <Pie
-                      data={pieData}
-                      cx={88}
-                      cy={88}
-                      innerRadius={55}
-                      outerRadius={85}
-                      dataKey="minutes"
-                      startAngle={90}
-                      endAngle={-270}
-                      stroke="#141417"
-                      strokeWidth={2}
-                    >
-                      {pieData.map((entry, i) => (
-                        <Cell key={i} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip content={<ProjectTooltip />} cursor={false} />
-                  </PieChart>
-                </div>
-
-                {/* Legend — loose, table-like row: bold name on the left,
-                    then time and percent as their own evenly-spaced
-                    columns (justify-content: space-between across three
-                    items, not two) instead of a cramped inline cluster. */}
-                <div
-                  style={{
-                    flex:       '0 1 auto',
-                    minWidth:   200,
-                    maxWidth:   260,
-                    display:    'flex',
-                    flexDirection: 'column',
-                    gap:        4,
-                    ...(pieData.length > 5
-                      ? { maxHeight: 200, overflowY: 'auto' }
-                      : {}),
-                  }}
-                >
-                  {pieData.map((entry) => (
-                    <div
-                      key={entry.name}
-                      className="hover:bg-white/[0.03] rounded-md transition-colors"
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '6px 8px' }}
-                    >
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                        <span style={{
-                          width: 10, height: 10, borderRadius: '50%',
-                          backgroundColor: entry.color, flexShrink: 0,
-                        }} />
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#E8E6F0', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {entry.name}
-                        </span>
-                      </span>
-                      <span className="font-data" style={{ fontSize: 13, color: '#7A7890', flexShrink: 0 }}>
-                        {formatMinutesToHours(entry.minutes)}
-                      </span>
-                      <span style={{ fontSize: 12, color: '#3D3B4E', flexShrink: 0, minWidth: 30, textAlign: 'right' }}>
-                        {entry.pct}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0' }}>
-                <Tag size={28} style={{ color: '#3D3B4E' }} />
-                <p style={{ fontSize: 13, color: '#7A7890', marginTop: 10 }}>
-                  No focus sessions for this day.
-                </p>
-                <Link
-                  to={PATHS.timer}
-                  style={{ fontSize: 13, color: '#4B9EFF', marginTop: 8, textDecoration: 'none' }}
-                >
-                  Start the timer →
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
+        <ProjectBreakdownCard
+          pieData={pieData}
+          isLoading={isLoading}
+          emptyText="No focus sessions for this day."
+          style={{ flex: '1 1 auto' }}
+        />
 
         {isLoading ? <TimelineCardSkeleton /> : (
           <div style={card}>

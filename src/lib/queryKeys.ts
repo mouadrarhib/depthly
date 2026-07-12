@@ -50,6 +50,10 @@ export const analyticsKeys = {
                   ['analytics', 'daily-range', userId, start, end] as const,
   sessionsForDay: (userId: string, date: string) =>
                   ['analytics', 'sessions-day', userId, date] as const,
+  sessionsForYear: (userId: string, year: number) =>
+                  ['analytics', 'sessions-year', userId, year] as const,
+  sessionsAllTime: (userId: string) =>
+                  ['analytics', 'sessions-all-time', userId] as const,
   userStats:      (userId: string, type: string, key: string) =>
                   ['analytics', 'stats', userId, type, key] as const,
   userStatsRange: (userId: string, type: string, keys: string[]) =>

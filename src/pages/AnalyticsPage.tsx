@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BarChart2 } from 'lucide-react'
 
-import { AllTimeStatsBar } from '@/components/analytics/AllTimeStatsBar'
+import { OverviewView } from '@/components/analytics/OverviewView'
 import { PeriodNavigator } from '@/components/analytics/PeriodNavigator'
 import { DailyView }       from '@/components/analytics/DailyView'
 import { WeeklyView }      from '@/components/analytics/WeeklyView'
@@ -14,25 +14,27 @@ import { useProfile } from '@/hooks/useAnalytics'
 import { PATHS } from '@/routes/paths'
 
 type Period = 'daily' | 'weekly' | 'monthly' | 'yearly'
+type TabValue = 'overview' | Period
 
-const TABS: { value: Period; label: string }[] = [
-  { value: 'daily',   label: 'Daily'   },
-  { value: 'weekly',  label: 'Weekly'  },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'yearly',  label: 'Yearly'  },
+const TABS: { value: TabValue; label: string }[] = [
+  { value: 'overview', label: 'Overview' },
+  { value: 'daily',    label: 'Daily'   },
+  { value: 'weekly',   label: 'Weekly'  },
+  { value: 'monthly',  label: 'Monthly' },
+  { value: 'yearly',   label: 'Yearly'  },
 ]
 
 export function AnalyticsPage() {
   const navigate = useNavigate()
   const { data: profile } = useProfile()
 
-  const [activeTab,   setActiveTab]   = useState<Period>('daily')
+  const [activeTab,   setActiveTab]   = useState<TabValue>('overview')
   const [dailyDate,   setDailyDate]   = useState(() => new Date())
   const [weeklyDate,  setWeeklyDate]  = useState(() => new Date())
   const [monthlyDate, setMonthlyDate] = useState(() => new Date())
   const [yearlyDate,  setYearlyDate]  = useState(() => new Date())
 
-  const currentDate = {
+  const currentDate = activeTab === 'overview' ? null : {
     daily:   dailyDate,
     weekly:  weeklyDate,
     monthly: monthlyDate,
@@ -49,16 +51,8 @@ export function AnalyticsPage() {
   const isNewUser = profile?.total_sessions === 0
 
   return (
-    <div className="px-4 py-5 sm:px-8 sm:py-6">
+    <div className="px-4 py-4 sm:px-8 sm:py-6">
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-
-        {/* Header */}
-        <h1 className="text-ink-primary" style={{ fontSize: 22, fontWeight: 500, marginBottom: 20 }}>
-          Analytics
-        </h1>
-
-        {/* All-time stats — always visible, shows zeros for new users */}
-        <AllTimeStatsBar />
 
         {isNewUser ? (
           /* ── Full-page empty state for brand new users ── */
@@ -81,8 +75,8 @@ export function AnalyticsPage() {
         ) : (
           <>
             {/* Tab selector */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 32 }}>
-              <Tabs value={activeTab} onValueChange={v => setActiveTab(v as Period)}>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <Tabs value={activeTab} onValueChange={v => setActiveTab(v as TabValue)}>
                 <TabsList
                   className="rounded-full p-1 gap-0.5 h-auto"
                   style={{ background: 'var(--color-surface-overlay)' }}
@@ -107,20 +101,26 @@ export function AnalyticsPage() {
               </Tabs>
             </div>
 
-            {/* Period navigator */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, marginBottom: 24 }}>
-              <PeriodNavigator
-                period={activeTab}
-                currentDate={currentDate}
-                onNavigate={handleNavigate}
-              />
-            </div>
+            {/* Period navigator — not shown for Overview, which is lifetime
+                data with no date to page through */}
+            {activeTab !== 'overview' && currentDate && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8, marginBottom: 20 }}>
+                <PeriodNavigator
+                  period={activeTab}
+                  currentDate={currentDate}
+                  onNavigate={handleNavigate}
+                />
+              </div>
+            )}
 
             {/* Tab content */}
-            {activeTab === 'daily'   && <DailyView   date={dailyDate}   />}
-            {activeTab === 'weekly'  && <WeeklyView  date={weeklyDate}  />}
-            {activeTab === 'monthly' && <MonthlyView date={monthlyDate} />}
-            {activeTab === 'yearly'  && <YearlyView  date={yearlyDate}  />}
+            <div style={activeTab === 'overview' ? { marginTop: 20 } : undefined}>
+              {activeTab === 'overview' && <OverviewView />}
+              {activeTab === 'daily'    && <DailyView   date={dailyDate}   />}
+              {activeTab === 'weekly'   && <WeeklyView  date={weeklyDate}  />}
+              {activeTab === 'monthly'  && <MonthlyView date={monthlyDate} />}
+              {activeTab === 'yearly'   && <YearlyView  date={yearlyDate}  />}
+            </div>
           </>
         )}
 

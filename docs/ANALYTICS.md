@@ -29,11 +29,13 @@ All aggregated stats come from two tables:
 
 ### Tab structure
 
-Four tabs: `daily | weekly | monthly | yearly`. Implemented with shadcn `<Tabs>` / `<TabsList>` / `<TabsTrigger>`.
+Five tabs: `overview | daily | weekly | monthly | yearly`, in that left-to-right order. **Overview is the default tab** on landing at `/analytics`. Implemented with shadcn `<Tabs>` / `<TabsList>` / `<TabsTrigger>`.
+
+`Overview` shows lifetime stats (not date-scoped) and has no `PeriodNavigator` — it's the one tab where `currentDate` is `null` and the navigator is conditionally not rendered (`activeTab !== 'overview' && currentDate`).
 
 ### Date state design
 
-Each tab has **independent date state**:
+Each of the four period tabs has **independent date state**; Overview has none:
 
 ```ts
 const [dailyDate,   setDailyDate]   = useState(() => new Date())
@@ -44,46 +46,54 @@ const [yearlyDate,  setYearlyDate]  = useState(() => new Date())
 
 This means navigating backward in the Weekly view does not reset the Daily view back to today when the user switches tabs. Each tab remembers where the user left it for the duration of the session.
 
-`handleNavigate(d)` dispatches to the correct setter based on `activeTab`.
+`handleNavigate(d)` dispatches to the correct setter based on `activeTab`. It's a no-op when `activeTab === 'overview'` (none of the `if` branches match).
 
 ### Layout
 
 ```
 <h1>Analytics</h1>
-<AllTimeStatsBar />          ← always visible, above tabs
-<Tabs />                     ← tab selector (centered)
-<PeriodNavigator />          ← prev/next/jump-to-current (centered)
-{activeTab === 'daily'   && <DailyView   date={dailyDate}   />}
-{activeTab === 'weekly'  && <WeeklyView  date={weeklyDate}  />}
-{activeTab === 'monthly' && <MonthlyView date={monthlyDate} />}
-{activeTab === 'yearly'  && <YearlyView  date={yearlyDate}  />}
+<Tabs />                     ← tab selector (centered): Overview | Daily | Weekly | Monthly | Yearly
+<PeriodNavigator />          ← prev/next/jump-to-current (centered) — hidden on Overview
+{activeTab === 'overview' && <OverviewView />}
+{activeTab === 'daily'    && <DailyView   date={dailyDate}   />}
+{activeTab === 'weekly'   && <WeeklyView  date={weeklyDate}  />}
+{activeTab === 'monthly'  && <MonthlyView date={monthlyDate} />}
+{activeTab === 'yearly'   && <YearlyView  date={yearlyDate}  />}
 ```
 
 Max content width is `1100px`, centered with `margin: '0 auto'`.
+
+**History:** lifetime stats used to render as a persistent `AllTimeStatsBar` strip above the tabs on every single period view, adding height/scroll to Daily/Weekly/Monthly/Yearly even though the data never changed with the selected period. `AllTimeStatsBar.tsx` has been removed; its content now lives only in the dedicated `OverviewView` tab, so the other four period tabs start directly with their own content.
 
 ---
 
 ## 3. Components
 
-### `AllTimeStatsBar`
-`src/components/analytics/AllTimeStatsBar.tsx`
+### `OverviewView`
+`src/components/analytics/OverviewView.tsx`
 
-| Prop | — |
-|------|---|
-| none | Reads data internally via `useProfile()` |
+No props — reads data internally via `useProfile()` and `useSessionsAllTime()`.
 
-Renders a horizontal strip of 6 stat cells, separated by `1px solid #2E2E38` dividers. Each cell has an icon (lucide-react), a large `font-data` value, and an uppercase label.
+**Layout:** stat grid, then a lifetime "Focus Time by Project" card. No date navigation (this is the lifetime-summary tab).
 
-| Cell | Icon | Value source |
-|------|------|-------------|
-| Total Focus | `Clock` | `profile.total_focus_minutes` via `formatMinutesToHours` |
-| Sessions | `CheckCircle` | `profile.total_sessions` |
-| Current Streak | `Flame` | `profile.current_streak` days — colored `#C8FF64` when > 0 |
-| Longest Streak | `Trophy` | `profile.longest_streak` days |
-| Avg per Day | `TrendingUp` | `total_focus_minutes / days_since_signup` via `computeAvgPerDay` |
-| Member Since | `Calendar` | `profile.member_since` formatted as `"Jun 2025"` |
+**Stat grid** — 6 cards via a local `StatCard({ value, label, valueSize })` component, same card chrome as `YearlyView`'s stat cards (`#141417` bg, `#2E2E38` border, `radius: 14`), in a `grid-cols-2 sm:grid-cols-3` responsive grid (2 cols mobile, 3 desktop):
 
-Shows animated skeleton cells (`bg-depth-raised animate-pulse`) while loading. The streak color `#C8FF64` is used here (only in the value span, not the icon background) — this is one of the two places that color appears; the other is `StreakBadge.tsx`.
+| Card | Value source |
+|------|-------------|
+| Total focus | `profile.total_focus_minutes` via `formatMinutesToHours` |
+| Sessions | `profile.total_sessions` |
+| Current streak | `profile.current_streak` days — colored `#C8FF64` when > 0 |
+| Longest streak | `profile.longest_streak` days |
+| Avg per day | `total_focus_minutes / days_since_signup` via local `computeAvgPerDay` |
+| Member since | `profile.member_since` formatted as `"Jun 2025"` via local `formatMemberSince` |
+
+The streak color `#C8FF64` is used only in the "current streak" value span (not decoratively) — this is one of the two places that color appears; the other is `StreakBadge.tsx`. No per-stat icon colors are used (plain `ink-primary`), consistent with `YearlyView`'s stat cards.
+
+**Focus Time by Project (lifetime):**
+- Reuses `ProjectBreakdownCard` — the same donut+legend component `DailyView` and `YearlyView` use — passing all-time aggregated `pieData`.
+- Data comes from `useSessionsAllTime()`, which fetches raw `sessions` (`duration_mins, project_id, projects(name, color)`, no date filter) for the whole account and aggregates client-side, same pattern as `useSessionsForYear`.
+
+A compact lifetime heatmap / shortcut into the Yearly tab was considered and intentionally skipped — it would duplicate what the Yearly tab already shows without adding new information.
 
 ---
 
@@ -123,8 +133,7 @@ interface DailyViewProps {
 - Focus Sessions: `summary.session_count`
 
 **Right column** — "Focus Time by Project" card:
-- `PieChart` donut (180×180, innerRadius 55, outerRadius 80). Each slice = one project, colored by `entry.color` via `<Cell fill={entry.color}>`.
-- Center label shows total focus time.
+- Rendered via the shared `ProjectBreakdownCard` component (see below) — `PieChart` donut (176×176, innerRadius 55, outerRadius 85), each slice colored by `entry.color` via `<Cell fill={entry.color}>`, hover tooltip instead of a center label.
 - Legend beside the donut: project name, formatted minutes, percentage.
 - Empty state: `Tag` icon + "No focus sessions for this day." + link to timer.
 
@@ -144,6 +153,36 @@ if (hourSlots[h].color === '#222228' && s.projects) {
   hourSlots[h].projectName = s.projects.name
 }
 ```
+
+---
+
+### `ProjectBreakdownCard`
+`src/components/analytics/ProjectBreakdownCard.tsx`
+
+```ts
+interface ProjectEntry {
+  name:    string
+  color:   string
+  minutes: number
+  pct:     number
+}
+
+interface ProjectBreakdownCardProps {
+  pieData:    ProjectEntry[]
+  isLoading:  boolean
+  title?:     string       // default "Focus Time by Project"
+  subtitle?:  string
+  emptyText?: string
+  style?:     React.CSSProperties
+}
+```
+
+Shared donut + legend card, extracted from what was originally inline in `DailyView`. Owns its own loading skeleton (renders it internally when `isLoading` is true) and empty state (`Tag` icon + `emptyText` + "Start the timer →" link to `PATHS.timer`). Callers only need to build `pieData` (aggregate `sessions` by `project_id`, sort desc by `minutes`, compute `pct` against the period's total focus minutes) and pass it in.
+
+Used by:
+- `DailyView` — `pieData` built from `useSessionsForDay(dateKey)`.
+- `YearlyView` — `pieData` built from `useSessionsForYear(year)`, aggregated across the full year instead of a single day.
+- `OverviewView` — `pieData` built from `useSessionsAllTime()`, aggregated across every session ever logged.
 
 ---
 
@@ -218,12 +257,24 @@ interface YearlyViewProps {
 }
 ```
 
-**Layout:** 3-stat row, then GitHub-style heatmap card.
+**Layout:** 8-stat grid (`grid-cols-2` mobile → `sm:grid-cols-4` desktop), then a "Focus Time by Project" donut card, then the GitHub-style heatmap card.
 
-**Stats row** — three cards:
+**Stats row** — eight cards via a local `StatCard({ value, label, valueSize })` component:
 - Total focus this year.
 - Most productive month (computed from monthly aggregation): e.g. `"March — 14h 30m"` or `"—"`.
 - Longest streak this year (computed from daily data).
+- Total sessions this year — sum of `session_count` across the year's `daily_summaries` rows.
+- Focus days this year — count of `daily_summaries` rows with `focus_minutes > 0`.
+- Avg session length — `totalMinutes / totalSessions`, formatted via `formatMinutesToHours`.
+- Best single day — the `daily_summaries` row with the highest `focus_minutes`, e.g. `"May 14 — 4h 20m"` or `"—"` (via local `getBestDay()`).
+- Best single week — highest total across any real calendar week (reuses the same `weeks` array — including the optional 53rd overflow week — that drives the heatmap, summed via `focusMap`), labeled with `getPeriodLabel(monday, 'weekly')`, e.g. `"Jun 23 – Jun 29 — 12h 30m"` or `"—"`.
+
+No decorative per-stat icon colors are used (unlike `AllTimeStatsBar`) — all values render in plain `ink-primary`, consistent with the original 3-card row.
+
+**Focus Time by Project (yearly):**
+- Reuses `ProjectBreakdownCard` (`src/components/analytics/ProjectBreakdownCard.tsx`) — the same donut+legend component `DailyView` uses — passing yearly-aggregated `pieData` instead of a single day's.
+- Data comes from `useSessionsForYear(year)`, which fetches raw `sessions` (`duration_mins, project_id, projects(name, color)`) for the whole year and aggregates client-side, the same pattern `DailyView` uses for a single day.
+- Rendered above the heatmap (not below), since it's a primary at-a-glance summary.
 
 **Heatmap:**
 - Fixed-size cells: `CELL = 13px`, `GAP = 3px`, `STEP = 16px`.
@@ -296,12 +347,20 @@ date (Date)
   → year = date.getFullYear()
   → jan1 = "2026-01-01", dec31 = "2026-12-31"
   → useDailySummariesRange(jan1, dec31)  → all daily_summaries for the year
+  → useSessionsForYear(year)             → raw sessions for the year (project breakdown only)
 
 focusMap: Map<date-string, focus_minutes>
 weeks = getWeeksInYear(year)  → 52 Monday Date objects
   + optional 53rd if last Sunday < Dec 31
 
 Grid: flatMap(weeks) × 7 rows, keyed by date string.
+
+projectMap: Map<project_id, { name, color, minutes }>  → projectPieData (sorted desc),
+  built from useSessionsForYear the same way DailyView builds pieData from useSessionsForDay.
+
+bestWeek: iterate `weeks`, sum focusMap over each week's 7 in-year days, take the max —
+  reuses the same calendar-accurate week boundaries as the heatmap (not a naive ISO-week
+  grouping), so it stays consistent with what the heatmap visually shows as "one column".
 ```
 
 ---
@@ -426,6 +485,20 @@ function useSessionsForDay(date: string): UseQueryResult<SessionWithProject[]>
 Query key: `analyticsKeys.sessionsForDay(userId, date)` → `['analytics', 'sessions-day', userId, date]`  
 Fetches raw `sessions` for the given local calendar day, joined with `projects(name, color)`. Only `type = 'focus'` sessions. Uses local-midnight boundaries (see §1 timezone section). Used only by `DailyView`.
 
+#### `useSessionsForYear(year: number)`
+```ts
+function useSessionsForYear(year: number): UseQueryResult<SessionProjectSlice[]>
+```
+Query key: `analyticsKeys.sessionsForYear(userId, year)` → `['analytics', 'sessions-year', userId, year]`  
+Fetches raw `sessions` (`duration_mins, project_id, projects(name, color)` only — no full row) for the given calendar year using UTC-based year boundaries (`new Date(year, 0, 1)` to `new Date(year + 1, 0, 1)`). Only `type = 'focus'` sessions. Used by `YearlyView` to build the yearly `ProjectBreakdownCard`'s `pieData`.
+
+#### `useSessionsAllTime()`
+```ts
+function useSessionsAllTime(): UseQueryResult<SessionProjectSlice[]>
+```
+Query key: `analyticsKeys.sessionsAllTime(userId)` → `['analytics', 'sessions-all-time', userId]`  
+Fetches raw `sessions` (`duration_mins, project_id, projects(name, color)` only) for the user with no date filter at all — every focus session ever logged. Used by `OverviewView` to build the lifetime `ProjectBreakdownCard`'s `pieData`.
+
 #### `useUserStats(periodType, periodKey)`
 ```ts
 function useUserStats(
@@ -476,6 +549,25 @@ type SessionWithProject = Session & {
 }
 ```
 Constructs local-midnight UTC boundaries from the `"YYYY-MM-DD"` string. Filters `type = 'focus'`. Orders by `started_at ASC`.
+
+#### `fetchSessionsForYear(userId, year)`
+```ts
+async function fetchSessionsForYear(userId: string, year: number): Promise<SessionProjectSlice[]>
+```
+```ts
+type SessionProjectSlice = {
+  duration_mins: number
+  project_id: string | null
+  projects: { name: string; color: string } | null
+}
+```
+Selects only the columns needed for project-level aggregation (not `select('*')` like `fetchSessionsForDay`, since a year of sessions is a much larger result set). Filters `type = 'focus'`. No ordering applied (caller aggregates, doesn't render chronologically).
+
+#### `fetchSessionsAllTime(userId)`
+```ts
+async function fetchSessionsAllTime(userId: string): Promise<SessionProjectSlice[]>
+```
+Same minimal column selection and `type = 'focus'` filter as `fetchSessionsForYear`, but with no date range at all — fetches every focus session the user has ever logged.
 
 #### `fetchUserStats(userId, periodType, periodKey)`
 ```ts
@@ -636,6 +728,15 @@ Implemented in utils, not used anywhere. Weekly and monthly views do their own i
 
 ### `useUserStats` / `useUserStatsRange` — hooks exist, not wired to any view
 The hooks and their underlying query functions are fully implemented. No view component currently calls them. The `user_stats` table is populated by the `save_session` RPC.
+
+### YearlyView's project breakdown fetches a full year of raw sessions
+`useSessionsForYear` queries the `sessions` table directly (no aggregation view/RPC exists), the same approach `DailyView` uses for a single day. For a full year this can be a large result set for power users. Column selection is kept minimal (`duration_mins, project_id, projects(name,color)`) to reduce payload size, but there is no pagination or server-side aggregation.
+
+### OverviewView's project breakdown fetches every session ever logged, unbounded
+`useSessionsAllTime` has no date range at all — for a long-tenured heavy user this is the largest of the three raw-session fetches (`useSessionsForDay` < `useSessionsForYear` < `useSessionsAllTime`). Same minimal-column mitigation as `useSessionsForYear`, but still no pagination or server-side aggregation. If this becomes a real cost/latency problem, the fix is a Postgres view or RPC that aggregates `sessions` by `project_id` server-side rather than shipping every row to the client.
+
+### YearlyView's stat grid and project breakdown are not free-plan gated
+Only the heatmap has the `showOverlay` blur/lock treatment for the free plan's analytics window. The stats row (all 8 cards) and the "Focus Time by Project" card render full-year data regardless of plan, same as the original 3-card row did before this was expanded — this is pre-existing behavior, not something introduced by the 8-card expansion.
 
 ### Weekly donut has no project breakdown
 `useDailySummariesRange` returns `daily_summaries` rows which do not include per-project data. The weekly donut can only show total focus time as a single brand-color slice. Per-project breakdown is available only in DailyView (which queries raw `sessions`).

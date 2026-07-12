@@ -8,12 +8,14 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
-import { useDailySummariesRange } from '@/hooks/useAnalytics'
+import { ProjectBreakdownCard, type ProjectEntry } from '@/components/analytics/ProjectBreakdownCard'
+import { useDailySummariesRange, useSessionsForYear } from '@/hooks/useAnalytics'
 import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
 import {
   getWeeksInYear,
   formatPeriodKey,
   formatMinutesToHours,
+  getPeriodLabel,
 } from '@/lib/utils/analytics'
 
 interface YearlyViewProps {
@@ -40,6 +42,26 @@ function SkeletonCard() {
     <div style={cardStyle}>
       <div className="bg-depth-raised animate-pulse rounded" style={{ height: 40, width: '50%', marginBottom: 8 }} />
       <div className="bg-depth-raised animate-pulse rounded" style={{ height: 14, width: '65%' }} />
+    </div>
+  )
+}
+
+interface StatCardProps {
+  value:     React.ReactNode
+  label:     string
+  valueSize?: number
+}
+
+function StatCard({ value, label, valueSize = 28 }: StatCardProps) {
+  return (
+    <div style={cardStyle}>
+      <div className="font-data text-ink-primary"
+        style={{ fontSize: valueSize, fontWeight: 600, lineHeight: 1.15, letterSpacing: '-0.02em' }}>
+        {value}
+      </div>
+      <div className="text-ink-muted" style={{ fontSize: 12, marginTop: 6 }}>
+        {label}
+      </div>
     </div>
   )
 }
@@ -84,12 +106,24 @@ function getMostProductiveMonth(summaries: Array<{ date: string; focus_minutes: 
   return `${name} — ${formatMinutesToHours(max)}`
 }
 
+function getBestDay(summaries: Array<{ date: string; focus_minutes: number }>): string {
+  let best: { date: string; focus_minutes: number } | null = null
+  for (const s of summaries) {
+    if (s.focus_minutes > 0 && (!best || s.focus_minutes > best.focus_minutes)) best = s
+  }
+  if (!best) return '—'
+  const label = new Date(best.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return `${label} — ${formatMinutesToHours(best.focus_minutes)}`
+}
+
 export function YearlyView({ date }: YearlyViewProps) {
   const year  = date.getFullYear()
   const jan1  = formatPeriodKey(new Date(year, 0, 1), 'daily')
   const dec31 = formatPeriodKey(new Date(year, 11, 31), 'daily')
 
-  const { data: summaries, isLoading } = useDailySummariesRange(jan1, dec31)
+  const { data: summaries, isLoading: loadingSummaries } = useDailySummariesRange(jan1, dec31)
+  const { data: yearSessions, isLoading: loadingSessions } = useSessionsForYear(year)
+  const isLoading = loadingSummaries || loadingSessions
   const { windowDays, isPro } = useAnalyticsWindow()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
 
@@ -119,12 +153,51 @@ export function YearlyView({ date }: YearlyViewProps) {
   const totalMinutes  = allSummaries.reduce((s, r) => s + r.focus_minutes, 0)
   const longestStreak = computeLongestStreak(allSummaries)
   const bestMonth     = getMostProductiveMonth(allSummaries)
+  const bestDay       = getBestDay(allSummaries)
+
+  const totalSessions = allSummaries.reduce((s, r) => s + r.session_count, 0)
+  const focusDays      = allSummaries.filter(s => s.focus_minutes > 0).length
+  const avgSessionMins = totalSessions > 0 ? Math.round(totalMinutes / totalSessions) : 0
+
+  // Project breakdown — aggregated across the full year from raw sessions
+  const projectMap = new Map<string, Omit<ProjectEntry, 'pct'>>()
+  for (const s of yearSessions ?? []) {
+    const pid   = s.project_id ?? '__none__'
+    const name  = s.projects?.name  ?? 'No project'
+    const color = s.projects?.color ?? '#7A7890'
+    const cur   = projectMap.get(pid)
+    if (cur) cur.minutes += s.duration_mins
+    else projectMap.set(pid, { name, color, minutes: s.duration_mins })
+  }
+  const projectPieData: ProjectEntry[] = [...projectMap.values()]
+    .sort((a, b) => b.minutes - a.minutes)
+    .map(p => ({ ...p, pct: totalMinutes > 0 ? Math.round((p.minutes / totalMinutes) * 100) : 0 }))
 
   // Monthly totals for sub-labels
   const monthlyTotals = new Array(12).fill(0) as number[]
   for (const [key, mins] of focusMap) {
     monthlyTotals[new Date(key).getMonth()] += mins
   }
+
+  // Best single week — sum focus minutes across each real (calendar-accurate) week
+  let bestWeekMinutes = 0
+  let bestWeekMonday: Date | null = null
+  for (const monday of weeks) {
+    let sum = 0
+    for (let d = 0; d < 7; d++) {
+      const day = new Date(monday)
+      day.setDate(monday.getDate() + d)
+      if (day.getFullYear() !== year) continue
+      sum += focusMap.get(formatPeriodKey(day, 'daily')) ?? 0
+    }
+    if (sum > bestWeekMinutes) {
+      bestWeekMinutes = sum
+      bestWeekMonday  = monday
+    }
+  }
+  const bestWeek = bestWeekMonday
+    ? `${getPeriodLabel(bestWeekMonday, 'weekly')} — ${formatMinutesToHours(bestWeekMinutes)}`
+    : '—'
 
   // Month label positions
   const monthLabels: Array<{ label: string; col: number; monthIdx: number }> = []
@@ -150,48 +223,74 @@ export function YearlyView({ date }: YearlyViewProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {isLoading ? (
           <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
           </>
         ) : (
           <>
-            <div style={cardStyle}>
-              <div className="font-data text-ink-primary"
-                style={{ fontSize: 36, fontWeight: 600, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
-                {formatMinutesToHours(totalMinutes)}
-              </div>
-              <div className="text-ink-muted" style={{ fontSize: 12, marginTop: 6 }}>
-                total focus this year
-              </div>
-            </div>
-
-            <div style={cardStyle}>
-              <div className="font-data text-ink-primary"
-                style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.3, letterSpacing: '-0.02em' }}>
-                {bestMonth}
-              </div>
-              <div className="text-ink-muted" style={{ fontSize: 12, marginTop: 6 }}>
-                most productive month
-              </div>
-            </div>
-
-            <div style={cardStyle}>
-              <div className="font-data text-ink-primary"
-                style={{ fontSize: 36, fontWeight: 600, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
-                {longestStreak}
-                <span style={{ fontSize: 16, fontWeight: 400, marginLeft: 4 }}>days</span>
-              </div>
-              <div className="text-ink-muted" style={{ fontSize: 12, marginTop: 6 }}>
-                longest streak this year
-              </div>
-            </div>
+            <StatCard
+              valueSize={36}
+              value={formatMinutesToHours(totalMinutes)}
+              label="total focus this year"
+            />
+            <StatCard
+              valueSize={20}
+              value={bestMonth}
+              label="most productive month"
+            />
+            <StatCard
+              valueSize={36}
+              value={<>{longestStreak}<span style={{ fontSize: 16, fontWeight: 400, marginLeft: 4 }}>days</span></>}
+              label="longest streak this year"
+            />
+            <StatCard
+              valueSize={36}
+              value={totalSessions}
+              label="total sessions this year"
+            />
+            <StatCard
+              valueSize={36}
+              value={focusDays}
+              label="focus days this year"
+            />
+            <StatCard
+              valueSize={36}
+              value={formatMinutesToHours(avgSessionMins)}
+              label="avg session length"
+            />
+            <StatCard
+              valueSize={20}
+              value={bestDay}
+              label="best single day"
+            />
+            <StatCard
+              valueSize={20}
+              value={bestWeek}
+              label="best single week"
+            />
           </>
         )}
       </div>
+
+      {/* Focus Time by Project */}
+      {!isLoading && (
+        <ProjectBreakdownCard
+          pieData={projectPieData}
+          isLoading={false}
+          title="Focus Time by Project"
+          subtitle="See how you spent your focus time across different projects this year"
+          emptyText="No focus sessions logged this year."
+        />
+      )}
 
       {/* Heatmap */}
       {!isLoading && (

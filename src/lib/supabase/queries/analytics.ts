@@ -65,6 +65,44 @@ export async function fetchSessionsForDay(
   return (data ?? []) as SessionWithProject[]
 }
 
+export type SessionProjectSlice = {
+  duration_mins: number
+  project_id: string | null
+  projects: { name: string; color: string } | null
+}
+
+export async function fetchSessionsForYear(
+  userId: string,
+  year: number
+): Promise<SessionProjectSlice[]> {
+  const startOfYear = new Date(year, 0, 1)
+  const endOfYear   = new Date(year + 1, 0, 1)
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('duration_mins, project_id, projects(name, color)')
+    .eq('user_id', userId)
+    .eq('type', 'focus')
+    .gte('started_at', startOfYear.toISOString())
+    .lt('started_at', endOfYear.toISOString())
+
+  if (error) throw error
+  return (data ?? []) as SessionProjectSlice[]
+}
+
+export async function fetchSessionsAllTime(
+  userId: string
+): Promise<SessionProjectSlice[]> {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('duration_mins, project_id, projects(name, color)')
+    .eq('user_id', userId)
+    .eq('type', 'focus')
+
+  if (error) throw error
+  return (data ?? []) as SessionProjectSlice[]
+}
+
 export async function fetchUserStats(
   userId: string,
   periodType: 'daily' | 'weekly' | 'monthly' | 'yearly',

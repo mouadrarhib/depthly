@@ -7,6 +7,8 @@ import {
   fetchDailySummary,
   fetchDailySummariesRange,
   fetchSessionsForDay,
+  fetchSessionsForYear,
+  fetchSessionsAllTime,
   fetchUserStats,
   fetchUserStatsRange,
 } from '@/lib/supabase/queries/analytics'
@@ -43,6 +45,24 @@ export function useSessionsForDay(date: string) {
   return useQuery({
     queryKey: analyticsKeys.sessionsForDay(userId, date),
     queryFn:  () => fetchSessionsForDay(userId, date),
+    enabled:  !!userId,
+  })
+}
+
+export function useSessionsForYear(year: number) {
+  const userId = useAuthStore(s => s.user?.id ?? '')
+  return useQuery({
+    queryKey: analyticsKeys.sessionsForYear(userId, year),
+    queryFn:  () => fetchSessionsForYear(userId, year),
+    enabled:  !!userId,
+  })
+}
+
+export function useSessionsAllTime() {
+  const userId = useAuthStore(s => s.user?.id ?? '')
+  return useQuery({
+    queryKey: analyticsKeys.sessionsAllTime(userId),
+    queryFn:  () => fetchSessionsAllTime(userId),
     enabled:  !!userId,
   })
 }
