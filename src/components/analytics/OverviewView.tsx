@@ -6,7 +6,7 @@ const cardStyle: React.CSSProperties = {
   backgroundColor: '#141417',
   border:          '1px solid #2E2E38',
   borderRadius:    14,
-  padding:         24,
+  padding:         20,
 }
 
 function computeAvgPerDay(totalMinutes: number, memberSince: string): string {
@@ -71,10 +71,10 @@ export function OverviewView() {
     .map(p => ({ ...p, pct: totalProjectMinutes > 0 ? Math.round((p.minutes / totalProjectMinutes) * 100) : 0 }))
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {isLoading || !profile ? (
           <>
             <SkeletonCard />

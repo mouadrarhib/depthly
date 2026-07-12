@@ -46,7 +46,7 @@ const card: React.CSSProperties = {
   backgroundColor: '#141417',
   border:          '1px solid #2E2E38',
   borderRadius:    14,
-  padding:         20,
+  padding:         12,
 }
 
 // ─── card header ─────────────────────────────────────────────────────────────
@@ -66,7 +66,7 @@ function CardHeader({ icon, title, subtitle }: CardHeaderProps) {
       {subtitle && (
         <p style={{ fontSize: 12, color: '#7A7890', marginTop: 2 }}>{subtitle}</p>
       )}
-      <div style={{ height: 1, backgroundColor: '#2E2E38', margin: '12px 0' }} />
+      <div style={{ height: 1, backgroundColor: '#2E2E38', margin: '8px 0' }} />
     </>
   )
 }
@@ -187,7 +187,7 @@ export function DailyView({ date }: DailyViewProps) {
   const hasSessions = pieData.length > 0
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ position: 'relative' }}>
 
       {/*
@@ -201,10 +201,10 @@ export function DailyView({ date }: DailyViewProps) {
         cards, not Daily Timeline. Don't add grow/stretch to Focus Time,
         Focus Sessions, or Daily Timeline.
       */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
 
         {/* Left column: Focus Time, Focus Sessions, Daily Goal */}
-        <div className="flex flex-col gap-4 sm:flex-1">
+        <div className="flex flex-col gap-3 sm:flex-1">
 
         {isLoading ? <StatCardSkeleton /> : (
           <div style={card}>
@@ -316,7 +316,7 @@ export function DailyView({ date }: DailyViewProps) {
             60% width vs the left column's 40%, matching the previous
             1fr/2fr proportions, but with no height coupling to the left
             column whatsoever. */}
-        <div className="flex flex-col gap-4 sm:flex-[2]">
+        <div className="flex flex-col gap-3 sm:flex-[2]">
 
         <ProjectBreakdownCard
           pieData={pieData}

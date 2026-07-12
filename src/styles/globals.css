@@ -82,6 +82,7 @@
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;
+    overflow-y: hidden;
     -webkit-text-size-adjust: 100%;
   }
 
@@ -91,7 +92,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-family: 'Inter', system-ui, sans-serif;
-    overflow-x: hidden;
+    overflow: hidden;
     min-height: 100dvh;
   }
 

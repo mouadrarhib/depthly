@@ -51,7 +51,7 @@ export function AnalyticsPage() {
   const isNewUser = profile?.total_sessions === 0
 
   return (
-    <div className="px-4 py-4 sm:px-8 sm:py-6">
+    <div className="px-4 py-1 sm:px-8 sm:py-2">
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {isNewUser ? (
@@ -104,7 +104,7 @@ export function AnalyticsPage() {
             {/* Period navigator — not shown for Overview, which is lifetime
                 data with no date to page through */}
             {activeTab !== 'overview' && currentDate && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8, marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8, marginBottom: 6 }}>
                 <PeriodNavigator
                   period={activeTab}
                   currentDate={currentDate}
@@ -114,7 +114,7 @@ export function AnalyticsPage() {
             )}
 
             {/* Tab content */}
-            <div style={activeTab === 'overview' ? { marginTop: 20 } : undefined}>
+            <div style={activeTab === 'overview' ? { marginTop: 16 } : undefined}>
               {activeTab === 'overview' && <OverviewView />}
               {activeTab === 'daily'    && <DailyView   date={dailyDate}   />}
               {activeTab === 'weekly'   && <WeeklyView  date={weeklyDate}  />}
