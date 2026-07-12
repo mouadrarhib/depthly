@@ -90,6 +90,35 @@ export async function fetchSessionsForYear(
   return (data ?? []) as SessionProjectSlice[]
 }
 
+export type SessionProjectSliceWithDate = SessionProjectSlice & {
+  started_at: string
+}
+
+export async function fetchSessionsForWeek(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<SessionProjectSliceWithDate[]> {
+  // Parse both bounds as LOCAL midnight so the range spans full local
+  // calendar days, not a UTC-midnight-to-UTC-midnight window — same
+  // approach as fetchSessionsForDay, extended to a date range.
+  const [sy, sm, sd] = startDate.split('-').map(Number)
+  const [ey, em, ed] = endDate.split('-').map(Number)
+  const startOfRange = new Date(sy, sm - 1, sd)
+  const endOfRange   = new Date(ey, em - 1, ed + 1)
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('duration_mins, project_id, started_at, projects(name, color)')
+    .eq('user_id', userId)
+    .eq('type', 'focus')
+    .gte('started_at', startOfRange.toISOString())
+    .lt('started_at', endOfRange.toISOString())
+
+  if (error) throw error
+  return (data ?? []) as SessionProjectSliceWithDate[]
+}
+
 export async function fetchSessionsAllTime(
   userId: string
 ): Promise<SessionProjectSlice[]> {

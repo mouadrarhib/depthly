@@ -52,6 +52,8 @@ export const analyticsKeys = {
                   ['analytics', 'sessions-day', userId, date] as const,
   sessionsForYear: (userId: string, year: number) =>
                   ['analytics', 'sessions-year', userId, year] as const,
+  sessionsForWeek: (userId: string, startDate: string, endDate: string) =>
+                  ['analytics', 'sessions-week', userId, startDate, endDate] as const,
   sessionsAllTime: (userId: string) =>
                   ['analytics', 'sessions-all-time', userId] as const,
   userStats:      (userId: string, type: string, key: string) =>

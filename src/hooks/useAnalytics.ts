@@ -8,6 +8,7 @@ import {
   fetchDailySummariesRange,
   fetchSessionsForDay,
   fetchSessionsForYear,
+  fetchSessionsForWeek,
   fetchSessionsAllTime,
   fetchUserStats,
   fetchUserStatsRange,
@@ -55,6 +56,15 @@ export function useSessionsForYear(year: number) {
     queryKey: analyticsKeys.sessionsForYear(userId, year),
     queryFn:  () => fetchSessionsForYear(userId, year),
     enabled:  !!userId,
+  })
+}
+
+export function useSessionsForWeek(startDate: string, endDate: string) {
+  const userId = useAuthStore(s => s.user?.id ?? '')
+  return useQuery({
+    queryKey: analyticsKeys.sessionsForWeek(userId, startDate, endDate),
+    queryFn:  () => fetchSessionsForWeek(userId, startDate, endDate),
+    enabled:  !!userId && !!startDate && !!endDate,
   })
 }
 

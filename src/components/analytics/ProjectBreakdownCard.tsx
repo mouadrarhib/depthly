@@ -105,9 +105,13 @@ export function ProjectBreakdownCard({
   const hasSessions = pieData.length > 0
 
   return (
-    <div style={{ ...card, ...style }}>
+    <div style={{ ...card, display: 'flex', flexDirection: 'column', ...style }}>
       <CardHeader title={title} subtitle={subtitle} />
 
+      {/* Grows to fill any extra height a taller sibling column imposes
+          (e.g. Weekly/Daily's two-column layouts) and centers the content
+          within it, instead of leaving dead space below a short card. */}
+      <div style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
       {hasSessions ? (
         <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-center">
           {/* Donut — 176px, a Kairu-style ring: no center label, big
@@ -163,15 +167,16 @@ export function ProjectBreakdownCard({
                 {visibleData.map((entry) => (
                   <div
                     key={entry.name}
+                    title={entry.name}
                     className="hover:bg-white/[0.03] rounded-md transition-colors"
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '6px 8px' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '6px 8px' }}
                   >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
                       <span style={{
                         width: 10, height: 10, borderRadius: '50%',
                         backgroundColor: entry.color, flexShrink: 0,
                       }} />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#E8E6F0', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span title={entry.name} style={{ fontSize: 13, fontWeight: 600, color: '#E8E6F0', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {entry.name}
                       </span>
                     </span>
@@ -212,6 +217,7 @@ export function ProjectBreakdownCard({
           </Link>
         </div>
       )}
+      </div>
     </div>
   )
 }

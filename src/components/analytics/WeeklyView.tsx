@@ -11,12 +11,12 @@ import {
   ResponsiveContainer,
   Cell,
   LabelList,
-  PieChart,
-  Pie,
 } from 'recharts'
 
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
-import { useDailySummariesRange } from '@/hooks/useAnalytics'
+import { ProjectBreakdownCard, type ProjectEntry } from '@/components/analytics/ProjectBreakdownCard'
+import type { SessionProjectSliceWithDate } from '@/lib/supabase/queries/analytics'
+import { useDailySummariesRange, useSessionsForWeek } from '@/hooks/useAnalytics'
 import { useGoals } from '@/hooks/useGoals'
 import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
 import {
@@ -32,6 +32,12 @@ interface WeeklyViewProps {
   date: Date
 }
 
+interface DayProjectSlice {
+  name:    string
+  color:   string
+  minutes: number
+}
+
 interface DayEntry {
   day:           string
   date:          string
@@ -40,6 +46,7 @@ interface DayEntry {
   session_count: number
   isToday:       boolean
   isFuture:      boolean
+  projects:      DayProjectSlice[]
 }
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -68,21 +75,6 @@ function SummaryCardSkeleton() {
             <div className="bg-depth-raised animate-pulse rounded" style={{ height: 12, width: 120 }} />
           </div>
         ))}
-      </div>
-    </div>
-  )
-}
-
-function ProjectCardSkeleton() {
-  return (
-    <div style={{ ...card, height: '100%', boxSizing: 'border-box' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 24, paddingTop: 8 }}>
-        <div className="bg-depth-raised animate-pulse" style={{ width: 160, height: 160, borderRadius: '50%', flexShrink: 0 }} />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {[80, 60, 70, 50].map((w, i) => (
-            <div key={i} className="bg-depth-raised animate-pulse rounded" style={{ height: 14, width: `${w}%` }} />
-          ))}
-        </div>
       </div>
     </div>
   )
@@ -130,6 +122,21 @@ function ChartTooltip({ active, payload }: ChartTooltipProps) {
       <div style={{ fontSize: 12, color: '#7A7890', marginTop: 2 }}>
         {sess} session{sess !== 1 ? 's' : ''}
       </div>
+      {entry.projects.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 8, paddingTop: 8, borderTop: '1px solid #2E2E38' }}>
+          {entry.projects.map(p => (
+            <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: p.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 11, color: '#7A7890', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {p.name}
+              </span>
+              <span className="font-data" style={{ fontSize: 11, color: '#E8E6F0', flexShrink: 0 }}>
+                {formatMinutesToHours(p.minutes)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -160,9 +167,10 @@ export function WeeklyView({ date }: WeeklyViewProps) {
 
   const { data: summaries,     isLoading: loadingThis } = useDailySummariesRange(mondayKey, sundayKey)
   const { data: prevSummaries, isLoading: loadingPrev } = useDailySummariesRange(prevMonKey, prevSunKey)
+  const { data: weekSessions,  isLoading: loadingWeekSessions } = useSessionsForWeek(mondayKey, sundayKey)
   const { data: goals } = useGoals()
 
-  const isLoading = loadingThis || loadingPrev
+  const isLoading = loadingThis || loadingPrev || loadingWeekSessions
   const todayKey  = formatPeriodKey(new Date(), 'daily')
   const { windowDays, isPro } = useAnalyticsWindow()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
@@ -182,16 +190,32 @@ export function WeeklyView({ date }: WeeklyViewProps) {
   const thisWeekSessions = days.reduce((sum, d) =>
     sum + (summaryMap.get(formatPeriodKey(d, 'daily'))?.session_count ?? 0), 0)
 
-  // Comparison color for "Previous week" line
-  const compColor =
-    thisWeekMinutes > prevWeekMinutes ? '#4B9EFF' :
-    thisWeekMinutes < prevWeekMinutes ? '#F25C5C' :
-    '#7A7890'
+  // Group this week's sessions by local day so each bar's tooltip can list
+  // which project(s) were worked on that day.
+  const sessionsByDay = new Map<string, SessionProjectSliceWithDate[]>()
+  for (const s of weekSessions ?? []) {
+    const dayKey = formatPeriodKey(new Date(s.started_at), 'daily')
+    const list   = sessionsByDay.get(dayKey)
+    if (list) list.push(s)
+    else sessionsByDay.set(dayKey, [s])
+  }
 
   // Build 7-entry chart data
   const chartData: DayEntry[] = days.map((d, i) => {
     const key      = formatPeriodKey(d, 'daily')
     const isFuture = key > todayKey
+
+    const dayProjectMap = new Map<string, DayProjectSlice>()
+    for (const s of sessionsByDay.get(key) ?? []) {
+      const pid   = s.project_id ?? '__none__'
+      const name  = s.projects?.name  ?? 'No project'
+      const color = s.projects?.color ?? '#7A7890'
+      const cur   = dayProjectMap.get(pid)
+      if (cur) cur.minutes += s.duration_mins
+      else dayProjectMap.set(pid, { name, color, minutes: s.duration_mins })
+    }
+    const dayProjects = [...dayProjectMap.values()].sort((a, b) => b.minutes - a.minutes)
+
     return {
       day:           DAY_LABELS[i],
       date:          d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -200,24 +224,35 @@ export function WeeklyView({ date }: WeeklyViewProps) {
       session_count: isFuture ? 0 : (summaryMap.get(key)?.session_count ?? 0),
       isToday:       key === todayKey,
       isFuture,
+      projects:      isFuture ? [] : dayProjects,
     }
   })
 
-  // Donut data: single-slice when data exists, gray ring when no data
-  const donutData = thisWeekMinutes > 0
-    ? [{ name: 'Focus', minutes: thisWeekMinutes, color: '#4B9EFF' }]
-    : [{ name: 'Empty', minutes: 1,               color: '#222228' }]
+  // Focus Time by Project — aggregated across this week's focus sessions
+  const projectMap = new Map<string, Omit<ProjectEntry, 'pct'>>()
+  for (const s of weekSessions ?? []) {
+    const pid   = s.project_id ?? '__none__'
+    const name  = s.projects?.name  ?? 'No project'
+    const color = s.projects?.color ?? '#7A7890'
+    const cur   = projectMap.get(pid)
+    if (cur) cur.minutes += s.duration_mins
+    else projectMap.set(pid, { name, color, minutes: s.duration_mins })
+  }
+  const totalProjectMinutes = [...projectMap.values()].reduce((s, p) => s + p.minutes, 0)
+  const weekProjectPieData: ProjectEntry[] = [...projectMap.values()]
+    .sort((a, b) => b.minutes - a.minutes)
+    .map(p => ({ ...p, pct: totalProjectMinutes > 0 ? Math.round((p.minutes / totalProjectMinutes) * 100) : 0 }))
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
       {/* ── Top two-column grid ── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_2fr]">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1fr] sm:items-stretch">
 
         {/* Left: Weekly Summary */}
         {isLoading ? <SummaryCardSkeleton /> : (
-          <div style={{ ...card, height: '100%', boxSizing: 'border-box' }}>
+          <div style={{ ...card }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#E8E6F0', textAlign: 'center' }}>
               Weekly Summary
             </div>
@@ -233,7 +268,7 @@ export function WeeklyView({ date }: WeeklyViewProps) {
                 >
                   {formatMinutesToHours(thisWeekMinutes)}
                 </div>
-                <div style={{ fontSize: 12, color: compColor, marginTop: 6 }}>
+                <div style={{ fontSize: 12, color: '#7A7890', marginTop: 6 }}>
                   Previous week: {formatMinutesToHours(prevWeekMinutes)}
                 </div>
               </div>
@@ -278,85 +313,14 @@ export function WeeklyView({ date }: WeeklyViewProps) {
         )}
 
         {/* Right: Focus by Project */}
-        {isLoading ? <ProjectCardSkeleton /> : (
-          <div style={{ ...card, height: '100%', boxSizing: 'border-box' }}>
-            {thisWeekMinutes > 0 ? (
-              <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-                {/* Donut */}
-                <div style={{ position: 'relative', flexShrink: 0 }}>
-                  <PieChart width={160} height={160}>
-                    <Pie
-                      data={donutData}
-                      cx={80}
-                      cy={80}
-                      innerRadius={50}
-                      outerRadius={75}
-                      dataKey="minutes"
-                      startAngle={90}
-                      endAngle={-270}
-                      paddingAngle={2}
-                      stroke="none"
-                    >
-                      {donutData.map((entry, i) => (
-                        <Cell key={i} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                  {/* Center label */}
-                  <div style={{
-                    position:      'absolute', inset: 0,
-                    display:       'flex', flexDirection: 'column',
-                    alignItems:    'center', justifyContent: 'center',
-                    pointerEvents: 'none',
-                  }}>
-                    <span className="font-data" style={{ fontSize: 15, fontWeight: 600, color: '#E8E6F0', lineHeight: 1 }}>
-                      {formatMinutesToHours(thisWeekMinutes)}
-                    </span>
-                    <span style={{ fontSize: 10, color: '#7A7890', marginTop: 3 }}>this week</span>
-                  </div>
-                </div>
-
-                {/* Legend */}
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#4B9EFF', flexShrink: 0 }} />
-                    <span style={{ fontSize: 13, color: '#E8E6F0', flex: 1 }}>Focus</span>
-                    <span className="font-data" style={{ fontSize: 13, color: '#7A7890' }}>
-                      {formatMinutesToHours(thisWeekMinutes)}
-                    </span>
-                    <span style={{ fontSize: 12, color: '#3D3B4E', minWidth: 32, textAlign: 'right' }}>100%</span>
-                  </div>
-                  <div style={{ fontSize: 12, color: '#3D3B4E', marginTop: 12 }}>
-                    Project breakdown available in the daily view
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0' }}>
-                <PieChart width={120} height={120}>
-                  <Pie
-                    data={[{ name: 'Empty', minutes: 1 }]}
-                    cx={60} cy={60}
-                    innerRadius={38} outerRadius={55}
-                    dataKey="minutes"
-                    stroke="none"
-                  >
-                    <Cell fill="#222228" />
-                  </Pie>
-                </PieChart>
-                <p style={{ fontSize: 12, color: '#7A7890', marginTop: 12, textAlign: 'center' }}>
-                  No data — start the timer to begin tracking your projects
-                </p>
-                <Link
-                  to={PATHS.timer}
-                  style={{ fontSize: 13, color: '#4B9EFF', marginTop: 8, textDecoration: 'none' }}
-                >
-                  Go to Timer →
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
+        <ProjectBreakdownCard
+          pieData={weekProjectPieData}
+          isLoading={isLoading}
+          title="Focus Time by Project"
+          subtitle="See how you've spent your focus time this week"
+          emptyText="No focus sessions this week."
+          style={{ height: '100%' }}
+        />
       </div>
 
       {/* ── No-sessions notice for the current week ── */}
