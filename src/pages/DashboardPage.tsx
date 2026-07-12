@@ -11,6 +11,7 @@ import { BarChart2, CheckCircle, Clock, FolderOpen, History, Trophy } from 'luci
 
 import { TimerWidget } from '@/components/dashboard/TimerWidget'
 import { SessionRow } from '@/components/sessions/SessionRow'
+import { SessionDetailModal } from '@/components/sessions/SessionDetailModal'
 import { SessionModal } from '@/components/sessions/SessionModal'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { ProgressRing } from '@/components/ui/ProgressRing'
@@ -64,6 +65,7 @@ export function DashboardPage() {
 
   const [editingSession,  setEditingSession]  = useState<SessionWithRelations | null>(null)
   const [deletingSession, setDeletingSession] = useState<SessionWithRelations | null>(null)
+  const [viewingSession,  setViewingSession]  = useState<SessionWithRelations | null>(null)
   const deleteSession = useDeleteSession()
 
   const sessions       = sessionsData?.sessions ?? []
@@ -100,6 +102,18 @@ export function DashboardPage() {
     deleteSession.mutate(deletingSession.id, {
       onSuccess: () => setDeletingSession(null),
     })
+  }
+
+  function handleEditFromDetail() {
+    if (!viewingSession) return
+    setEditingSession(viewingSession)
+    setViewingSession(null)
+  }
+
+  function handleDeleteFromDetail() {
+    if (!viewingSession) return
+    setDeletingSession(viewingSession)
+    setViewingSession(null)
   }
 
   return (
@@ -221,6 +235,7 @@ export function DashboardPage() {
                   <SessionRow
                     key={session.id}
                     session={session}
+                    onOpenDetail={() => setViewingSession(session)}
                     onEdit={() => setEditingSession(session)}
                     onDelete={() => setDeletingSession(session)}
                   />
@@ -333,6 +348,15 @@ export function DashboardPage() {
 
         </div>
       </div>
+
+      {/* Session detail modal */}
+      <SessionDetailModal
+        open={!!viewingSession}
+        onClose={() => setViewingSession(null)}
+        session={viewingSession}
+        onEdit={handleEditFromDetail}
+        onDelete={handleDeleteFromDetail}
+      />
 
       {/* Edit session modal */}
       <SessionModal

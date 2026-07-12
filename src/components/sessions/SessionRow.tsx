@@ -1,4 +1,4 @@
-import { FileText, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { ChevronRight, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 
 import {
   DropdownMenu,
@@ -7,20 +7,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/utils'
 import type { SessionWithRelations } from '@/lib/supabase/queries/sessions'
 
 interface SessionRowProps {
-  session:  SessionWithRelations
-  onEdit:   () => void
-  onDelete: () => void
+  session:      SessionWithRelations
+  onOpenDetail: () => void
+  onEdit:       () => void
+  onDelete:     () => void
 }
 
 function formatTime(iso: string): string {
@@ -38,13 +33,22 @@ function formatDuration(mins: number): string {
   return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
-export function SessionRow({ session, onEdit, onDelete }: SessionRowProps) {
+export function SessionRow({ session, onOpenDetail, onEdit, onDelete }: SessionRowProps) {
   const isBreak = session.type === 'break'
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onClick={onOpenDetail}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onOpenDetail()
+        }
+      }}
       className={cn(
-        'group flex items-center gap-4 rounded-[10px] border',
+        'group flex cursor-pointer items-center gap-4 rounded-[10px] border',
         'border-depth-border',
         'transition-all duration-150',
         isBreak ? 'px-[18px] py-[10px]' : 'px-[18px] py-[14px]',
@@ -102,30 +106,6 @@ export function SessionRow({ session, onEdit, onDelete }: SessionRowProps) {
         )}
       </div>
 
-      {/* NOTES indicator — fixed 24px */}
-      <div
-        className="flex shrink-0 items-center justify-center"
-        style={{ width: 24 }}
-      >
-        {session.notes ? (
-          <TooltipProvider delayDuration={200}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="flex cursor-default items-center">
-                  <FileText style={{ width: 14, height: 14 }} className="text-ink-muted" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent
-                side="top"
-                className="max-w-[220px] whitespace-pre-wrap text-xs"
-              >
-                {session.notes}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : null}
-      </div>
-
       {/* DURATION — fixed 80px, right-aligned */}
       <div className="shrink-0 text-right" style={{ width: 80 }}>
         <span
@@ -138,10 +118,19 @@ export function SessionRow({ session, onEdit, onDelete }: SessionRowProps) {
         </span>
       </div>
 
-      {/* THREE-DOT MENU — fixed 32px, visible on hover */}
+      {/* VIEW DETAILS affordance — fixed 16px, always visible */}
+      <div className="flex shrink-0 items-center justify-center" style={{ width: 16 }}>
+        <ChevronRight
+          style={{ width: 15, height: 15 }}
+          className="text-ink-muted transition-colors group-hover:text-ink-secondary"
+        />
+      </div>
+
+      {/* THREE-DOT MENU — fixed 32px, always visible */}
       <div
-        className="flex shrink-0 items-center justify-center opacity-0 transition-opacity group-hover:opacity-100"
+        className="flex shrink-0 items-center justify-center"
         style={{ width: 32 }}
+        onClick={e => e.stopPropagation()}
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

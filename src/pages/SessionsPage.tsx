@@ -1,6 +1,6 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Clock, Download, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock, Download, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ExportPanel } from '@/components/sessions/ExportPanel'
+import { SessionDetailModal } from '@/components/sessions/SessionDetailModal'
 import { SessionModal } from '@/components/sessions/SessionModal'
 import { SessionRow } from '@/components/sessions/SessionRow'
 import { useSessionsPaginated, useDeleteSession } from '@/hooks/useSessions'
@@ -96,6 +97,8 @@ export function SessionsPage() {
   const [isModalOpen,     setIsModalOpen]    = useState(false)
   const [editingSession,  setEditingSession] = useState<SessionWithRelations | null>(null)
   const [deletingSession, setDeletingSession] = useState<SessionWithRelations | null>(null)
+  const [viewingSession,  setViewingSession] = useState<SessionWithRelations | null>(null)
+  const [exportOpen,      setExportOpen]     = useState(false)
 
   // Filter state
   const [searchTerm,     setSearchTerm]     = useState('')
@@ -115,6 +118,10 @@ export function SessionsPage() {
   const exportPanelRef     = useRef<HTMLDivElement>(null)
 
   const deleteSession = useDeleteSession()
+
+  useEffect(() => {
+    if (exportOpen) exportPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [exportOpen])
 
   const fromEntry  = currentPage * PAGE_SIZE + 1
   const toEntry    = Math.min((currentPage + 1) * PAGE_SIZE, totalCount)
@@ -225,6 +232,18 @@ export function SessionsPage() {
     })
   }
 
+  function handleEditFromDetail() {
+    if (!viewingSession) return
+    openEdit(viewingSession)
+    setViewingSession(null)
+  }
+
+  function handleDeleteFromDetail() {
+    if (!viewingSession) return
+    setDeletingSession(viewingSession)
+    setViewingSession(null)
+  }
+
   return (
     <div className="px-4 py-4 sm:px-8 sm:py-6">
 
@@ -246,10 +265,15 @@ export function SessionsPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => exportPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              onClick={() => setExportOpen(o => !o)}
             >
               <Download className="h-4 w-4" />
               Export
+              {exportOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
             </Button>
           )}
           <Button variant="primary" size="sm" onClick={openCreate}>
@@ -293,9 +317,11 @@ export function SessionsPage() {
       {/* Sessions exist — show filter bar + content */}
       {!isPending && totalCount > 0 && (
         <>
-          {/* ── Export panel ── */}
+          {/* ── Export panel — collapsed by default for Pro users, toggled by the header Export button ── */}
           <div ref={exportPanelRef}>
-            <ExportPanel projects={projects ?? []} totalCount={totalCount} />
+            {(!isPro || exportOpen) && (
+              <ExportPanel projects={projects ?? []} totalCount={totalCount} />
+            )}
           </div>
 
           {/* ── Filter bar ── */}
@@ -503,6 +529,7 @@ export function SessionsPage() {
                           <SessionRow
                             key={session.id}
                             session={session}
+                            onOpenDetail={() => setViewingSession(session)}
                             onEdit={() => openEdit(session)}
                             onDelete={() => setDeletingSession(session)}
                           />
@@ -551,6 +578,15 @@ export function SessionsPage() {
           )}
         </>
       )}
+
+      {/* Session detail modal */}
+      <SessionDetailModal
+        open={!!viewingSession}
+        onClose={() => setViewingSession(null)}
+        session={viewingSession}
+        onEdit={handleEditFromDetail}
+        onDelete={handleDeleteFromDetail}
+      />
 
       {/* Edit / create modal */}
       <SessionModal
