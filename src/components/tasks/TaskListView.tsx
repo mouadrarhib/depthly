@@ -14,7 +14,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Check, Clock, MoreHorizontal } from 'lucide-react'
+import { Check, Clock, MoreHorizontal, Timer } from 'lucide-react'
 
 import {
   DropdownMenu,
@@ -145,68 +145,92 @@ function SortableTaskRow({
         ⠿
       </span>
 
-      {/* Checkbox */}
-      <button
-        type="button"
-        onClick={() => onToggle(task)}
-        aria-label={done ? 'Mark as to do' : 'Mark as done'}
-        className="shrink-0 flex items-center justify-center rounded-full border
-                   transition-colors"
-        style={{
-          width:           18,
-          height:          18,
-          backgroundColor: done ? '#4B9EFF' : 'transparent',
-          borderColor:     done ? '#4B9EFF' : '#222228',
-        }}
+      {/* Metadata grid — fixed-width columns so badges/counts line up across rows
+          regardless of content width (e.g. "Medium" vs "Urgent") or missing data
+          (e.g. no due date). Each column always renders its wrapper div so a
+          missing value leaves blank space instead of shifting later columns. */}
+      <div
+        className="grid min-w-0 flex-1 items-center gap-2.5"
+        style={{ gridTemplateColumns: 'minmax(0, 1fr) 90px 90px 70px 80px' }}
       >
-        {done && <Check size={10} strokeWidth={3} color="#ffffff" />}
-      </button>
+        {/* Column 1: checkbox + title */}
+        <div className="flex min-w-0 items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => onToggle(task)}
+            aria-label={done ? 'Mark as to do' : 'Mark as done'}
+            className="shrink-0 flex items-center justify-center rounded-full border
+                       transition-colors"
+            style={{
+              width:           18,
+              height:          18,
+              backgroundColor: done ? '#4B9EFF' : 'transparent',
+              borderColor:     done ? '#4B9EFF' : '#222228',
+            }}
+          >
+            {done && <Check size={10} strokeWidth={3} color="#ffffff" />}
+          </button>
 
-      {/* Title */}
-      <span
-        className="min-w-0 flex-1 truncate text-sm"
-        style={{
-          color:          done ? '#7A7890' : '#E8E6F0',
-          textDecoration: done ? 'line-through' : 'none',
-        }}
-      >
-        {task.title}
-      </span>
+          <span
+            className="min-w-0 flex-1 truncate text-sm"
+            style={{
+              color:          done ? '#7A7890' : '#E8E6F0',
+              textDecoration: done ? 'line-through' : 'none',
+            }}
+          >
+            {task.title}
+          </span>
+        </div>
 
-      {/* Priority badge */}
-      {task.priority && (
-        <PriorityBadge priority={task.priority as 'low' | 'medium' | 'high' | 'urgent'} />
-      )}
+        {/* Column 2: priority badge */}
+        <div>
+          {task.priority && (
+            <PriorityBadge
+              priority={task.priority as 'low' | 'medium' | 'high' | 'urgent'}
+              dimmed={done}
+            />
+          )}
+        </div>
 
-      {/* Due date */}
-      {dueText && (
-        <span
-          className="shrink-0"
-          style={{ fontSize: 12, color: overdue ? '#F25C5C' : '#7A7890' }}
-        >
-          {dueText}
-        </span>
-      )}
+        {/* Column 3: due date */}
+        <div>
+          {dueText && (
+            <span
+              className="shrink-0"
+              style={{ fontSize: 12, color: overdue ? '#F25C5C' : '#7A7890' }}
+            >
+              {dueText}
+            </span>
+          )}
+        </div>
 
-      {/* Pomodoro count */}
-      {showPomCount && (
-        <span className="font-data shrink-0 text-ink-muted" style={{ fontSize: 12 }}>
-          {task.actual_pomodoros ?? 0}
-          {task.estimated_pomodoros != null && ` / ${task.estimated_pomodoros}`}
-          {' 🍅'}
-        </span>
-      )}
+        {/* Column 4: pomodoro count */}
+        <div className="flex justify-end">
+          {showPomCount && (
+            <span
+              className="font-data inline-flex shrink-0 items-center gap-1 text-ink-muted"
+              style={{ fontSize: 12 }}
+            >
+              {task.actual_pomodoros ?? 0}
+              {task.estimated_pomodoros != null && ` / ${task.estimated_pomodoros}`}
+              <Timer size={12} style={{ flexShrink: 0 }} />
+            </span>
+          )}
+        </div>
 
-      {/* Total session time */}
-      {sessionMins != null && sessionMins > 0 && (
-        <span
-          className="flex shrink-0 items-center gap-1 font-data"
-          style={{ fontSize: 12, color: '#3D3B4E' }}
-        >
-          <Clock size={11} style={{ color: '#3D3B4E', flexShrink: 0 }} />
-          {formatMinutesToHours(sessionMins)}
-        </span>
-      )}
+        {/* Column 5: duration */}
+        <div className="flex justify-end">
+          {sessionMins != null && sessionMins > 0 && (
+            <span
+              className="flex shrink-0 items-center gap-1 font-data"
+              style={{ fontSize: 12, color: '#3D3B4E' }}
+            >
+              <Clock size={11} style={{ color: '#3D3B4E', flexShrink: 0 }} />
+              {formatMinutesToHours(sessionMins)}
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* Three-dot menu — visible on hover only */}
       <DropdownMenu>
@@ -306,33 +330,59 @@ export function TaskListView({ projectId, onEditTask, onCreateTask }: TaskListVi
     <div className="flex flex-col gap-4">
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap gap-1.5">
-          <FilterPill label="All" active={statusFilter === 'all'} onClick={() => setStatusFilter('all')} />
-          {(['todo', 'in_progress', 'done'] as const).map(s => (
-            <FilterPill
-              key={s}
-              label={STATUS_CONFIG[s].label}
-              color={STATUS_CONFIG[s].color}
-              active={statusFilter === s}
-              onClick={() => setStatusFilter(s)}
-            />
-          ))}
+      <div className="flex flex-wrap items-stretch gap-4">
+        <div className="flex flex-col gap-1.5">
+          <span
+            style={{
+              fontSize:      11,
+              fontWeight:    600,
+              letterSpacing: '0.08em',
+              color:         '#7A7890',
+              textTransform: 'uppercase',
+            }}
+          >
+            Status
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            <FilterPill label="All" active={statusFilter === 'all'} onClick={() => setStatusFilter('all')} />
+            {(['todo', 'in_progress', 'done'] as const).map(s => (
+              <FilterPill
+                key={s}
+                label={STATUS_CONFIG[s].label}
+                color={STATUS_CONFIG[s].color}
+                active={statusFilter === s}
+                onClick={() => setStatusFilter(s)}
+              />
+            ))}
+          </div>
         </div>
 
-        <div className="h-5 w-px bg-depth-border" />
+        <div className="w-px self-stretch bg-depth-border" />
 
-        <div className="flex flex-wrap gap-1.5">
-          <FilterPill label="All" active={priorityFilter === 'all'} onClick={() => setPriorityFilter('all')} />
-          {(['low', 'medium', 'high', 'urgent'] as const).map(p => (
-            <FilterPill
-              key={p}
-              label={PRIORITY_CONFIG[p].label}
-              color={PRIORITY_CONFIG[p].color}
-              active={priorityFilter === p}
-              onClick={() => setPriorityFilter(p)}
-            />
-          ))}
+        <div className="flex flex-col gap-1.5">
+          <span
+            style={{
+              fontSize:      11,
+              fontWeight:    600,
+              letterSpacing: '0.08em',
+              color:         '#7A7890',
+              textTransform: 'uppercase',
+            }}
+          >
+            Priority
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            <FilterPill label="All" active={priorityFilter === 'all'} onClick={() => setPriorityFilter('all')} />
+            {(['low', 'medium', 'high', 'urgent'] as const).map(p => (
+              <FilterPill
+                key={p}
+                label={PRIORITY_CONFIG[p].label}
+                color={PRIORITY_CONFIG[p].color}
+                active={priorityFilter === p}
+                onClick={() => setPriorityFilter(p)}
+              />
+            ))}
+          </div>
         </div>
       </div>
 

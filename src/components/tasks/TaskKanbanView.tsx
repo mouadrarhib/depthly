@@ -120,7 +120,7 @@ export function TaskKanbanView({ projectId, onEditTask, onAddTask }: TaskKanbanV
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveTask(null)}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex items-start gap-4 overflow-x-auto pb-4">
         {COLUMNS.map(status => (
           <KanbanColumn
             key={status}

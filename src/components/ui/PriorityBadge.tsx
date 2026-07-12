@@ -5,9 +5,12 @@ type Priority = 'low' | 'medium' | 'high' | 'urgent'
 
 interface PriorityBadgeProps {
   priority: Priority
+  /** Dims the badge (e.g. when the parent task is completed) to de-emphasize it
+   *  relative to active tasks, matching the strikethrough treatment on the title. */
+  dimmed?:  boolean
 }
 
-export function PriorityBadge({ priority }: PriorityBadgeProps) {
+export function PriorityBadge({ priority, dimmed }: PriorityBadgeProps) {
   const { label, color } = PRIORITY_CONFIG[priority]
 
   return (
@@ -19,6 +22,7 @@ export function PriorityBadge({ priority }: PriorityBadgeProps) {
         borderColor: `${color}66`,
         fontSize: '11px',
         fontWeight: 500,
+        opacity: dimmed ? 0.5 : 1,
       }}
     >
       {label}

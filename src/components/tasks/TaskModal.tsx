@@ -23,17 +23,18 @@ import { useTasks, useCreateTask, useUpdateTask } from '@/hooks/useTasks'
 import { PRIORITY_CONFIG, STATUS_CONFIG } from '@/lib/utils/tasks'
 import type { Task } from '@/lib/supabase/queries/tasks'
 
-interface TaskModalProps {
-  open:      boolean
-  onClose:   () => void
-  projectId: string
-  task?:     Task
-}
-
 type Status   = 'todo' | 'in_progress' | 'done'
 type Priority = 'low' | 'medium' | 'high' | 'urgent'
 
-export function TaskModal({ open, onClose, projectId, task }: TaskModalProps) {
+interface TaskModalProps {
+  open:           boolean
+  onClose:        () => void
+  projectId:      string
+  task?:          Task
+  defaultStatus?: Status
+}
+
+export function TaskModal({ open, onClose, projectId, task, defaultStatus }: TaskModalProps) {
   const userId = useAuthStore(s => s.user?.id ?? '')
   const isEdit = !!task
 
@@ -60,7 +61,7 @@ export function TaskModal({ open, onClose, projectId, task }: TaskModalProps) {
     if (open) {
       setTitle(task?.title ?? '')
       setDescription(task?.description ?? '')
-      setStatus((task?.status as Status) ?? 'todo')
+      setStatus((task?.status as Status) ?? defaultStatus ?? 'todo')
       setPriority((task?.priority as Priority) ?? 'medium')
       setDueDate(task?.due_date ?? '')
       setUseEstimate(task?.estimated_pomodoros != null)

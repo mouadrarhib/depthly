@@ -101,6 +101,8 @@ Using separate float columns means that reordering in one view never disturbs th
 | `onDuplicateTask` | `(task: Task) => void` | Passed through to each card |
 | `onAddTask` | `(status: string) => void` | Called by the `+` button in the column header |
 
+**Add-task entry point:** the kanban board relies solely on each column's own `+` icon to create a task — there is no standalone "Add task" button above the board (that toolbar button is shown only in list view; see `ProjectDetailPage`). This keeps the target column unambiguous: clicking `+` in a column calls `onAddTask(status)`, which flows up to `TaskModal`'s `defaultStatus` prop and pre-selects that column's status on the create form.
+
 **Renders:**
 - A styled container div (tinted background per status, 14px radius, 16px padding, 1px border)
 - Column header: colored dot + status label + task count badge + `+` icon button
@@ -147,9 +149,11 @@ The count badge uses `${color}26` (15% opacity hex alpha) as background with mat
 **Three-dot menu**: `opacity-100 md:opacity-0 md:group-hover:opacity-100` — always visible on touch, hover-only on desktop. Uses `onPointerDown stopPropagation` to prevent drag activation when opening the menu.
 
 **Due date chip styling:**
-- Normal: `background #222228, color #7A7890`
-- Overdue: `background rgba(242,92,92,0.1), color #F25C5C, border 1px solid rgba(242,92,92,0.2)`
-- Both have a transparent border in normal state to prevent layout shift on overdue toggle.
+- Normal: `background transparent, color #7A7890, border 1px solid #2E2E38`
+- Overdue: `background transparent, color #F25C5C, border 1px solid #F25C5C`
+- Ghost/outline style (transparent background, colored 1px border) deliberately distinguishes the due-date chip from `PriorityBadge`'s filled/tinted style, so an urgent+overdue card doesn't read as two duplicate red alarms.
+
+**Priority badge dimming when done:** the `PriorityBadge` in the top row is wrapped in a `<span style={{ opacity: done ? 0.5 : 1 }}>` — matches the 0.5 opacity already applied to the strikethrough title, so completed tasks (including completed urgent ones) read as visually quieter than active tasks.
 
 ---
 

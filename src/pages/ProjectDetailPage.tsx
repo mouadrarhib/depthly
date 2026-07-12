@@ -26,6 +26,7 @@ export function ProjectDetailPage() {
   const [taskView,        setTaskView]        = useState<'list' | 'kanban' | 'kanban-locked'>('list')
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
   const [editingTask,     setEditingTask]     = useState<Task | null>(null)
+  const [createStatus,    setCreateStatus]    = useState<string | undefined>(undefined)
   const [deletingTask,    setDeletingTask]    = useState<Task | null>(null)
   const [upgradeOpen,     setUpgradeOpen]     = useState(false)
 
@@ -59,8 +60,9 @@ export function ProjectDetailPage() {
   const archiveMutation  = isArchived ? updateProject : archiveProject
   const isArchivePending = archiveMutation.isPending
 
-  function openCreateTask(_status?: string) {
+  function openCreateTask(status?: string) {
     setEditingTask(null)
+    setCreateStatus(status)
     setIsTaskModalOpen(true)
   }
 
@@ -72,6 +74,7 @@ export function ProjectDetailPage() {
   function closeTaskModal() {
     setIsTaskModalOpen(false)
     setEditingTask(null)
+    setCreateStatus(undefined)
   }
 
   return (
@@ -217,13 +220,18 @@ export function ProjectDetailPage() {
                 </button>
               </div>
 
-              <Button
-                size="sm"
-                variant="primary"
-                onClick={() => openCreateTask()}
-              >
-                Add task
-              </Button>
+              {/* Standalone "Add task" — list view only. In kanban view, each
+                  column's own "+" icon is the single unambiguous way to add
+                  a task, since it targets that column's status directly. */}
+              {taskView === 'list' && (
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => openCreateTask()}
+                >
+                  Add task
+                </Button>
+              )}
             </div>
           )}
 
@@ -444,6 +452,7 @@ export function ProjectDetailPage() {
         onClose={closeTaskModal}
         projectId={id}
         task={editingTask ?? undefined}
+        defaultStatus={createStatus as 'todo' | 'in_progress' | 'done' | undefined}
       />
 
       <ConfirmDialog

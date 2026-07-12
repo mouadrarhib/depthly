@@ -40,7 +40,6 @@ export function KanbanColumn({
     <div
       style={{
         width:           300,
-        minHeight:       520,
         borderRadius:    14,
         padding:         16,
         border:          '1px solid rgba(46, 46, 56, 0.8)',
@@ -101,8 +100,7 @@ export function KanbanColumn({
         ref={setNodeRef}
         className="flex flex-col gap-2 transition-colors"
         style={{
-          flex:            1,
-          minHeight:       460,
+          minHeight:       120,
           borderRadius:    8,
           padding:         4,
           backgroundColor: isOver ? 'rgba(46, 46, 56, 0.35)' : 'transparent',

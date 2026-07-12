@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Clock, MoreHorizontal } from 'lucide-react'
+import { Clock, MoreHorizontal, Timer } from 'lucide-react'
 
 import {
   DropdownMenu,
@@ -73,7 +73,10 @@ export function KanbanCard({ task, sessionMins, onEdit, onDelete, onDuplicate }:
       {/* Top row: priority badge + menu */}
       <div className="flex items-center justify-between gap-2">
         {task.priority ? (
-          <PriorityBadge priority={task.priority as 'low' | 'medium' | 'high' | 'urgent'} />
+          <PriorityBadge
+            priority={task.priority as 'low' | 'medium' | 'high' | 'urgent'}
+            dimmed={done}
+          />
         ) : (
           <span />
         )}
@@ -132,16 +135,16 @@ export function KanbanCard({ task, sessionMins, onEdit, onDelete, onDuplicate }:
           {dueText && (
             <span
               style={overdue ? {
-                backgroundColor: 'rgba(242, 92, 92, 0.1)',
+                backgroundColor: 'transparent',
                 color:           '#F25C5C',
-                border:          '1px solid rgba(242, 92, 92, 0.2)',
+                border:          '1px solid #F25C5C',
                 borderRadius:    6,
                 padding:         '2px 8px',
                 fontSize:        11,
               } : {
-                backgroundColor: '#222228',
+                backgroundColor: 'transparent',
                 color:           '#7A7890',
-                border:          '1px solid transparent',
+                border:          '1px solid #2E2E38',
                 borderRadius:    6,
                 padding:         '2px 8px',
                 fontSize:        11,
@@ -153,10 +156,13 @@ export function KanbanCard({ task, sessionMins, onEdit, onDelete, onDuplicate }:
 
           {/* Pomodoro count */}
           {showPomCount && (
-            <span className="font-data text-ink-muted" style={{ fontSize: 11 }}>
+            <span
+              className="font-data inline-flex items-center gap-1 text-ink-muted"
+              style={{ fontSize: 11 }}
+            >
               {task.actual_pomodoros ?? 0}
               {task.estimated_pomodoros != null && ` / ${task.estimated_pomodoros}`}
-              {' 🍅'}
+              <Timer size={12} style={{ flexShrink: 0 }} />
             </span>
           )}
 
