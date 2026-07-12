@@ -57,7 +57,7 @@ const card: React.CSSProperties = {
   backgroundColor: '#141417',
   border:          '1px solid #2E2E38',
   borderRadius:    14,
-  padding:         24,
+  padding:         14,
 }
 
 // ─── skeletons ────────────────────────────────────────────────────────────────
@@ -67,12 +67,12 @@ function SummaryCardSkeleton() {
     <div style={{ ...card, height: '100%', boxSizing: 'border-box' }}>
       <div className="bg-depth-raised animate-pulse rounded" style={{ height: 16, width: '60%', margin: '0 auto 16px' }} />
       <div className="bg-depth-raised animate-pulse rounded" style={{ height: 1, marginBottom: 20 }} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-        {[0, 1].map(i => (
-          <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-            <div className="bg-depth-raised animate-pulse rounded" style={{ height: 12, width: 70 }} />
-            <div className="bg-depth-raised animate-pulse rounded" style={{ height: 40, width: 100 }} />
-            <div className="bg-depth-raised animate-pulse rounded" style={{ height: 12, width: 120 }} />
+      <div style={{ display: 'flex', flexDirection: 'row', gap: 12 }}>
+        {[0, 1, 2].map(i => (
+          <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+            <div className="bg-depth-raised animate-pulse rounded" style={{ height: 12, width: '60%' }} />
+            <div className="bg-depth-raised animate-pulse rounded" style={{ height: 32, width: '70%' }} />
+            <div className="bg-depth-raised animate-pulse rounded" style={{ height: 12, width: '80%' }} />
           </div>
         ))}
       </div>
@@ -83,7 +83,7 @@ function SummaryCardSkeleton() {
 function ChartCardSkeleton() {
   return (
     <div style={card}>
-      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 220 }} />
+      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 130 }} />
     </div>
   )
 }
@@ -245,69 +245,71 @@ export function WeeklyView({ date }: WeeklyViewProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── Top two-column grid ── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1fr] sm:items-stretch">
 
         {/* Left: Weekly Summary */}
         {isLoading ? <SummaryCardSkeleton /> : (
-          <div style={{ ...card }}>
+          <div style={{ ...card, display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#E8E6F0', textAlign: 'center' }}>
               Weekly Summary
             </div>
             <div style={{ height: 1, backgroundColor: '#2E2E38', margin: '16px 0' }} />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'row', gap: 12 }}>
               {/* Focus Time stat */}
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: 'center', flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, color: '#7A7890' }}>Focus Time</div>
                 <div
                   className="font-data"
-                  style={{ fontSize: 36, fontWeight: 600, color: '#E8E6F0', lineHeight: 1.1, marginTop: 4 }}
+                  style={{ fontSize: 28, fontWeight: 600, color: '#E8E6F0', lineHeight: 1.1, marginTop: 4 }}
                 >
                   {formatMinutesToHours(thisWeekMinutes)}
                 </div>
-                <div style={{ fontSize: 12, color: '#7A7890', marginTop: 6 }}>
-                  Previous week: {formatMinutesToHours(prevWeekMinutes)}
+                <div style={{ fontSize: 11, color: '#7A7890', marginTop: 6 }}>
+                  Prev: {formatMinutesToHours(prevWeekMinutes)}
                 </div>
               </div>
 
               {/* Sessions stat */}
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: 'center', flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, color: '#7A7890' }}>Sessions</div>
                 <div
                   className="font-data"
-                  style={{ fontSize: 36, fontWeight: 700, color: '#E8E6F0', lineHeight: 1.1, marginTop: 4 }}
+                  style={{ fontSize: 28, fontWeight: 700, color: '#E8E6F0', lineHeight: 1.1, marginTop: 4 }}
                 >
                   {thisWeekSessions}
                 </div>
               </div>
+            </div>
 
-              {/* Weekly Goal stat */}
-              {goals?.weekly_goal_minutes != null && (() => {
-                const goal      = getGoalProgress(thisWeekMinutes, goals.weekly_goal_minutes)
-                const fillColor = goal.isComplete ? '#3DD68C' : '#4B9EFF'
-                return (
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 12, color: '#7A7890', marginBottom: 8 }}>Weekly Goal</div>
-                    <div style={{ height: 8, borderRadius: 999, backgroundColor: '#222228', overflow: 'hidden' }}>
-                      <div
-                        style={{
-                          height:          '100%',
-                          borderRadius:    999,
-                          backgroundColor: fillColor,
-                          width:           `${goal.percentage}%`,
-                          transition:      'width 0.4s ease',
-                        }}
-                      />
-                    </div>
-                    <div style={{ fontSize: 12, color: fillColor, marginTop: 6 }}>
-                      {goal.isComplete ? 'Goal reached! 🎉' : `${goal.percentage}% complete`}
-                    </div>
+            {/* Weekly Goal stat — full width, below Focus Time / Sessions */}
+            {goals?.weekly_goal_minutes != null && (() => {
+              const goal      = getGoalProgress(thisWeekMinutes, goals.weekly_goal_minutes)
+              const fillColor = goal.isComplete ? '#3DD68C' : '#4B9EFF'
+              return (
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 12, color: '#7A7890', marginBottom: 8 }}>Weekly Goal</div>
+                  <div style={{ height: 8, borderRadius: 999, backgroundColor: '#222228', overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        height:          '100%',
+                        borderRadius:    999,
+                        backgroundColor: fillColor,
+                        width:           `${goal.percentage}%`,
+                        transition:      'width 0.4s ease',
+                      }}
+                    />
                   </div>
-                )
-              })()}
+                  <div style={{ fontSize: 11, color: fillColor, marginTop: 6 }}>
+                    {goal.isComplete ? 'Goal reached! 🎉' : `${goal.percentage}% complete`}
+                  </div>
+                </div>
+              )
+            })()}
             </div>
           </div>
         )}
@@ -339,18 +341,18 @@ export function WeeklyView({ date }: WeeklyViewProps) {
       {/* ── Bottom: Bar chart ── */}
       {isLoading ? <ChartCardSkeleton /> : (
         <div style={card}>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={130}>
             <BarChart
               data={chartData}
               barCategoryGap="28%"
-              margin={{ top: 28, right: 8, bottom: 0, left: 8 }}
+              margin={{ top: 20, right: 8, bottom: 0, left: 8 }}
             >
               <CartesianGrid vertical={false} stroke="#2E2E38" strokeDasharray="0" />
               <XAxis
                 dataKey="day"
                 axisLine={false}
                 tickLine={false}
-                height={44}
+                height={36}
                 tick={(props: any) => {
                   const { x, y, index } = props
                   const entry    = chartData[index]
@@ -388,7 +390,7 @@ export function WeeklyView({ date }: WeeklyViewProps) {
           </ResponsiveContainer>
 
           {/* Legend */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#4B9EFF', display: 'inline-block' }} />
               <span style={{ fontSize: 12, color: '#7A7890' }}>Focus</span>
