@@ -1,44 +1,142 @@
+<div align="center">
+
 # Depthly
 
-**Work at depth.** A focus session tracker and time-tracking SaaS for students, freelancers, and remote developers building deep work habits.
+### Work at depth.
+
+A focus session tracker and time-tracking SaaS for students, freelancers, and remote developers building deep work habits.
+
+[![React](https://img.shields.io/badge/React-18-149ECA?logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-38BDF8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Supabase](https://img.shields.io/badge/Supabase-Postgres_%2B_Auth-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com)
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com)
+![Status](https://img.shields.io/badge/status-pre--launch-4B9EFF)
+![License](https://img.shields.io/badge/license-private-lightgrey)
+
+</div>
+
+<br>
 
 Depthly pairs a Pomodoro/stopwatch timer with project- and task-level time tracking, then turns every session into daily/weekly/monthly/yearly analytics, streaks, and a social leaderboard.
 
----
+<br>
+
+<div align="center">
+<img src="screenshots/dashboard.png" width="850" alt="Depthly dashboard"/>
+</div>
+
+<br>
+
+## Contents
+
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Project structure](#project-structure)
+- [Getting started](#getting-started)
+- [Database rules](#database-rules)
+- [Free plan limits](#free-plan-limits)
+- [Design system](#design-system)
+- [Documentation](#documentation)
+- [What not to do](#what-not-to-do)
+- [Status](#status)
+- [License](#license)
+
+<br>
 
 ## Screenshots
 
-| Landing | Dashboard |
-|---|---|
-| ![Landing page](screenshots/landing_page_hero.png) | ![Dashboard](screenshots/dashboard.png) |
+<table>
+<tr>
+<td width="50%">
+<img src="screenshots/landing_page_hero.png" width="100%" alt="Landing page"/>
+<p align="center"><sub><b>Landing page</b> — public marketing site at <code>/</code></sub></p>
+</td>
+<td width="50%">
+<img src="screenshots/timer.png" width="100%" alt="Focus timer"/>
+<p align="center"><sub><b>Focus timer</b> — Pomodoro, custom, or free stopwatch</sub></p>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="screenshots/projects.png" width="100%" alt="Projects"/>
+<p align="center"><sub><b>Projects</b> — color-coded, per-project totals</sub></p>
+</td>
+<td width="50%">
+<img src="screenshots/analytics_overview.png" width="100%" alt="Analytics overview"/>
+<p align="center"><sub><b>Analytics</b> — streaks, sessions, focus time by project</sub></p>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<img src="screenshots/analytics_yearly_2.png" width="100%" alt="Yearly analytics heatmap"/>
+<p align="center"><sub><b>Yearly heatmap</b> — a GitHub-contributions-style view of every focused day</sub></p>
+</td>
+</tr>
+</table>
 
-| Timer | Projects |
-|---|---|
-| ![Timer](screenshots/timer.png) | ![Projects](screenshots/projects.png) |
+<details>
+<summary><b>More screenshots</b> — leaderboard, tasks, sessions, pricing, auth</summary>
+<br>
 
-| Analytics (yearly heatmap) |
-|---|
-| ![Yearly analytics heatmap](screenshots/analytics_yearly_2.png) |
+<table>
+<tr>
+<td width="50%">
+<img src="screenshots/leaderboard.png" width="100%" alt="Leaderboard"/>
+<p align="center"><sub>Leaderboard</sub></p>
+</td>
+<td width="50%">
+<img src="screenshots/tasks list.png" width="100%" alt="Tasks list"/>
+<p align="center"><sub>Task list</sub></p>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="screenshots/sessions.png" width="100%" alt="Sessions log"/>
+<p align="center"><sub>Sessions log</sub></p>
+</td>
+<td width="50%">
+<img src="screenshots/landing_page_pricing.png" width="100%" alt="Pricing"/>
+<p align="center"><sub>Pricing</sub></p>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="screenshots/login.png" width="100%" alt="Sign in"/>
+<p align="center"><sub>Sign in</sub></p>
+</td>
+<td width="50%">
+<img src="screenshots/register.png" width="100%" alt="Create account"/>
+<p align="center"><sub>Create account</sub></p>
+</td>
+</tr>
+</table>
 
-More views in [`/screenshots`](screenshots).
+The full set lives in [`/screenshots`](screenshots).
 
----
+</details>
+
+<br>
 
 ## Features
 
-- **Focus timer** — Pomodoro, custom interval, or free stopwatch modes; configurable work/break lengths and daily goal; fullscreen mode; optional task linking.
-- **Projects** — group sessions and tasks under color-coded projects; per-project totals and progress.
-- **Tasks** — list view (drag-to-reorder) and Kanban board (drag within/across columns), priorities, due dates, per-task session time.
-- **Analytics** — Daily / Weekly / Monthly / Yearly views: focus time, session counts, streaks, focus-time-by-project donut, daily timeline, and a GitHub-style yearly heatmap calendar.
-- **Streaks & goals** — daily/weekly goal minutes, current streak, longest streak.
-- **Leaderboard** — global and friends-only rankings by focus time or streak, weekly/monthly/all-time windows; opt-in public profiles at `/u/:slug`.
-- **Sessions log** — searchable/filterable history with CSV export (Pro).
-- **Billing** — Free / Pro / Lifetime (Founding Member) plans with enforced free-tier limits.
-- **PWA** — installable, offline-friendly shell.
-- **Auth** — email/password and Google OAuth via Supabase Auth.
-- **Public marketing landing page** at `/`, with GSAP scroll animations, separate from the authenticated app (which lives at `/dashboard`).
+| | |
+|---|---|
+| **Focus timer** | Pomodoro, custom interval, or free stopwatch modes; configurable work/break lengths and daily goal; fullscreen mode; optional task linking. |
+| **Projects** | Group sessions and tasks under color-coded projects; per-project totals and progress. |
+| **Tasks** | List view (drag-to-reorder) and Kanban board (drag within/across columns), priorities, due dates, per-task session time. |
+| **Analytics** | Daily / Weekly / Monthly / Yearly views: focus time, session counts, streaks, focus-time-by-project donut, daily timeline, and a GitHub-style yearly heatmap calendar. |
+| **Streaks & goals** | Daily/weekly goal minutes, current streak, longest streak. |
+| **Leaderboard** | Global and friends-only rankings by focus time or streak, weekly/monthly/all-time windows; opt-in public profiles at `/u/:slug`. |
+| **Sessions log** | Searchable/filterable history with CSV export (Pro). |
+| **Billing** | Free / Pro / Lifetime (Founding Member) plans with enforced free-tier limits. |
+| **PWA** | Installable, offline-friendly shell. |
+| **Auth** | Email/password and Google OAuth via Supabase Auth. |
+| **Landing page** | Public marketing site at `/`, GSAP scroll animations, separate from the authenticated app at `/dashboard`. |
 
----
+<br>
 
 ## Tech stack
 
@@ -57,41 +155,41 @@ More views in [`/screenshots`](screenshots).
 | Animation | GSAP (landing page only) |
 | Deploy | Vercel |
 
----
+<br>
 
 ## Project structure
 
 ```
 src/
   components/
-    ui/            Reusable primitives: Button, Card, Badge, Spinner, Logo...
-    layout/         AppLayout, AuthLayout, Sidebar, Topbar
+    ui/              Reusable primitives: Button, Card, Badge, Spinner, Logo...
+    layout/          AppLayout, AuthLayout, Sidebar, Topbar
     dashboard/, timer/, projects/, tasks/, analytics/,
     leaderboard/, billing/, goals/, sessions/, settings/,
-    landing/        Feature-scoped components
+    landing/         Feature-scoped components
     LogoIntro/       Splash/intro animation
-  pages/            Route-level components (Dashboard, Timer, Projects, Analytics...)
-  pages/auth/       Login, Signup, ForgotPassword, ResetPassword
-  hooks/            useAuth, useTimer, usePlan, useProjects, useSessions...
-  hooks/shared/     Cross-feature hooks
-  store/            authStore.ts, timerStore.ts, uiStore.ts (Zustand)
+  pages/             Route-level components (Dashboard, Timer, Projects, Analytics...)
+  pages/auth/        Login, Signup, ForgotPassword, ResetPassword
+  hooks/             useAuth, useTimer, usePlan, useProjects, useSessions...
+  hooks/shared/      Cross-feature hooks
+  store/             authStore.ts, timerStore.ts, uiStore.ts (Zustand)
   lib/
-    supabase/       client.ts (typed Supabase client), queries/ (typed query functions)
-    utils/          Shared helpers
-  types/            database.ts (generated from Supabase), app.ts (custom types)
-  routes/           router.tsx (route table), ProtectedRoute.tsx
-  styles/           globals.css (design tokens)
+    supabase/        client.ts (typed Supabase client), queries/ (typed query functions)
+    utils/           Shared helpers
+  types/             database.ts (generated from Supabase), app.ts (custom types)
+  routes/            router.tsx (route table), ProtectedRoute.tsx
+  styles/            globals.css (design tokens)
 
 supabase/
-  migrations/       SQL schema + RPC functions
-  functions/        Edge Functions: create-checkout, lemonsqueezy-webhook
+  migrations/        SQL schema + RPC functions
+  functions/         Edge Functions: create-checkout, lemonsqueezy-webhook
 
-docs/               Feature-level implementation references (see below)
+docs/                Feature-level implementation references (see below)
 ```
 
-Path alias: always import from `src/` via `@/` (e.g. `@/components/Button`), never relative `../../` paths.
+> Path alias: always import from `src/` via `@/` (e.g. `@/components/Button`), never relative `../../` paths.
 
----
+<br>
 
 ## Getting started
 
@@ -101,13 +199,13 @@ Path alias: always import from `src/` via `@/` (e.g. `@/components/Button`), nev
 - A [Supabase](https://supabase.com) project
 - (Optional, for billing) A [Lemon Squeezy](https://www.lemonsqueezy.com) store
 
-### Install
+### 1. Install
 
 ```bash
 npm install
 ```
 
-### Configure environment
+### 2. Configure environment
 
 Copy the example env file and fill in your own values:
 
@@ -136,7 +234,7 @@ Set the `LEMONSQUEEZY_*` and `VITE_APP_URL` secrets on Supabase (not in the clie
 supabase secrets set LEMONSQUEEZY_API_KEY=... LEMONSQUEEZY_WEBHOOK_SECRET=...
 ```
 
-### Set up the database
+### 3. Set up the database
 
 Run the migrations in `supabase/migrations/` against your Supabase project (SQL editor or `supabase db push`), in order:
 
@@ -151,7 +249,7 @@ supabase functions deploy create-checkout
 supabase functions deploy lemonsqueezy-webhook --no-verify-jwt
 ```
 
-### Run the dev server
+### 4. Run the dev server
 
 ```bash
 npm run dev
@@ -159,15 +257,15 @@ npm run dev
 
 ### Other scripts
 
-```bash
-npm run build      # tsc -b && vite build
-npm run preview     # preview the production build
-npm run lint         # eslint, zero warnings allowed
-npm run format       # prettier --write
-npm run typecheck    # tsc --noEmit
-```
+| Command | Description |
+|---|---|
+| `npm run build` | `tsc -b && vite build` |
+| `npm run preview` | Preview the production build |
+| `npm run lint` | ESLint, zero warnings allowed |
+| `npm run format` | `prettier --write .` |
+| `npm run typecheck` | `tsc --noEmit` |
 
----
+<br>
 
 ## Database rules
 
@@ -177,21 +275,21 @@ npm run typecheck    # tsc --noEmit
 - `goals` stores minutes as integers.
 - `period_key` formats: daily `2025-01-15`, weekly `2025-W03`, monthly `2025-01`, yearly `2025`.
 
----
+<br>
 
 ## Free plan limits
 
 Enforced at the API layer via `usePlan().checkLimit(type)`, never inlined:
 
 | Limit | Free | Pro / Lifetime |
-|---|---|---|
+|---|:---:|:---:|
 | Projects | 3 | Unlimited |
 | Sessions / month | 50 | Unlimited |
 | Analytics window | 7 days (older data blurred) | Full history |
-| CSV export | Blocked | Enabled |
-| Leaderboard appearance | Blocked | Enabled |
+| CSV export | ✗ | ✓ |
+| Leaderboard appearance | ✗ | ✓ |
 
----
+<br>
 
 ## Design system
 
@@ -212,7 +310,7 @@ Dark mode first (light mode is not implemented). Key tokens (`tailwind.config.ts
 
 Typography: Inter (UI text, weight 500), JetBrains Mono via the `font-data` class for all numbers/times/durations/stats. See [`docs/STYLE_SYSTEM.md`](docs/STYLE_SYSTEM.md) for the full reference, including known inconsistencies.
 
----
+<br>
 
 ## Documentation
 
@@ -235,7 +333,7 @@ Detailed, code-accurate implementation references live in [`docs/`](docs) — re
 
 These docs are the source of truth for implementation details, component props, hook behavior, and known limitations — prefer them over inference from this README.
 
----
+<br>
 
 ## What not to do
 
@@ -247,14 +345,20 @@ These docs are the source of truth for implementation details, component props, 
 - No `any` types — add a real type to `src/types/app.ts`.
 - No inline free-plan-limit logic — always route through `usePlan()`.
 
----
+<br>
 
 ## Status
 
 Actively developed, pre-launch. See [`ROADMAP.md`](ROADMAP.md) for the release plan (V1 → V1.5 → V2 → V3) and [`docs/BILLING_STATUS.md`](docs/BILLING_STATUS.md) for the current Lemon Squeezy integration state.
 
----
+<br>
 
 ## License
 
 Private project — all rights reserved.
+
+<br>
+
+<div align="center">
+<sub>Built by <a href="https://github.com/mouadrarhib">Mouad Rarhib</a></sub>
+</div>
