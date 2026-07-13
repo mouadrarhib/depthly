@@ -19,6 +19,21 @@ export function AppLayout() {
     mainRef.current?.scrollTo({ top: 0, behavior: 'instant' })
   }, [pathname])
 
+  // AppLayout owns scrolling via its own overflow-hidden root + <main>'s
+  // overflow-y-auto — lock document-level scroll only while this layout is
+  // mounted, so routes rendered outside it (landing, auth pages) keep their
+  // normal body scroll.
+  useEffect(() => {
+    const previousHtmlOverflow = document.documentElement.style.overflowY
+    const previousBodyOverflow = document.body.style.overflowY
+    document.documentElement.style.overflowY = 'hidden'
+    document.body.style.overflowY = 'hidden'
+    return () => {
+      document.documentElement.style.overflowY = previousHtmlOverflow
+      document.body.style.overflowY = previousBodyOverflow
+    }
+  }, [])
+
   return (
     <div className="flex h-dvh overflow-hidden" style={{ background: 'var(--color-surface-base)' }}>
       {/* Mobile backdrop — tapping closes sidebar */}
