@@ -1,5 +1,8 @@
 import { useState } from 'react'
-import { Lock } from 'lucide-react'
+import {
+  Lock, Clock, Calendar, Flame, BarChart2,
+  CheckCircle2, Timer, TrendingUp, CalendarDays,
+} from 'lucide-react'
 
 import {
   Tooltip,
@@ -33,34 +36,60 @@ const cardStyle: React.CSSProperties = {
   backgroundColor: '#141417',
   border:          '1px solid #2E2E38',
   borderRadius:    14,
-  padding:         24,
+  padding:         18,
   flex:            1,
+}
+
+// ─── card header — matches DailyView's/MonthlyView's CardHeader exactly ────
+
+interface CardHeaderProps {
+  icon:  React.ReactNode
+  title: string
+}
+function CardHeader({ icon, title }: CardHeaderProps) {
+  return (
+    <>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {icon}
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#E8E6F0' }}>{title}</span>
+      </div>
+      <div style={{ height: 1, backgroundColor: '#2E2E38', margin: '8px 0' }} />
+    </>
+  )
 }
 
 function SkeletonCard() {
   return (
     <div style={cardStyle}>
-      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 40, width: '50%', marginBottom: 8 }} />
-      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 14, width: '65%' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="bg-depth-raised animate-pulse" style={{ width: 26, height: 26, borderRadius: 6 }} />
+        <div className="bg-depth-raised animate-pulse rounded" style={{ height: 13, width: 90 }} />
+      </div>
+      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 1, margin: '8px 0' }} />
+      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 11, width: 70, marginBottom: 8 }} />
+      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 32, width: 100 }} />
     </div>
   )
 }
 
 interface StatCardProps {
-  value:     React.ReactNode
+  icon:      React.ReactNode
+  title:     string
   label:     string
+  value:     React.ReactNode
   valueSize?: number
 }
 
-function StatCard({ value, label, valueSize = 28 }: StatCardProps) {
+function StatCard({ icon, title, label, value, valueSize = 28 }: StatCardProps) {
   return (
     <div style={cardStyle}>
-      <div className="font-data text-ink-primary"
-        style={{ fontSize: valueSize, fontWeight: 600, lineHeight: 1.15, letterSpacing: '-0.02em' }}>
+      <CardHeader icon={icon} title={title} />
+      <div style={{ color: '#7A7890', fontSize: 12 }}>{label}</div>
+      <div
+        className="font-data"
+        style={{ fontSize: valueSize, fontWeight: 600, color: '#E8E6F0', marginTop: 4, lineHeight: 1.1, letterSpacing: '-0.02em' }}
+      >
         {value}
-      </div>
-      <div className="text-ink-muted" style={{ fontSize: 12, marginTop: 6 }}>
-        {label}
       </div>
     </div>
   )
@@ -220,7 +249,7 @@ export function YearlyView({ date }: YearlyViewProps) {
   const gridWidth = weeks.length * STEP - GAP
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* Stats row */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -238,42 +267,58 @@ export function YearlyView({ date }: YearlyViewProps) {
         ) : (
           <>
             <StatCard
-              valueSize={36}
+              icon={<Clock size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+              title="Focus Time"
+              valueSize={28}
               value={formatMinutesToHours(totalMinutes)}
               label="total focus this year"
             />
             <StatCard
-              valueSize={20}
+              icon={<Calendar size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+              title="Best Month"
+              valueSize={16}
               value={bestMonth}
               label="most productive month"
             />
             <StatCard
-              valueSize={36}
-              value={<>{longestStreak}<span style={{ fontSize: 16, fontWeight: 400, marginLeft: 4 }}>days</span></>}
+              icon={<Flame size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+              title="Longest Streak"
+              valueSize={28}
+              value={<>{longestStreak}<span style={{ fontSize: 13, fontWeight: 400, marginLeft: 4 }}>days</span></>}
               label="longest streak this year"
             />
             <StatCard
-              valueSize={36}
+              icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+              title="Focus Sessions"
+              valueSize={28}
               value={totalSessions}
               label="total sessions this year"
             />
             <StatCard
-              valueSize={36}
+              icon={<CheckCircle2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+              title="Focus Days"
+              valueSize={28}
               value={focusDays}
               label="focus days this year"
             />
             <StatCard
-              valueSize={36}
+              icon={<Timer size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+              title="Avg Session"
+              valueSize={28}
               value={formatMinutesToHours(avgSessionMins)}
               label="avg session length"
             />
             <StatCard
-              valueSize={20}
+              icon={<TrendingUp size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+              title="Best Day"
+              valueSize={16}
               value={bestDay}
               label="best single day"
             />
             <StatCard
-              valueSize={20}
+              icon={<CalendarDays size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+              title="Best Week"
+              valueSize={16}
               value={bestWeek}
               label="best single week"
             />
@@ -299,7 +344,7 @@ export function YearlyView({ date }: YearlyViewProps) {
             backgroundColor: '#141417',
             border:          '1px solid #2E2E38',
             borderRadius:    14,
-            padding:         20,
+            padding:         18,
             overflowX:       'auto',
           }}>
           <div style={{ width: DAY_W + GAP + gridWidth, minWidth: DAY_W + GAP + gridWidth }}>
