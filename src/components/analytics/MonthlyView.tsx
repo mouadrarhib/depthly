@@ -302,7 +302,7 @@ export function MonthlyView({ date }: MonthlyViewProps) {
                           display:         'flex',
                           alignItems:      'center',
                           justifyContent:  'center',
-                          cursor:          'default',
+                          cursor:          'pointer',
                           boxSizing:       'border-box',
                           boxShadow:       isToday
                             ? '0 0 0 2px #4B9EFF, 0 0 0 4px #141417'

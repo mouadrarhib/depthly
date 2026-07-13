@@ -4,14 +4,9 @@ import {
   CheckCircle2, Timer, TrendingUp, CalendarDays,
 } from 'lucide-react'
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { ProjectBreakdownCard, type ProjectEntry } from '@/components/analytics/ProjectBreakdownCard'
+import type { SessionProjectSliceWithDate } from '@/lib/supabase/queries/analytics'
 import { useDailySummariesRange, useSessionsForYear } from '@/hooks/useAnalytics'
 import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
 import {
@@ -25,12 +20,32 @@ interface YearlyViewProps {
   date: Date
 }
 
-const CELL  = 13
-const GAP   = 3
-const STEP  = CELL + GAP   // 16
+interface DayProjectSlice {
+  name:    string
+  color:   string
+  minutes: number
+}
+
+interface HoveredDay {
+  label:    string
+  minutes:  number
+  projects: DayProjectSlice[]
+}
+
+const CELL  = 15
+const GAP   = 4
+const STEP  = CELL + GAP   // 19
+const MONTH_GAP = 8   // extra spacing inserted between month groups, on top of GAP
 const DAY_W = 32
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const DAY_ROWS = ['Mon','','Wed','','Fri','','']
+
+// Monday-based column index (0=Mon … 6=Sun) — used to lay out each month's
+// days into its own self-contained set of week-columns (see monthColumns
+// below), so a week-column never mixes days from two different months.
+function mondayCol(jsDay: number): number {
+  return jsDay === 0 ? 6 : jsDay - 1
+}
 
 const cardStyle: React.CSSProperties = {
   backgroundColor: '#141417',
@@ -103,6 +118,8 @@ function cellColor(minutes: number): string {
   return '#4B9EFF'
 }
 
+const FUTURE_COLOR = '#1A1A1F'
+
 const LEGEND_COLORS = [
   '#222228',
   'rgba(75,158,255,0.20)',
@@ -155,6 +172,11 @@ export function YearlyView({ date }: YearlyViewProps) {
   const isLoading = loadingSummaries || loadingSessions
   const { windowDays, isPro } = useAnalyticsWindow()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
+  // Fixed details panel instead of a per-cell floating tooltip — a
+  // Radix tooltip has to re-anchor its (much wider) popup every time the
+  // mouse crosses into a new ~19-27px-wide column, which reads as janky
+  // during fast horizontal sweeps. A stable panel just swaps its text.
+  const [hoveredDay, setHoveredDay] = useState<HoveredDay | null>(null)
 
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - windowDays)
@@ -166,6 +188,17 @@ export function YearlyView({ date }: YearlyViewProps) {
   const focusMap = new Map<string, number>(
     (summaries ?? []).map(s => [s.date, s.focus_minutes])
   )
+
+  // Group this year's sessions by local day so each heatmap cell's tooltip
+  // can list which project(s) were worked on that day — same as
+  // WeeklyView/MonthlyView.
+  const sessionsByDay = new Map<string, SessionProjectSliceWithDate[]>()
+  for (const s of yearSessions ?? []) {
+    const dayKey = formatPeriodKey(new Date(s.started_at), 'daily')
+    const list   = sessionsByDay.get(dayKey)
+    if (list) list.push(s)
+    else sessionsByDay.set(dayKey, [s])
+  }
 
   // Build weeks array
   const weeks = [...getWeeksInYear(year)]
@@ -228,25 +261,54 @@ export function YearlyView({ date }: YearlyViewProps) {
     ? `${getPeriodLabel(bestWeekMonday, 'weekly')} — ${formatMinutesToHours(bestWeekMinutes)}`
     : '—'
 
-  // Month label positions
-  const monthLabels: Array<{ label: string; col: number; monthIdx: number }> = []
-  let seenMonth = -1
-  weeks.forEach((monday, col) => {
-    for (let d = 0; d < 7; d++) {
-      const day = new Date(monday)
-      day.setDate(monday.getDate() + d)
-      if (day.getFullYear() === year) {
-        const m = day.getMonth()
-        if (m !== seenMonth) {
-          seenMonth = m
-          monthLabels.push({ label: MONTHS[m], col, monthIdx: m })
-        }
-        break
-      }
+  // Month-anchored week-columns for the heatmap — each month gets its own
+  // self-contained set of Monday-Sunday columns (leading/trailing slots
+  // null-padded), so a week-column never mixes days from two different
+  // months the way a single continuous year-long week strip would.
+  const monthColumns: Array<{ monthIdx: number; days: Array<Date | null> }> = []
+  for (let m = 0; m < 12; m++) {
+    const daysInMonth   = new Date(year, m + 1, 0).getDate()
+    const leadingBlanks = mondayCol(new Date(year, m, 1).getDay())
+    const numCols       = Math.ceil((leadingBlanks + daysInMonth) / 7)
+    const cols: Array<{ monthIdx: number; days: Array<Date | null> }> = Array.from(
+      { length: numCols },
+      () => ({ monthIdx: m, days: new Array<Date | null>(7).fill(null) })
+    )
+    for (let d = 1; d <= daysInMonth; d++) {
+      const cellIdx = leadingBlanks + d - 1
+      cols[Math.floor(cellIdx / 7)].days[cellIdx % 7] = new Date(year, m, d)
+    }
+    monthColumns.push(...cols)
+  }
+
+  // Month label positions — first week-column belonging to each month, plus
+  // how many columns it spans, so the label can be centered over the whole
+  // group of columns rather than just anchored to the first one.
+  const monthLabels: Array<{ label: string; col: number; monthIdx: number; numCols: number }> = []
+  monthColumns.forEach(({ monthIdx }, col) => {
+    const last = monthLabels[monthLabels.length - 1]
+    if (!last || last.monthIdx !== monthIdx) {
+      monthLabels.push({ label: MONTHS[monthIdx], col, monthIdx, numCols: 1 })
+    } else {
+      last.numCols += 1
     }
   })
 
-  const gridWidth = weeks.length * STEP - GAP
+  // Per-week x offset, adding MONTH_GAP on top of the regular column gap
+  // whenever a week-column belongs to a new month — the same offsets drive
+  // both the month labels and the heatmap cells below, so the two stay
+  // aligned.
+  const weekOffsets: number[] = []
+  let extraGap = 0
+  monthColumns.forEach(({ monthIdx }, col) => {
+    if (col > 0 && monthColumns[col - 1].monthIdx !== monthIdx) extraGap += MONTH_GAP
+    weekOffsets.push(col * STEP + extraGap)
+  })
+
+  // +STEP (not +CELL) since each cell's hoverable hit area is a full
+  // STEP×STEP tile (see the heatmap cell render below), wider than the
+  // visible CELL-sized dot it contains.
+  const gridWidth = weekOffsets[weekOffsets.length - 1] + STEP
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -345,17 +407,68 @@ export function YearlyView({ date }: YearlyViewProps) {
             border:          '1px solid #2E2E38',
             borderRadius:    14,
             padding:         18,
-            overflowX:       'auto',
           }}>
+          {/* Hovered-day details — a fixed-height, normal-width panel (not
+              a per-cell floating tooltip), so it never has to reposition
+              itself as the mouse moves between columns. Height is locked
+              (not just a minimum) and the project row never wraps, so
+              hovering a day with more projects can't grow the panel and
+              push the grid/legend below it down — it scrolls internally
+              instead. Always visible, outside the horizontally-scrolling
+              region below. */}
+          <div style={{ height: 50, marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #2E2E38', overflow: 'hidden' }}>
+            {hoveredDay ? (
+              <>
+                <div className="font-data" style={{ fontSize: 13, color: '#E8E6F0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {hoveredDay.label}{hoveredDay.minutes > 0 && ` — ${formatMinutesToHours(hoveredDay.minutes)}`}
+                </div>
+                {hoveredDay.minutes === 0 ? (
+                  <div style={{ fontSize: 12, color: '#7A7890', marginTop: 2 }}>No sessions</div>
+                ) : hoveredDay.projects.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', gap: 16, marginTop: 6, overflowX: 'auto' }}>
+                    {hoveredDay.projects.map(p => (
+                      <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: p.color, flexShrink: 0 }} />
+                        <span style={{ fontSize: 12, color: '#7A7890', whiteSpace: 'nowrap' }}>{p.name}</span>
+                        <span className="font-data" style={{ fontSize: 12, color: '#E8E6F0', whiteSpace: 'nowrap' }}>
+                          {formatMinutesToHours(p.minutes)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ fontSize: 12, color: '#7A7890', lineHeight: '26px' }}>Hover a day to see details</div>
+            )}
+          </div>
+
+          {/* Only the month labels + grid scroll horizontally — the legend
+              below is a normal-width sibling so it stays centered and
+              visible without needing to scroll to see it. */}
+          <div style={{ overflowX: 'auto' }}>
           <div style={{ width: DAY_W + GAP + gridWidth, minWidth: DAY_W + GAP + gridWidth }}>
 
-            {/* Month labels above */}
-            <div style={{ paddingLeft: DAY_W + GAP, position: 'relative', height: 28, marginBottom: 4 }}>
-              {monthLabels.map(({ label, col, monthIdx }) => {
-                const hrs = monthlyTotals[monthIdx]
+            {/* Month labels above — absolutely positioned children ignore
+                the container's own padding (the CSS containing-block edge
+                for position:absolute is the padding *edge*, not inside the
+                padding), so DAY_W + GAP is baked directly into each label's
+                left offset instead of relying on paddingLeft here. */}
+            <div style={{ position: 'relative', height: 28, marginBottom: 10 }}>
+              {monthLabels.map(({ label, col, monthIdx, numCols }) => {
+                const hrs      = monthlyTotals[monthIdx]
+                const spanWidth = numCols * STEP - GAP
                 return (
-                  <span key={label} style={{ position: 'absolute', left: col * STEP }}>
-                    <span className="text-ink-muted" style={{ display: 'block', fontSize: 11, lineHeight: 1 }}>{label}</span>
+                  <span
+                    key={label}
+                    style={{
+                      position:  'absolute',
+                      left:      DAY_W + GAP + weekOffsets[col],
+                      width:     spanWidth,
+                      textAlign: 'center',
+                    }}
+                  >
+                    <span className="text-ink-primary" style={{ display: 'block', fontSize: 12, fontWeight: 600, lineHeight: 1 }}>{label}</span>
                     {hrs > 0 && (
                       <span className="font-data text-ink-muted" style={{ display: 'block', fontSize: 10, lineHeight: 1, marginTop: 2 }}>
                         {formatMinutesToHours(hrs)}
@@ -385,73 +498,113 @@ export function YearlyView({ date }: YearlyViewProps) {
                 ))}
               </div>
 
-              {/* Heatmap cells */}
-              <TooltipProvider delayDuration={80}>
-                <div style={{
-                  display:          'grid',
-                  gridTemplateRows: `repeat(7, ${CELL}px)`,
-                  gridAutoFlow:     'column',
-                  gap:              GAP,
-                }}>
-                  {weeks.flatMap((monday, colIdx) =>
-                    Array.from({ length: 7 }, (_, rowIdx) => {
-                      const cellDate = new Date(monday)
-                      cellDate.setDate(monday.getDate() + rowIdx)
-                      const key      = formatPeriodKey(cellDate, 'daily')
-                      const inYear   = cellDate.getFullYear() === year
-                      const isFuture = key > todayKey
-                      const isToday  = key === todayKey
-                      const minutes  = inYear && !isFuture ? (focusMap.get(key) ?? 0) : 0
-                      const label    = cellDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                      const tipText  = !inYear
-                        ? ''
-                        : minutes > 0
-                        ? `${label} — ${formatMinutesToHours(minutes)}`
-                        : `${label} — No sessions`
-
-                      const cell = (
+              {/* Heatmap cells — absolutely positioned via weekOffsets so
+                  month-boundary weeks can carry an extra MONTH_GAP without
+                  breaking uniform column spacing. Hover state feeds the
+                  fixed details panel above (see hoveredDay) instead of a
+                  per-cell floating tooltip. */}
+              <div
+                style={{ position: 'relative', width: gridWidth, height: 7 * STEP }}
+                onMouseLeave={() => setHoveredDay(null)}
+              >
+                {monthColumns.flatMap(({ days }, colIdx) =>
+                  days.map((cellDate, rowIdx) => {
+                    if (!cellDate) {
+                      return (
                         <div
                           key={`${colIdx}-${rowIdx}`}
                           style={{
+                            position:        'absolute',
+                            left:            weekOffsets[colIdx],
+                            top:             rowIdx * STEP,
                             width:           CELL,
                             height:          CELL,
                             borderRadius:    '50%',
-                            backgroundColor: !inYear ? 'transparent' : cellColor(minutes),
-                            opacity:         isFuture ? 0.3 : 1,
-                            boxSizing:       'border-box',
-                            outline:         isToday ? '2px solid rgba(75,158,255,0.5)' : 'none',
-                            outlineOffset:   '1px',
+                            backgroundColor: 'transparent',
                           }}
                         />
                       )
+                    }
 
-                      if (!inYear || !tipText) return cell
+                    const key      = formatPeriodKey(cellDate, 'daily')
+                    const isFuture = key > todayKey
+                    const isToday  = key === todayKey
+                    const minutes  = !isFuture ? (focusMap.get(key) ?? 0) : 0
+                    const label    = cellDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
-                      return (
-                        <Tooltip key={`${colIdx}-${rowIdx}`}>
-                          <TooltipTrigger asChild>{cell}</TooltipTrigger>
-                          <TooltipContent side="top">
-                            <span className="font-data" style={{ fontSize: 12 }}>{tipText}</span>
-                          </TooltipContent>
-                        </Tooltip>
-                      )
-                    })
-                  )}
-                </div>
-              </TooltipProvider>
+                    const dayProjectMap = new Map<string, DayProjectSlice>()
+                    if (!isFuture) {
+                      for (const s of sessionsByDay.get(key) ?? []) {
+                        const pid   = s.project_id ?? '__none__'
+                        const name  = s.projects?.name  ?? 'No project'
+                        const color = s.projects?.color ?? '#7A7890'
+                        const cur   = dayProjectMap.get(pid)
+                        if (cur) cur.minutes += s.duration_mins
+                        else dayProjectMap.set(pid, { name, color, minutes: s.duration_mins })
+                      }
+                    }
+                    const dayProjects = [...dayProjectMap.values()].sort((a, b) => b.minutes - a.minutes)
+
+                    // Hit-tile width normally equals STEP, but at the last
+                    // column of a month it's widened to reach the next
+                    // column's start — absorbing the MONTH_GAP dead zone
+                    // into this tile so hovering across a month boundary
+                    // (e.g. Dec 31 → Jan 1) stays smooth horizontally too,
+                    // not just within a single month. paddingLeft keeps
+                    // the visible dot at its normal centered-in-STEP
+                    // position regardless of the extra width.
+                    const nextOffset = weekOffsets[colIdx + 1] ?? weekOffsets[colIdx] + STEP
+                    const tileWidth  = nextOffset - weekOffsets[colIdx]
+
+                    return (
+                      <div
+                        key={`${colIdx}-${rowIdx}`}
+                        onMouseEnter={() => setHoveredDay({ label, minutes, projects: dayProjects })}
+                        style={{
+                          position:       'absolute',
+                          left:           weekOffsets[colIdx],
+                          top:            rowIdx * STEP,
+                          width:          tileWidth,
+                          height:         STEP,
+                          display:        'flex',
+                          alignItems:     'center',
+                          justifyContent: 'flex-start',
+                          paddingLeft:    (STEP - CELL) / 2,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width:           CELL,
+                            height:          CELL,
+                            flexShrink:      0,
+                            borderRadius:    '50%',
+                            backgroundColor: isFuture ? FUTURE_COLOR : cellColor(minutes),
+                            opacity:         1,
+                            boxSizing:       'border-box',
+                            outline:         isToday ? '2px solid rgba(75,158,255,0.5)' : 'none',
+                            outlineOffset:   '1px',
+                            cursor:          'pointer',
+                          }}
+                        />
+                      </div>
+                    )
+                  })
+                )}
+              </div>
             </div>
-
-            {/* Legend */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              marginTop: 12, justifyContent: 'flex-end',
-            }}>
-              <span className="text-ink-muted" style={{ fontSize: 11 }}>Less</span>
-              {LEGEND_COLORS.map((color, i) => (
-                <div key={i} style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: color }} />
-              ))}
-              <span className="text-ink-muted" style={{ fontSize: 11 }}>More</span>
-            </div>
+          </div>
+          </div>
+          {/* Legend — outside the horizontally-scrolling region above, so
+              it's always visible and centered without needing to scroll. */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            marginTop: 12,
+          }}>
+            <span className="text-ink-muted" style={{ fontSize: 11 }}>Less</span>
+            {LEGEND_COLORS.map((color, i) => (
+              <div key={i} style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: color }} />
+            ))}
+            <span className="text-ink-muted" style={{ fontSize: 11 }}>More</span>
           </div>
           </div>
           {showOverlay && (

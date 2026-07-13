@@ -71,27 +71,27 @@ export type SessionProjectSlice = {
   projects: { name: string; color: string } | null
 }
 
+export type SessionProjectSliceWithDate = SessionProjectSlice & {
+  started_at: string
+}
+
 export async function fetchSessionsForYear(
   userId: string,
   year: number
-): Promise<SessionProjectSlice[]> {
+): Promise<SessionProjectSliceWithDate[]> {
   const startOfYear = new Date(year, 0, 1)
   const endOfYear   = new Date(year + 1, 0, 1)
 
   const { data, error } = await supabase
     .from('sessions')
-    .select('duration_mins, project_id, projects(name, color)')
+    .select('duration_mins, project_id, started_at, projects(name, color)')
     .eq('user_id', userId)
     .eq('type', 'focus')
     .gte('started_at', startOfYear.toISOString())
     .lt('started_at', endOfYear.toISOString())
 
   if (error) throw error
-  return (data ?? []) as SessionProjectSlice[]
-}
-
-export type SessionProjectSliceWithDate = SessionProjectSlice & {
-  started_at: string
+  return (data ?? []) as SessionProjectSliceWithDate[]
 }
 
 export async function fetchSessionsForWeek(
