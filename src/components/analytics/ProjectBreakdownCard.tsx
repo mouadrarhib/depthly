@@ -44,7 +44,7 @@ const card: React.CSSProperties = {
   backgroundColor: '#141417',
   border:          '1px solid #2E2E38',
   borderRadius:    14,
-  padding:         20,
+  padding:         16,
 }
 
 function CardHeader({ title, subtitle }: { title: string; subtitle?: string }) {
@@ -57,7 +57,7 @@ function CardHeader({ title, subtitle }: { title: string; subtitle?: string }) {
       {subtitle && (
         <p style={{ fontSize: 12, color: '#7A7890', marginTop: 2 }}>{subtitle}</p>
       )}
-      <div style={{ height: 1, backgroundColor: '#2E2E38', margin: '12px 0' }} />
+      <div style={{ height: 1, backgroundColor: '#2E2E38', margin: '8px 0' }} />
     </>
   )
 }
@@ -70,7 +70,7 @@ function ProjectCardSkeleton() {
         <div className="bg-depth-raised animate-pulse rounded" style={{ height: 13, width: 140 }} />
       </div>
       <div className="bg-depth-raised animate-pulse rounded" style={{ height: 11, width: 220, marginTop: 6 }} />
-      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 1, margin: '12px 0' }} />
+      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 1, margin: '8px 0' }} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
         <div className="bg-depth-raised animate-pulse" style={{ width: 96, height: 96, borderRadius: '50%', flexShrink: 0 }} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>

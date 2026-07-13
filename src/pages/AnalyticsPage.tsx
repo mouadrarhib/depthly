@@ -114,7 +114,7 @@ export function AnalyticsPage() {
             )}
 
             {/* Tab content */}
-            <div style={activeTab === 'overview' ? { marginTop: 16 } : undefined}>
+            <div style={activeTab === 'overview' ? { marginTop: 12 } : undefined}>
               {activeTab === 'overview' && <OverviewView />}
               {activeTab === 'daily'    && <DailyView   date={dailyDate}   />}
               {activeTab === 'weekly'   && <WeeklyView  date={weeklyDate}  />}
