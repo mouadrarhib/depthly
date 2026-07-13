@@ -14,7 +14,7 @@ freelancers, remote developers building deep work habits. Solo founder, 8-week s
 - **Backend:** Supabase only — no separate server, no Express, no tRPC
 - **DB writes that touch multiple tables:** always go through Supabase RPC functions, never direct client writes
 - **Auth:** Supabase Auth (email + password + Google OAuth)
-- **Payments:** Stripe via Supabase Edge Functions
+- **Payments:** Lemon Squeezy (merchant-of-record) via Supabase Edge Functions
 - **Deploy:** Vercel
 
 ---
@@ -106,10 +106,13 @@ Check limits via `usePlan().checkLimit(type)` — never inline the limit logic.
 
 ---
 
-## Stripe
-- Edge function names: `create-checkout-session`, `stripe-webhook`
-- Webhook updates `profiles.plan` + `subscriptions` table
-- Never hardcode price IDs — read from env vars `VITE_STRIPE_PRICE_MONTHLY`, `VITE_STRIPE_PRICE_ANNUAL`
+## Lemon Squeezy
+- Stripe does not support standalone merchant accounts in Morocco, so Lemon Squeezy was chosen instead
+- Edge function names: `create-checkout`, `lemonsqueezy-webhook`
+- Webhook verifies the `X-Signature` header (HMAC-SHA256 of the raw body) before parsing, then updates `profiles.plan` + `subscriptions` table
+- Never hardcode variant IDs — read from Edge Function secrets `LEMONSQUEEZY_VARIANT_PRO_MONTHLY`, `LEMONSQUEEZY_VARIANT_PRO_YEARLY`, `LEMONSQUEEZY_VARIANT_LIFETIME` (no `VITE_` prefix — server-side only, never bundled into client code)
+- `profiles.stripe_customer_id` / `stripe_subscription_id` columns are reused as-is to store Lemon Squeezy customer/subscription IDs — a schema rename is deferred, not a bug
+- See `docs/BILLING_STATUS.md` for current integration status
 
 ---
 
@@ -142,7 +145,7 @@ Check limits via `usePlan().checkLimit(type)` — never inline the limit logic.
 - Leaderboard mobile: status badge/countdown stacking fix (flex-col on mobile); rank bar flex-wrap
 
 ### Phase 12 checklist
-- [ ] Stripe checkout end-to-end smoke test (create-checkout-session edge function, webhook, profiles.plan update)
+- [ ] Lemon Squeezy checkout end-to-end smoke test (create-checkout edge function, lemonsqueezy-webhook, profiles.plan update)
 - [ ] Seed data cleanup (manual DB step via DBeaver)
 - [ ] Dark/light theme toggle (deferred from Phase 8)
 - [x] Landing page / marketing copy — public landing at `/` (src/pages/LandingPage.tsx + src/components/landing/), authenticated app moved to /dashboard, GSAP scroll animations
