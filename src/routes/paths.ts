@@ -26,6 +26,7 @@ export const PATHS = {
   sessions:  '/sessions',
   analytics:   '/analytics',
   leaderboard: '/leaderboard',
+  billing:     '/billing',
   // tasks: '/tasks',
   // goals: '/goals',
 

@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  BarChart2, Clock, FolderOpen, History,
+  BarChart2, Clock, CreditCard, FolderOpen, History,
   LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen,
   Settings, Trophy,
 } from 'lucide-react'
@@ -30,6 +30,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Sessions',    path: PATHS.sessions,    Icon: History         },
   { label: 'Analytics',   path: PATHS.analytics,   Icon: BarChart2       },
   { label: 'Leaderboard', path: PATHS.leaderboard, Icon: Trophy          },
+  { label: 'Billing',     path: PATHS.billing,     Icon: CreditCard      },
 ]
 
 // ── Toggle button ─────────────────────────────────────────────────────────────

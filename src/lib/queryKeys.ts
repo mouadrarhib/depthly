@@ -36,6 +36,10 @@ export const leaderboardKeys = {
                 ['leaderboard', 'follow', followerId, followingId] as const,
 }
 
+export const billingKeys = {
+  subscriptions: (userId: string) => ['billing', 'subscriptions', userId] as const,
+}
+
 export const settingsKeys = {
   preferences: (userId: string) => ['settings', 'preferences', userId] as const,
   profile:     (userId: string) => ['settings', 'profile', userId] as const,
