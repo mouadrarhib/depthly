@@ -28,7 +28,7 @@ async function fetchPlan(userId: string): Promise<PlanType> {
 export function usePlan() {
   const userId = useAuthStore(s => s.user?.id ?? '')
 
-  const { data: plan = 'free' } = useQuery({
+  const { data: plan = 'free', isLoading } = useQuery({
     queryKey: ['plan', userId] as const,
     queryFn:  () => fetchPlan(userId),
     enabled:  !!userId,
@@ -45,5 +45,5 @@ export function usePlan() {
     return true
   }
 
-  return { plan, isPro, checkLimit, FREE_LIMITS }
+  return { plan, isPro, isLoading, checkLimit, FREE_LIMITS }
 }

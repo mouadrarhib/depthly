@@ -7,6 +7,7 @@ import { useProfile } from '@/hooks/useAnalytics'
 import { useSubscriptions, useCancelSubscription } from '@/hooks/useBilling'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/Spinner'
 import {
   Dialog,
   DialogContent,
@@ -46,7 +47,7 @@ const eyebrowStyle: React.CSSProperties = {
 }
 
 export function BillingPage() {
-  const { plan } = usePlan()
+  const { plan, isLoading: isPlanLoading } = usePlan()
   // profiles.plan/plan_interval/subscription_current_period_end is the fast-read
   // billing state and the source of truth for display (see CLAUDE.md) — NOT the
   // subscriptions table, which can hold rows for older/unrelated subscriptions
@@ -168,7 +169,11 @@ export function BillingPage() {
         {/* Current Plan Card */}
         <div style={cardStyle}>
           <div style={eyebrowStyle}>Current plan</div>
-          {plan === 'free' ? (
+          {isPlanLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
+              <Spinner />
+            </div>
+          ) : plan === 'free' ? (
             <>
               <h2 style={{ fontSize: 18, fontWeight: 600, color: '#E8E6F0', margin: 0 }}>
                 Free Plan
