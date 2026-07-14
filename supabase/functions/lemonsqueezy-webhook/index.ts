@@ -13,7 +13,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2.43.5'
 
 type PlanType             = 'free' | 'pro' | 'founding'
 type PlanIntervalType     = 'monthly' | 'annual' | 'lifetime'
-type SubscriptionStatusType = 'active' | 'trialing' | 'past_due' | 'canceled' | 'unpaid'
+type SubscriptionStatusType = 'active' | 'trialing' | 'past_due' | 'canceled' | 'unpaid' | 'expired'
 
 const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -192,7 +192,11 @@ Deno.serve(async (req) => {
   const eventName = payload.meta?.event_name
   const userId    = payload.meta?.custom_data?.user_id
 
-  if (!userId) {
+  // Most event types are only ever seen for a fresh checkout/subscription that
+  // has no existing `subscriptions` row to resolve a user from yet, so custom_data
+  // is required for them. subscription_expired is handled separately below since
+  // it can resolve the user from its own subscriptions row instead (see that case).
+  if (!userId && eventName !== 'subscription_expired') {
     console.error('Lemon Squeezy webhook missing custom_data.user_id for event:', eventName)
     return new Response('OK', { status: 200 })
   }
@@ -227,7 +231,7 @@ Deno.serve(async (req) => {
             subscription_status:              null,
             subscription_current_period_end: null,
           })
-          .eq('id', userId)
+          .eq('id', userId!)
 
         if (error) {
           console.error('Failed to update profile for order_created:', error)
@@ -240,7 +244,60 @@ Deno.serve(async (req) => {
       case 'subscription_updated':
       case 'subscription_cancelled': {
         const attrs = payload.data.attributes as unknown as SubscriptionAttributes
-        await upsertSubscription(userId, payload.data.id, attrs)
+        await upsertSubscription(userId!, payload.data.id, attrs)
+        break
+      }
+
+      case 'subscription_expired': {
+        // Fires when a cancelled subscription's grace period actually ends —
+        // access should stop now. Unlike subscription_created/updated/cancelled,
+        // Lemon Squeezy does not reliably include meta.custom_data on this event
+        // (it's a later, automatic lifecycle event, not one tied directly to the
+        // original checkout redirect), so `userId` from custom_data can be
+        // undefined here even though the event is legitimate. Resolve the user
+        // from our own `subscriptions` row instead — it already stored user_id
+        // when the subscription was first created — falling back to custom_data
+        // only if that row somehow doesn't exist.
+        const subId = payload.data.id
+
+        const { data: updatedSub, error: subError } = await supabaseAdmin
+          .from('subscriptions')
+          .update({ status: 'expired' as SubscriptionStatusType })
+          .eq('stripe_subscription_id', subId)
+          .select('user_id')
+          .maybeSingle()
+
+        if (subError) {
+          console.error('Failed to update subscription for subscription_expired:', subError)
+          throw subError
+        }
+
+        const resolvedUserId = updatedSub?.user_id ?? userId
+        if (!resolvedUserId) {
+          console.error('subscription_expired: no matching subscription row and no custom_data.user_id for', subId)
+          break
+        }
+
+        // Same founding-member guard as upsertSubscription / payment_failed —
+        // an expired Pro subscription must never downgrade a Lifetime member
+        // who happens to have an old, unrelated subscription record.
+        if (await isFoundingMember(resolvedUserId)) {
+          console.warn('Skipping profile update for founding member on subscription_expired:', subId)
+          break
+        }
+
+        const { error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .update({
+            plan:          'free' as PlanType,
+            plan_interval: null,
+          })
+          .eq('id', resolvedUserId)
+
+        if (profileError) {
+          console.error('Failed to update profile for subscription_expired:', profileError)
+          throw profileError
+        }
         break
       }
 
@@ -262,7 +319,7 @@ Deno.serve(async (req) => {
 
         // Same founding-member guard as upsertSubscription — a failed payment
         // on an older/unrelated Pro subscription must not touch a Lifetime member.
-        if (await isFoundingMember(userId)) {
+        if (await isFoundingMember(userId!)) {
           console.warn('Skipping profile update for founding member on payment_failed:', subId)
           break
         }
@@ -270,7 +327,7 @@ Deno.serve(async (req) => {
         const { error: profileError } = await supabaseAdmin
           .from('profiles')
           .update({ subscription_status: 'past_due' as SubscriptionStatusType })
-          .eq('id', userId)
+          .eq('id', userId!)
 
         if (profileError) {
           console.error('Failed to update profile for payment_failed:', profileError)
