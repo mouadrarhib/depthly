@@ -243,7 +243,12 @@ Deno.serve(async (req) => {
           break
         }
 
-        const orderAttrs = payload.data.attributes as { customer_id: number }
+        const orderAttrs = payload.data.attributes as {
+          customer_id: number
+          created_at:  string
+          total?:      number
+          currency?:   string
+        }
 
         const { error } = await supabaseAdmin
           .from('profiles')
@@ -264,6 +269,43 @@ Deno.serve(async (req) => {
         if (error) {
           console.error('Failed to update profile for order_created:', error)
           throw error
+        }
+
+        // Also record this purchase in the subscriptions audit trail — it's
+        // read directly by BillingPage's billing history table, and without
+        // this a Lifetime purchase (a one-time order, not a subscription)
+        // would never show up there the way Monthly/Yearly purchases do via
+        // upsertSubscription.
+        const { error: subInsertError } = await supabaseAdmin
+          .from('subscriptions')
+          .upsert({
+            user_id:                userId!,
+            // One-time orders have no Lemon Squeezy subscription id at all, but
+            // this column is NOT NULL and UNIQUE, so it needs some distinct
+            // value. A bare numeric string would risk eventually colliding with
+            // a real subscription id (orders and subscriptions are separate id
+            // spaces in Lemon Squeezy), so this is prefixed — same convention
+            // seed-demo-users.ts already uses for its own demo Lifetime rows —
+            // and can never be mistaken for a real subscription id.
+            stripe_subscription_id: `lifetime_order_${payload.data.id}`,
+            stripe_customer_id:     String(orderAttrs.customer_id),
+            plan:                   'founding' as PlanType,
+            plan_interval:          'lifetime' as PlanIntervalType,
+            status:                 'active' as SubscriptionStatusType,
+            current_period_start:   orderAttrs.created_at,
+            // current_period_end is NOT NULL, so a purchase that never expires
+            // gets a sentinel far-future date instead of null — BillingPage
+            // tells a Lifetime row apart via plan_interval, not this column.
+            current_period_end:     '2125-01-01T00:00:00.000Z',
+            cancel_at_period_end:   false,
+            canceled_at:            null,
+            amount_cents:           orderAttrs.total ?? 7900,
+            currency:               orderAttrs.currency ?? 'usd',
+          }, { onConflict: 'stripe_subscription_id' })
+
+        if (subInsertError) {
+          console.error('Failed to insert subscriptions row for order_created (Lifetime):', subInsertError)
+          throw subInsertError
         }
         break
       }

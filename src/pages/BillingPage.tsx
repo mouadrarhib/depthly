@@ -351,6 +351,12 @@ export function BillingPage() {
 
                 {subscriptions.map((sub, i) => {
                   const statusStyle = STATUS_STYLE[sub.status] ?? STATUS_STYLE.canceled
+                  // Lifetime purchases are one-time orders, not subscriptions —
+                  // current_period_end is a non-null sentinel far-future date
+                  // for them (the column can't be null), so a real date range
+                  // would be misleading here; show plan_interval instead, which
+                  // is the reliable signal for "this row is a Lifetime purchase".
+                  const isLifetime = sub.plan_interval === 'lifetime'
                   return (
                     <div
                       key={sub.id}
@@ -364,11 +370,17 @@ export function BillingPage() {
                       }}
                     >
                       <span style={{ fontSize: 13, color: '#E8E6F0', fontWeight: 500 }}>
-                        {PLAN_LABEL[sub.plan] ?? sub.plan} · {INTERVAL_LABEL[sub.plan_interval] ?? sub.plan_interval}
+                        {isLifetime
+                          ? PLAN_LABEL[sub.plan] ?? sub.plan
+                          : `${PLAN_LABEL[sub.plan] ?? sub.plan} · ${INTERVAL_LABEL[sub.plan_interval] ?? sub.plan_interval}`}
                       </span>
-                      <span className="font-data" style={{ fontSize: 12, color: '#7A7890' }}>
-                        {formatSubDate(sub.current_period_start)} – {formatSubDate(sub.current_period_end)}
-                      </span>
+                      {isLifetime ? (
+                        <span style={{ fontSize: 12, color: '#7A7890' }}>Lifetime access</span>
+                      ) : (
+                        <span className="font-data" style={{ fontSize: 12, color: '#7A7890' }}>
+                          {formatSubDate(sub.current_period_start)} – {formatSubDate(sub.current_period_end)}
+                        </span>
+                      )}
                       <span className="font-data" style={{ fontSize: 12, color: '#E8E6F0', textAlign: 'right' }}>
                         {formatAmount(sub.amount_cents, sub.currency)}
                       </span>
