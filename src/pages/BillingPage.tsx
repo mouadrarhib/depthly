@@ -243,6 +243,40 @@ export function BillingPage() {
                 </span>
               </div>
 
+              {/* No in-app "update payment method" flow exists yet (only cancellation
+                  has been built — see BILLING_STATUS.md). Lemon Squeezy subscription
+                  objects expose a per-subscription urls.update_payment_method link
+                  (same shape as urls.customer_portal), which the webhook doesn't
+                  currently capture or persist anywhere. Wiring that up — store it on
+                  the subscriptions row, link to it here instead of this email-based
+                  fallback — is a reasonable next task, not done in this pass. */}
+              {profile?.subscription_status === 'past_due' && (
+                <div
+                  style={{
+                    display:         'flex',
+                    gap:             10,
+                    alignItems:      'flex-start',
+                    backgroundColor: 'rgba(245,166,35,0.1)',
+                    border:          '1px solid rgba(245,166,35,0.3)',
+                    borderRadius:    10,
+                    padding:         '12px 14px',
+                    marginBottom:    20,
+                  }}
+                >
+                  <AlertTriangle size={16} style={{ color: '#F5A623', flexShrink: 0, marginTop: 2 }} />
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#F5A623', margin: 0 }}>
+                      Your last payment failed
+                    </p>
+                    <p style={{ fontSize: 12, color: '#7A7890', marginTop: 4, marginBottom: 0, lineHeight: 1.5 }}>
+                      Update your payment method to avoid losing Pro access. Lemon Squeezy
+                      should have emailed you a link to update it on your original purchase
+                      receipt — check that email, or reply to it for help.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div
                 style={{
                   display:             'grid',
