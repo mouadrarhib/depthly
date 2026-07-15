@@ -21,13 +21,17 @@ export function AppLayout() {
 
   return (
     <div className="flex h-dvh overflow-hidden" style={{ background: 'var(--color-surface-base)' }}>
-      {/* Mobile backdrop — tapping closes sidebar */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-10 bg-black/50 md:hidden"
-          onClick={toggleSidebar}
-        />
-      )}
+      {/* Mobile backdrop — tapping closes sidebar. Always mounted (rather than
+          conditionally rendered) so opacity can transition instead of the
+          backdrop popping in/out instantly. */}
+      <div
+        className={cn(
+          'fixed inset-0 z-10 bg-black/50 transition-opacity duration-200 ease md:hidden',
+          sidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+        )}
+        onClick={toggleSidebar}
+        aria-hidden={!sidebarOpen}
+      />
 
       <Sidebar />
 

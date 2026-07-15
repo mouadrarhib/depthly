@@ -9,6 +9,7 @@ import type { LucideIcon } from 'lucide-react'
 import { useUiStore, useAuthStore } from '@/store'
 import { usePlan } from '@/hooks/usePlan'
 import { useTodayStats } from '@/hooks/useTodayStats'
+import { useMediaQuery } from '@/hooks/shared/useMediaQuery'
 import { PATHS } from '@/routes/paths'
 import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils/cn'
@@ -110,6 +111,15 @@ export function Sidebar() {
   const navigate                       = useNavigate()
   const { avatarUrl, displayName: profileDisplayName } = useTodayStats()
 
+  // The icon-only "rail" collapse is a desktop-only affordance. On mobile,
+  // sidebarOpen purely controls whether the (always full-width, always
+  // fully-labeled) drawer is slid on/off screen — it never collapses to a
+  // rail there. Coupling both behaviors to one boolean previously made the
+  // sidebar's width and inner layout change at the same time as the mobile
+  // slide transform, which is what made the open/close animation janky.
+  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const expanded  = isDesktop ? sidebarOpen : true
+
   const meta        = user?.user_metadata as Record<string, string> | undefined
   const displayName = profileDisplayName ?? meta?.full_name ?? meta?.name ?? user?.email?.split('@')[0] ?? 'User'
 
@@ -139,7 +149,7 @@ export function Sidebar() {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         )}
         style={{
-          width:       sidebarOpen ? 240 : 60,
+          width:       expanded ? 240 : 60,
           background:  '#141417',
           borderRight: '1px solid #2E2E38',
           transition:  'width 200ms ease, transform 200ms ease',
@@ -147,7 +157,7 @@ export function Sidebar() {
         }}
       >
         {/* ── Branding ───────────────────────────────────────────────── */}
-        {sidebarOpen ? (
+        {expanded ? (
           <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid #2E2E38' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -190,9 +200,9 @@ export function Sidebar() {
                     style={{
                       display:         'flex',
                       alignItems:      'center',
-                      justifyContent:  sidebarOpen ? 'flex-start' : 'center',
-                      gap:             sidebarOpen ? 10 : 0,
-                      padding:         sidebarOpen ? '10px 12px' : '10px 0',
+                      justifyContent:  expanded ? 'flex-start' : 'center',
+                      gap:             expanded ? 10 : 0,
+                      padding:         expanded ? '10px 12px' : '10px 0',
                       borderRadius:    8,
                       cursor:          'pointer',
                       background:      isActive ? 'rgba(75,158,255,0.12)' : 'transparent',
@@ -204,7 +214,7 @@ export function Sidebar() {
                       size={18}
                       style={{ color: isActive ? '#4B9EFF' : '#7A7890', flexShrink: 0, minWidth: 18 }}
                     />
-                    {sidebarOpen && (
+                    {expanded && (
                       <span style={{ fontSize: 14, fontWeight: isActive ? 500 : 400, color: isActive ? '#E8E6F0' : '#7A7890' }}>
                         {label}
                       </span>
@@ -214,7 +224,7 @@ export function Sidebar() {
               </NavLink>
             )
 
-            if (sidebarOpen) return link
+            if (expanded) return link
 
             return (
               <Tooltip key={label}>
@@ -228,7 +238,7 @@ export function Sidebar() {
         {/* ── Bottom ─────────────────────────────────────────────────── */}
         <div style={{ borderTop: '1px solid #2E2E38', padding: '12px 8px' }}>
           {/* User row */}
-          {sidebarOpen ? (
+          {expanded ? (
             <div
               role="button"
               tabIndex={0}
@@ -280,14 +290,14 @@ export function Sidebar() {
             icon={<Settings size={15} />}
             label="Settings"
             onClick={() => navigate(PATHS.settings)}
-            expanded={sidebarOpen}
+            expanded={expanded}
           />
 
           <BottomAction
             icon={<LogOut size={15} />}
             label="Sign out"
             onClick={handleSignOut}
-            expanded={sidebarOpen}
+            expanded={expanded}
           />
         </div>
       </aside>
