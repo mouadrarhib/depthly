@@ -109,11 +109,11 @@ export function ProjectDetailPage() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setIsEditOpen(true)}>
+          <Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)}>
             Edit
           </Button>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             isLoading={isArchivePending}
             onClick={() => {
