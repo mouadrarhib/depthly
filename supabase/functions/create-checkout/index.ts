@@ -90,9 +90,10 @@ Deno.serve(async (req) => {
       data: {
         type: 'checkouts',
         attributes: {
-          // Store approval is still pending — force test mode so this is safe to
-          // wire up and exercise end-to-end before the store goes live.
-          test_mode:     true,
+          // Live mode as of 2026-07-15 — the store is approved and
+          // LEMONSQUEEZY_VARIANT_* / LEMONSQUEEZY_API_KEY now point at live-mode
+          // values (see docs/BILLING_STATUS.md). No test_mode flag here at all,
+          // since omitting it is how Lemon Squeezy defaults a checkout to live.
           checkout_data: {
             custom: { user_id: user.id },
           },
