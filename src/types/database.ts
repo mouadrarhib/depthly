@@ -574,6 +574,7 @@ export type Database = {
         | "canceled"
         | "unpaid"
         | "expired"
+        | "refunded"
       task_priority_type: "low" | "medium" | "high" | "urgent"
       task_status_type: "todo" | "in_progress" | "done"
       theme_type: "dark" | "light"
@@ -716,6 +717,7 @@ export const Constants = {
         "canceled",
         "unpaid",
         "expired",
+        "refunded",
       ],
       task_priority_type: ["low", "medium", "high", "urgent"],
       task_status_type: ["todo", "in_progress", "done"],

@@ -13,7 +13,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2.43.5'
 
 type PlanType             = 'free' | 'pro' | 'founding'
 type PlanIntervalType     = 'monthly' | 'annual' | 'lifetime'
-type SubscriptionStatusType = 'active' | 'trialing' | 'past_due' | 'canceled' | 'unpaid' | 'expired'
+type SubscriptionStatusType = 'active' | 'trialing' | 'past_due' | 'canceled' | 'unpaid' | 'expired' | 'refunded'
 
 const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -222,9 +222,11 @@ Deno.serve(async (req) => {
 
   // Most event types are only ever seen for a fresh checkout/subscription that
   // has no existing `subscriptions` row to resolve a user from yet, so custom_data
-  // is required for them. subscription_expired is handled separately below since
-  // it can resolve the user from its own subscriptions row instead (see that case).
-  if (!userId && eventName !== 'subscription_expired') {
+  // is required for them. subscription_expired and order_refunded are handled
+  // separately below since they can resolve the user from an existing
+  // subscriptions row instead (see those cases) — both are later, automatic
+  // events not reliably carrying custom_data the way checkout-originated events do.
+  if (!userId && eventName !== 'subscription_expired' && eventName !== 'order_refunded') {
     console.error('Lemon Squeezy webhook missing custom_data.user_id for event:', eventName)
     return new Response('OK', { status: 200 })
   }
@@ -306,6 +308,110 @@ Deno.serve(async (req) => {
         if (subInsertError) {
           console.error('Failed to insert subscriptions row for order_created (Lifetime):', subInsertError)
           throw subInsertError
+        }
+        break
+      }
+
+      case 'order_refunded': {
+        // Fires when a payment is refunded — whether we initiate it in the
+        // Lemon Squeezy dashboard or Lemon Squeezy processes it themselves.
+        // Same "orders" resource as order_created, so payload.data.id is the
+        // order id. Like subscription_expired, this is a later, automatic
+        // event rather than one tied directly to the checkout redirect, so
+        // custom_data.user_id isn't guaranteed to be present — resolve the
+        // user from our own subscriptions row first, matched the same way
+        // order_created's Lifetime insert keyed it (`lifetime_order_${orderId}`),
+        // falling back to custom_data only if that row doesn't exist.
+        //
+        // The lifetime_order_ key only finds a matching row for Lifetime
+        // purchases, since those are the only ones keyed by order id — a
+        // refunded Monthly/Yearly order is keyed by its subscription id
+        // instead (set via subscription_created), which isn't available on
+        // this event's payload either. For those, custom_data is tried next,
+        // and if that's also missing (the common case for this event, same
+        // "later, automatic event" reasoning as above), a customer_id-based
+        // best-effort fallback runs below.
+        const orderId = payload.data.id
+        const lifetimeSubId = `lifetime_order_${orderId}`
+
+        const { data: updatedSub, error: subError } = await supabaseAdmin
+          .from('subscriptions')
+          .update({ status: 'refunded' as SubscriptionStatusType })
+          .eq('stripe_subscription_id', lifetimeSubId)
+          .select('user_id')
+          .maybeSingle()
+
+        if (subError) {
+          console.error('Failed to update subscription for order_refunded:', subError)
+          throw subError
+        }
+
+        let resolvedUserId = updatedSub?.user_id ?? userId
+
+        // Neither the Lifetime-order match nor custom_data resolved a user —
+        // the expected outcome for a Monthly/Yearly subscription refund,
+        // since that subscriptions row is keyed by its subscription id, not
+        // this order's id, and order_refunded's payload doesn't carry the
+        // subscription id directly (only customer_id, in the flat order
+        // attributes) to look it up precisely. Best-effort fallback: find
+        // this customer's most recently updated subscriptions row and use
+        // its user_id — same "don't rely on custom_data for a later,
+        // automatic event" reasoning as the subscription_expired fix,
+        // adapted to the identifier this specific payload actually carries.
+        // Deliberately only used to identify the user, not to mark that row
+        // refunded — it's a guess at "some subscription this customer has",
+        // not necessarily the exact one this order belongs to.
+        if (!resolvedUserId) {
+          const orderAttrs = payload.data.attributes as { customer_id: number }
+
+          const { data: customerSub, error: customerSubError } = await supabaseAdmin
+            .from('subscriptions')
+            .select('user_id')
+            .eq('stripe_customer_id', String(orderAttrs.customer_id))
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+
+          if (customerSubError) {
+            console.error('Failed to look up subscription by customer_id for order_refunded:', customerSubError)
+            throw customerSubError
+          }
+
+          resolvedUserId = customerSub?.user_id
+        }
+
+        if (!resolvedUserId) {
+          console.error('order_refunded: no matching subscription row (by order id or customer_id) and no custom_data.user_id for order', orderId)
+          break
+        }
+
+        // Unlike subscription_expired/payment_failed, this deliberately does
+        // NOT skip founding members — refunding their own Lifetime purchase
+        // is exactly what this handler exists to downgrade. Caveat: if
+        // resolvedUserId came from the custom_data or customer_id fallback
+        // (an unmatched, presumably non-Lifetime order) for a user who is a
+        // founding member through a separate, unrelated Lifetime purchase,
+        // this would incorrectly strip that unrelated membership — not
+        // handled here, flagging for awareness rather than adding
+        // speculative branching.
+        //
+        // Also treating any refund as a full downgrade to Free for
+        // simplicity, whether it was originally a one-time Lifetime purchase
+        // or a subscription payment, and even a partial/single-payment refund
+        // on an otherwise-still-active subscription. This may need
+        // refinement later if that specific case comes up in practice.
+        const { error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .update({
+            plan:               'free' as PlanType,
+            plan_interval:      null,
+            is_founding_member: false,
+          })
+          .eq('id', resolvedUserId)
+
+        if (profileError) {
+          console.error('Failed to update profile for order_refunded:', profileError)
+          throw profileError
         }
         break
       }
