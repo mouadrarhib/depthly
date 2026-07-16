@@ -130,6 +130,7 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
           started_at:    startedAt,
           ended_at:      endedAt,
           notes:         notesTrimmed,
+          local_date:    date,
         },
         { onSuccess: onClose },
       )

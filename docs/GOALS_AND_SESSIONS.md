@@ -139,7 +139,7 @@ deleteSession(id: string): Promise<void>
 createManualSession(data: CreateManualSessionInput): Promise<Session>
 ```
 
-Input: `user_id`, `project_id`, `task_id`, `duration_mins`, `started_at`, `ended_at`, `notes`.
+Input: `user_id`, `project_id`, `task_id`, `duration_mins`, `started_at`, `ended_at`, `notes`, `local_date`.
 
 Unlike `updateSession` / `deleteSession`, manual creation **routes through the `save_session()` SECURITY DEFINER RPC** — the same function the timer uses. This means:
 
@@ -151,6 +151,8 @@ Unlike `updateSession` / `deleteSession`, manual creation **routes through the `
 Two caveats from the RPC signature:
 1. `is_manual` is not a parameter the RPC accepts — the DB column defaults to `false`, so manual sessions are not distinguishable from timer sessions in the database.
 2. `p_timer_mode` is passed as `null`; the RPC coerces `null → 'pomodoro'` internally.
+
+`local_date` (`YYYY-MM-DD`) is the date the user picked in the form — it's passed straight through as `p_local_date` and used verbatim for `daily_summaries.date` / streak bookkeeping. As of migration `006_save_session_local_date.sql`, the RPC no longer derives the session's date from `p_started_at` in UTC (that desynced from the client's "today" for any non-UTC timezone) — every caller (timer completion, manual stop, break auto-save, and this one) must supply the local date explicitly.
 
 `useCreateManualSession()` invalidates both `['sessions']` and `['analytics']` on success, and in this case the analytics re-fetch will reflect the correctly updated aggregates.
 

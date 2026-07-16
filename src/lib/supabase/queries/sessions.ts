@@ -20,6 +20,10 @@ export interface SaveSessionParams {
   p_ended_at:      string
   p_timer_mode:    'pomodoro' | 'custom' | 'free'  // mapped to timer_mode_type in DB
   p_notes:         string | null
+  // Client's local date (YYYY-MM-DD) — the RPC files daily_summaries/user_stats/
+  // streak under this date instead of re-deriving it from p_started_at in UTC,
+  // which used to desync from the client's "today" for any non-UTC timezone.
+  p_local_date:    string
 }
 
 export interface UpdateSessionInput {
@@ -39,6 +43,9 @@ export interface CreateManualSessionInput {
   started_at:    string
   ended_at:      string
   notes:         string | null
+  // The local date (YYYY-MM-DD) the user picked in the form — see
+  // SaveSessionParams.p_local_date for why this can't be derived server-side.
+  local_date:    string
 }
 
 // save_session is a SECURITY DEFINER RPC that writes to sessions,
@@ -208,6 +215,7 @@ export async function createManualSession(data: CreateManualSessionInput): Promi
       p_ended_at:      data.ended_at,
       p_timer_mode:    null,
       p_notes:         data.notes,
+      p_local_date:    data.local_date,
     }
   )
 

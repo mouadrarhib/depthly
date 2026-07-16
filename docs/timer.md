@@ -196,6 +196,7 @@ const { saveSession, isSaving } = useSaveSession()
 | `p_ended_at` | `new Date().toISOString()` |
 | `p_timer_mode` | `timerStore.mode` |
 | `p_notes` | `null` |
+| `p_local_date` | `formatPeriodKey(now, 'daily')` — client's local `YYYY-MM-DD`, used by the RPC for `daily_summaries`/streak bookkeeping instead of deriving the date from `p_started_at` in UTC |
 
 State is read from `useTimerStore.getState()` at call time (not from stale render values).
 
@@ -389,7 +390,7 @@ useEffect(() => {
 
 ## 7. Database — save_session RPC
 
-**File:** `supabase/migrations/002_save_session_rpc.sql`
+**File:** `supabase/migrations/002_save_session_rpc.sql`, superseded by `supabase/migrations/006_save_session_local_date.sql`
 
 `SECURITY DEFINER` function — runs with owner privileges so it can write to `daily_summaries` and `user_stats` (which have no client INSERT policies).
 
@@ -405,9 +406,12 @@ create or replace function public.save_session(
   p_started_at    timestamptz,
   p_ended_at      timestamptz,
   p_timer_mode    text,               -- accepts 'pomodoro' | 'custom' | 'free'
-  p_notes         text
+  p_notes         text,
+  p_local_date    date                -- client's local YYYY-MM-DD (migration 006)
 ) returns public.sessions
 ```
+
+`p_local_date` is supplied by the client instead of being derived from `p_started_at`. The original version computed the session's date as `(p_started_at at time zone 'UTC')::date`, which desynced from the client's "today" for any non-UTC timezone (evening sessions west of UTC could land on tomorrow's UTC date, silently vanishing from "today" stats until the next day).
 
 **What it does atomically (focus sessions only — break sessions are stored but skipped for aggregates):**
 
@@ -429,7 +433,7 @@ create or replace function public.save_session(
 
 Returns the inserted `sessions` row.
 
-**To deploy:** Run `002_save_session_rpc.sql` in Supabase Dashboard → SQL Editor.
+**To deploy:** Run `002_save_session_rpc.sql` then `006_save_session_local_date.sql` in Supabase Dashboard → SQL Editor (both are `create or replace`, safe to run in order on a fresh DB; existing DBs only need 006).
 
 ---
 

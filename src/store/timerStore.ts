@@ -2,6 +2,7 @@ import { create } from 'zustand'
 
 import { saveSession } from '@/lib/supabase/queries/sessions'
 import { useAuthStore } from '@/store/authStore'
+import { formatPeriodKey } from '@/lib/utils/analytics'
 
 type TimerMode      = 'pomodoro' | 'custom' | 'free'
 type SessionType    = 'focus' | 'break'
@@ -70,6 +71,7 @@ async function saveBreakSession(args: {
       p_ended_at:      now.toISOString(),
       p_timer_mode:    args.mode,
       p_notes:         null,
+      p_local_date:    formatPeriodKey(now, 'daily'),
     })
     showSaveToast(`Break saved — ${Math.round(args.elapsed / 60)} minutes`)
   } catch {

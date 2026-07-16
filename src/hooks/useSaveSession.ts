@@ -4,6 +4,7 @@ import { saveSession } from '@/lib/supabase/queries/sessions'
 import { useAuthStore } from '@/store'
 import { MIN_SESSION_SECONDS, showSaveToast, useSaveToastStore, useTimerStore } from '@/store/timerStore'
 import { useSessionMonthLimit } from '@/hooks/usePlanLimits'
+import { formatPeriodKey } from '@/lib/utils/analytics'
 
 export function useSaveSession() {
   const queryClient = useQueryClient()
@@ -42,6 +43,7 @@ export function useSaveSession() {
       p_ended_at:      now.toISOString(),
       p_timer_mode:    mode,
       p_notes:         combined || null,
+      p_local_date:    formatPeriodKey(now, 'daily'),
     }, {
       onSuccess: () => {
         useTimerStore.setState((s) => ({ sessionCount: s.sessionCount + 1, notes: '', sessionTitle: '' }))
@@ -98,6 +100,7 @@ export function useSaveSession() {
       p_ended_at:      now.toISOString(),
       p_timer_mode:    mode,
       p_notes:         combined || null,
+      p_local_date:    formatPeriodKey(now, 'daily'),
     }, {
       onSuccess: () => {
         if (sessionType === 'focus') {
