@@ -142,14 +142,14 @@ Both are persisted to localStorage via `persist` middleware under the key `'ui-p
 
 **File:** `src/hooks/useTimerEffects.ts`
 
-Runs all timer side effects. Called once at the top of `TimerPage`.
+Runs all timer side effects. Called once at the top of both `TimerPage` (`/timer`) and `TimerWidget` (the dashboard's embedded timer) — each screen owns its own identical save-guard effect alongside it (see below), since both mount `useTimerEffects()` independently.
 
 | Effect | Trigger | What it does |
 |---|---|---|
 | Tab title | `isRunning, elapsed, sessionType` | Shows `MM:SS — Focus \| Depthly` when running, `Depthly` when idle |
 | Guard reset | `elapsed === 0` | Resets `focusDoneRef` and `breakDoneRef` so sounds/transitions fire again on the next session |
-| Focus completion | `sessionType=focus, elapsed >= duration, isRunning` | Fires once per session: plays A5 beep (880 Hz, 0.6s). Actual save + break transition handled in `TimerPage` + `useSaveSession` |
-| Break completion | `sessionType=break, elapsed >= duration, isRunning` | Fires once per break: plays softer E5 beep (660 Hz, 0.4s), then calls `useTimerStore.getState().endBreak()` |
+| Focus completion | `sessionType=focus, elapsed >= duration, isRunning` | Fires once per session: plays A5 beep (880 Hz, 0.6s) only. The actual save (`saveSession()`) and break transition are triggered by a separate save-guard effect living in whichever screen mounted this hook (`TimerPage` or `TimerWidget`), not by `useTimerEffects` itself |
+| Break completion | `sessionType=break, elapsed >= duration, isRunning` | Fires once per break: plays softer E5 beep (660 Hz, 0.4s), then calls `useTimerStore.getState().endBreak()` — which saves the break via `saveBreakSession()` if it ran ≥ 60s |
 | Tick interval | `isRunning && !isPaused` | `setInterval(tick, 1000)` — cleared on pause/stop |
 
 Sound is produced via the Web Audio API (no audio files):
@@ -172,33 +172,36 @@ function playBeep(freq = 880, duration = 0.6) {
 
 **File:** `src/hooks/useSaveSession.ts`
 
-TanStack Query mutation wrapping the `save_session` Supabase RPC.
+TanStack Query mutation wrapping the `save_session` Supabase RPC. Returns two save functions, not one:
 
 ```ts
-const { saveSession, isSaving } = useSaveSession()
+const { saveSession, saveAndStop, isSaving, isSessionLimitReached, toastMessage } = useSaveSession()
 ```
 
-**On success:**
-1. Invalidates `['sessions']`, `['daily-summaries']`, `['user-stats']`, `['profile']` query keys
-2. Calls `useTimerStore.getState().startBreak()` — triggers break phase
-3. Increments `sessionCount` in the store (UI-only counter for "N sessions today")
+- **`saveSession()`** — natural completion path. Called when a focus session's countdown hits `0` (from `TimerPage`/`TimerWidget`'s own save-guard effects, not from here). Always `p_type: 'focus'`.
+- **`saveAndStop()`** — manual **Stop** button path. Handles both `sessionType`s: resets the timer immediately, then saves in the background if `elapsed >= MIN_SESSION_SECONDS` (60s) — shorter sessions are dropped silently for breaks, or shown a "Session too short to save" toast for focus. Skips saving if a `saveSession()` call is already in flight, so a session is never double-saved.
+- Both funnel through the same `useMutation`; on success both invalidate `['sessions']` and `['analytics']` query keys. `saveSession()`'s per-call success handler also calls `useTimerStore.getState().startBreak()` to transition into the break phase (skipped if the user stopped the timer manually while the save was in flight). Both increment `sessionCount` in the store (UI-only counter for "N sessions today") for focus saves.
+- `isSessionLimitReached` reflects the free-plan monthly session cap (`useSessionMonthLimit`) — focus-session saves are blocked while at limit; break saves are never blocked by it.
+- There is no `onError` handler on the mutation — a failed save (network error, auth lapse) is silently swallowed. See [Known Limitations](#10-known-limitations--future-work).
 
-**Payload sent to RPC:**
+**Payload sent to RPC** (shape shared by both `saveSession()` and `saveAndStop()`; `p_type`/`p_notes` differ by call site):
 
 | Field | Source |
 |---|---|
 | `p_user_id` | `authStore.user.id` |
 | `p_project_id` | `timerStore.selectedProjectId` |
 | `p_task_id` | `timerStore.selectedTaskId` |
-| `p_type` | `timerStore.sessionType` (always `'focus'` at save time) |
+| `p_type` | `timerStore.sessionType` — always `'focus'` from `saveSession()`; `'focus'` or `'break'` from `saveAndStop()` |
 | `p_duration_mins` | `Math.round(elapsed / 60)` |
 | `p_started_at` | `new Date(now - elapsed * 1000).toISOString()` |
 | `p_ended_at` | `new Date().toISOString()` |
 | `p_timer_mode` | `timerStore.mode` |
-| `p_notes` | `null` |
+| `p_notes` | `[sessionTitle, notes].filter(Boolean).join('\n\n')` or `null` if both are empty — break sessions from `saveAndStop()` always pass `null` |
 | `p_local_date` | `formatPeriodKey(now, 'daily')` — client's local `YYYY-MM-DD`, used by the RPC for `daily_summaries`/streak bookkeeping instead of deriving the date from `p_started_at` in UTC |
 
 State is read from `useTimerStore.getState()` at call time (not from stale render values).
+
+**Break sessions completed naturally** (countdown reaches `0` without the user stopping) don't go through this hook at all — `timerStore.endBreak()` calls `saveBreakSession()` directly (a bare async RPC call, no `useMutation`/query-cache context, since it's triggered from `useTimerEffects` rather than a component). It skips cache invalidation entirely; the recent-sessions list just lags until its next natural refetch. See `src/store/timerStore.ts`.
 
 ---
 
@@ -488,7 +491,7 @@ Font rule: all countdown times and duration values use `.font-data` → JetBrain
 | Item | Notes |
 |---|---|
 | `autoStartBreak` setting | Stored in `timerStore` and exposed in settings UI, but currently ignored — break always auto-starts after focus |
-| Break sessions not saved | `save_session` is only called for focus sessions. Break rows are never inserted. This is intentional for now but analytics will miss break time |
+| Break sessions skip cache invalidation | Breaks completed naturally save via `timerStore.saveBreakSession()` (called from `endBreak()`), which calls the RPC directly and doesn't invalidate any query keys — the recent-sessions list lags until its next natural refetch. Breaks stopped manually go through `useSaveSession().saveAndStop()` instead, which does invalidate |
 | `timer_mode_type` enum | DB enum is `('pomodoro', 'free')` — `'custom'` mode is coerced to `'pomodoro'` at the RPC level |
 | No error UI for failed saves | If `save_session` throws (network error, auth lapse), the error is silently swallowed. Should show a toast |
 | Log / Todo buttons | In `BottomActionRow` — wired up as `disabled` placeholders for future manual session logging and task quick-add |
