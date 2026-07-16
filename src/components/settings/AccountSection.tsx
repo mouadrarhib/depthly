@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { useUpdateEmail, useUpdatePassword } from '@/hooks/useSettings'
+import { clearOnboardingTourSeen, runOnboardingTour } from '@/hooks/useOnboardingTour'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/Input'
@@ -31,6 +32,13 @@ function SubCard({ title, children }: { title: string; children: React.ReactNode
 
 export function AccountSection() {
   const currentEmail = useAuthStore(s => s.user?.email ?? '')
+  const userId       = useAuthStore(s => s.user?.id ?? '')
+
+  function handleReplayTour() {
+    if (!userId) return
+    clearOnboardingTourSeen(userId)
+    void runOnboardingTour(userId)
+  }
 
   // Email
   const updateEmail   = useUpdateEmail()
@@ -146,6 +154,21 @@ export function AccountSection() {
               {updatePassword.successMessage}
             </span>
           )}
+        </div>
+      </SubCard>
+
+      <div style={{ height: 16 }} />
+
+      {/* ── Quick guide ──────────────────────────────────────────────── */}
+      <SubCard title="Quick guide">
+        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0 }}>
+          See a simple walkthrough of how each part of Depthly works.
+        </p>
+
+        <div>
+          <Button variant="ghost" size="sm" onClick={handleReplayTour}>
+            Show me the quick guide
+          </Button>
         </div>
       </SubCard>
     </div>

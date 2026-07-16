@@ -22,16 +22,16 @@ import {
 } from '@/components/ui/tooltip'
 
 // ── Nav items ────────────────────────────────────────────────────────────────
-interface NavItem { label: string; path: string; Icon: LucideIcon }
+interface NavItem { label: string; path: string; Icon: LucideIcon; tour?: string }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard',   path: PATHS.dashboard,   Icon: LayoutDashboard },
-  { label: 'Timer',       path: PATHS.timer,       Icon: Clock           },
-  { label: 'Projects',    path: PATHS.projects,    Icon: FolderOpen      },
-  { label: 'Sessions',    path: PATHS.sessions,    Icon: History         },
-  { label: 'Analytics',   path: PATHS.analytics,   Icon: BarChart2       },
-  { label: 'Leaderboard', path: PATHS.leaderboard, Icon: Trophy          },
-  { label: 'Billing',     path: PATHS.billing,     Icon: CreditCard      },
+  { label: 'Dashboard',   path: PATHS.dashboard,   Icon: LayoutDashboard, tour: 'dashboard'  },
+  { label: 'Timer',       path: PATHS.timer,       Icon: Clock,          tour: 'timer'       },
+  { label: 'Projects',    path: PATHS.projects,    Icon: FolderOpen,     tour: 'projects'    },
+  { label: 'Sessions',    path: PATHS.sessions,    Icon: History,        tour: 'sessions'    },
+  { label: 'Analytics',   path: PATHS.analytics,   Icon: BarChart2,      tour: 'analytics'   },
+  { label: 'Leaderboard', path: PATHS.leaderboard, Icon: Trophy,         tour: 'leaderboard' },
+  { label: 'Billing',     path: PATHS.billing,     Icon: CreditCard,     tour: 'billing'     },
 ]
 
 // ── Toggle button ─────────────────────────────────────────────────────────────
@@ -67,13 +67,15 @@ interface BottomActionProps {
   label:    string
   onClick:  () => void
   expanded: boolean
+  tour?:    string
 }
 
-function BottomAction({ icon, label, onClick, expanded }: BottomActionProps) {
+function BottomAction({ icon, label, onClick, expanded, tour }: BottomActionProps) {
   const row = (
     <div
       role="button"
       tabIndex={0}
+      data-tour={tour}
       onClick={onClick}
       onKeyDown={e => e.key === 'Enter' && onClick()}
       style={{
@@ -193,9 +195,9 @@ export function Sidebar() {
 
         {/* ── Nav ────────────────────────────────────────────────────── */}
         <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {NAV_ITEMS.map(({ label, path, Icon }) => {
+          {NAV_ITEMS.map(({ label, path, Icon, tour }) => {
             const link = (
-              <NavLink key={label} to={path} end={path === PATHS.dashboard}>
+              <NavLink key={label} to={path} end={path === PATHS.dashboard} data-tour={tour}>
                 {({ isActive }) => (
                   <div
                     style={{
@@ -292,6 +294,7 @@ export function Sidebar() {
             label="Settings"
             onClick={() => navigate(PATHS.settings)}
             expanded={expanded}
+            tour="settings"
           />
 
           <BottomAction

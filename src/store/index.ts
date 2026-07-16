@@ -5,5 +5,6 @@
  * Usage:
  *   import { useUiStore, useAuthStore } from '@/store'
  */
-export { useUiStore }   from './uiStore'
-export { useAuthStore } from './authStore'
+export { useUiStore }    from './uiStore'
+export { useAuthStore }  from './authStore'
+export { useIntroStore } from './introStore'

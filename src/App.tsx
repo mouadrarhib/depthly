@@ -5,6 +5,7 @@ import { RouterProvider } from 'react-router-dom'
 import { LogoIntro } from '@/components/LogoIntro'
 import { clearOAuthPending, isOAuthPending } from '@/lib/oauthPending'
 import { router } from '@/routes'
+import { useIntroStore } from '@/store'
 
 interface DashboardArrivalState {
   fromAuth?: boolean
@@ -44,9 +45,18 @@ function clearNavigationState(location: Location) {
  * router.state directly and subscribe to it for subsequent navigations.
  */
 export default function App() {
-  const [showIntro, setShowIntro] = useState(() =>
-    isAuthArrivalAtDashboard(router.state.location),
-  )
+  // introStore is updated synchronously at every one of these call sites
+  // (not mirrored via a useEffect) because React fires child effects —
+  // including AppLayout's useOnboardingTour, several levels down — before
+  // this component's own effects. A useEffect-based sync would leave
+  // introActive stale (false) for the entire first commit, letting the tour
+  // start underneath the still-visible splash on the very login/OAuth
+  // arrival it's meant to guard against.
+  const [showIntro, setShowIntro] = useState(() => {
+    const initial = isAuthArrivalAtDashboard(router.state.location)
+    useIntroStore.getState().setIntroActive(initial)
+    return initial
+  })
 
   useEffect(() => {
     if (isAuthArrivalAtDashboard(router.state.location)) {
@@ -55,6 +65,7 @@ export default function App() {
 
     return router.subscribe(({ location }) => {
       if (isAuthArrivalAtDashboard(location)) {
+        useIntroStore.getState().setIntroActive(true)
         setShowIntro(true)
         clearNavigationState(location)
       }
@@ -62,6 +73,7 @@ export default function App() {
   }, [])
 
   const handleIntroComplete = () => {
+    useIntroStore.getState().setIntroActive(false)
     setShowIntro(false)
   }
 

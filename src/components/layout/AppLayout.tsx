@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { useAuth } from '@/hooks/shared/useAuth'
+import { useOnboardingTour } from '@/hooks/useOnboardingTour'
 import { useUiStore } from '@/store'
 import { cn } from '@/lib/utils/cn'
 
@@ -10,6 +11,7 @@ import { Topbar } from './Topbar'
 
 export function AppLayout() {
   useAuth()
+  useOnboardingTour()
 
   const { sidebarOpen, toggleSidebar } = useUiStore()
   const { pathname } = useLocation()

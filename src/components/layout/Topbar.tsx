@@ -1,10 +1,12 @@
-import { Flame, Clock, CheckCircle } from 'lucide-react'
+import { useState } from 'react'
+import { CircleHelp, Flame, Clock, CheckCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { supabase }    from '@/lib/supabase/client'
 import { useAuthStore, useUiStore } from '@/store'
 import { useTodayStats }  from '@/hooks/useTodayStats'
 import { usePlan }        from '@/hooks/usePlan'
+import { clearOnboardingTourSeen, runOnboardingTour } from '@/hooks/useOnboardingTour'
 import { PATHS }          from '@/routes/paths'
 import { Avatar }         from '@/components/ui/Avatar'
 import {
@@ -29,8 +31,47 @@ const Divider = () => (
   <span style={{ width: 0.5, height: 16, background: '#2E2E38', flexShrink: 0, display: 'block' }} />
 )
 
+// ── Help button (opens onboarding-tour replay menu) ─────────────────────────
+function HelpButton({ onReplayTour }: { onReplayTour: () => void }) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          aria-label="Help"
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          style={{
+            display:        'flex',
+            alignItems:     'center',
+            justifyContent: 'center',
+            width:          32,
+            height:         32,
+            borderRadius:   8,
+            border:         'none',
+            background:     hovered ? '#222228' : 'transparent',
+            cursor:         'pointer',
+            flexShrink:     0,
+            transition:     'background 150ms',
+          }}
+        >
+          <CircleHelp size={18} style={{ color: hovered ? '#E8E6F0' : '#7A7890' }} />
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" style={{ minWidth: 192 }}>
+        <DropdownMenuItem onClick={onReplayTour}>
+          Quick guide
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 export function Topbar() {
   const user          = useAuthStore((s) => s.user)
+  const userId        = useAuthStore((s) => s.user?.id)
   const toggleSidebar = useUiStore((s) => s.toggleSidebar)
   const navigate      = useNavigate()
 
@@ -39,6 +80,12 @@ export function Topbar() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
+  }
+
+  const handleReplayTour = () => {
+    if (!userId) return
+    clearOnboardingTourSeen(userId)
+    void runOnboardingTour(userId)
   }
 
   const name = displayName ?? user?.email?.split('@')[0] ?? '?'
@@ -98,6 +145,9 @@ export function Topbar() {
         </span>
 
         <Divider />
+
+        {/* Help — replay onboarding tour */}
+        <HelpButton onReplayTour={handleReplayTour} />
 
         {/* Avatar → dropdown */}
         <DropdownMenu>

@@ -1,0 +1,82 @@
+.driver-popover {
+  background: #141417;
+  border: 1px solid #2E2E38;
+  border-radius: 10px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.driver-popover-title {
+  color: #E8E6F0;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.driver-popover-description {
+  color: #7A7890;
+  font-size: 13px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.driver-popover-progress-text {
+  color: #7A7890;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.driver-popover-footer {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.driver-popover-footer-btn {
+  font-family: 'Inter', system-ui, sans-serif;
+  border-radius: 6px;
+  text-shadow: none;
+}
+
+.driver-popover-next-btn {
+  background: #4B9EFF;
+  color: #0D0D10;
+  border: none;
+}
+
+.driver-popover-next-btn:hover,
+.driver-popover-next-btn:focus {
+  background: #4B9EFF;
+  opacity: 0.9;
+}
+
+.driver-popover-prev-btn,
+.driver-popover-close-btn {
+  background: transparent;
+  color: #7A7890;
+  border: 1px solid #2E2E38;
+}
+
+.driver-popover-prev-btn:hover,
+.driver-popover-prev-btn:focus,
+.driver-popover-close-btn:hover,
+.driver-popover-close-btn:focus {
+  background: #222228;
+  color: #E8E6F0;
+}
+
+.driver-popover-close-btn {
+  border: none;
+  top: 6px;
+  right: 6px;
+}
+
+.driver-popover-arrow-side-left {
+  border-right-color: #141417;
+}
+
+.driver-popover-arrow-side-right {
+  border-left-color: #141417;
+}
+
+.driver-popover-arrow-side-top {
+  border-bottom-color: #141417;
+}
+
+.driver-popover-arrow-side-bottom {
+  border-top-color: #141417;
+}

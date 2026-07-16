@@ -134,7 +134,7 @@ All fields auto-save with **800ms debounce**.
 
 ### AccountSection — `src/components/settings/AccountSection.tsx`
 
-Two independent sub-cards.
+Three independent sub-cards.
 
 **Change email**
 - Shows current email read-only (from `authStore.user.email`).
@@ -146,6 +146,11 @@ Two independent sub-cards.
 - Client-side validation: min 8 chars, passwords must match.
 - Validation runs before the network call (local error messages, not server errors).
 - On success: "Password updated successfully".
+
+**Quick guide**
+- "Show me the quick guide" button re-runs the sidebar onboarding tour (driver.js) on demand. Card title/copy use plain language ("Quick guide") — the underlying code still calls it the "tour".
+- Calls `clearOnboardingTourSeen(userId)` then `runOnboardingTour(userId)` from `src/hooks/useOnboardingTour.ts` — the same builder the auto-start flow uses, so the popover styling and step content are identical.
+- No LogoIntro guard here: the splash only plays on a fresh auth arrival at `/dashboard`, which never overlaps with a manual replay triggered from `/settings`.
 
 ---
 
@@ -161,6 +166,30 @@ Clicking "Delete account" opens an inline modal (not a separate file) built on s
 - On confirm: calls `useDeleteAccount` → deletes `profiles` row → signs out → navigates to `/login`.
 
 **⚠ Known limitation (partial deletion):** Deleting the `profiles` row cascades via foreign keys to all user data (sessions, tasks, projects, goals, daily_summaries, user_stats, user_preferences, follows). However, the Supabase **auth user record** in `auth.users` is NOT deleted — that requires service-role access, which is only available in an Edge Function. The account is effectively unusable (no profile row, signed out) but the auth record persists. Full auth deletion is deferred to a `delete-account` Edge Function (post-launch).
+
+---
+
+## Onboarding tour
+
+A driver.js walkthrough of the sidebar (Dashboard → Timer → Projects → Sessions → Analytics → Leaderboard → Billing → Settings). Auto-starts once per user. User-facing copy calls this the "quick guide" — code identifiers (`runOnboardingTour`, `tourSteps.ts`, `data-tour`, etc.) keep the "tour"/"onboarding" naming and are unaffected by that.
+
+Replayable two ways: AccountSection's "Quick guide" card above ("Show me the quick guide"), and a `CircleHelp` icon in the Topbar (right side, opens a one-item menu: "Quick guide"). Both call the same `clearOnboardingTourSeen()` + `runOnboardingTour()` pair.
+
+| File | Role |
+|---|---|
+| `src/lib/onboarding/tourSteps.ts` | `getTourSteps()` — step order/copy, each targeting a `[data-tour="…"]` selector |
+| `src/lib/onboarding/onboarding.css` | Dark-theme overrides for driver.js's default popover classes |
+| `src/hooks/useOnboardingTour.ts` | `useOnboardingTour()` (auto-start effect) + `runOnboardingTour()`, `hasSeenOnboardingTour()`, `clearOnboardingTourSeen()` |
+| `src/store/introStore.ts` | Tracks whether the LogoIntro splash is on screen |
+| `src/components/layout/Sidebar.tsx` | Carries the `data-tour` attributes the steps target |
+| `src/components/layout/AppLayout.tsx` | Calls `useOnboardingTour()` once — not per-page |
+| `src/components/layout/Topbar.tsx` | `HelpButton` — second manual entry point, no LogoIntro overlap possible (splash blocks all clicks while visible) |
+
+**Targets:** only sidebar items that exist as of Phase 11 (Timer, Projects, Analytics, Leaderboard, Settings). Tasks has no sidebar entry — it's nested inside a project — so it isn't a tour step.
+
+**Seen flag:** `localStorage['depthly_onboarding_seen_{userId}']`, set in driver.js's `onDestroyed` callback, which fires on both completion and early close (X/Esc). "Replay welcome tour" clears it and calls `runOnboardingTour()` directly.
+
+**LogoIntro race:** the tour must not start while the post-login splash (`src/components/LogoIntro`) is still on screen — driver.js's popover z-index sits above it, so overlap looks like both are showing at once. `useOnboardingTour()` waits on `introStore.introActive`. That store is written **synchronously** at every point `App.tsx` sets `showIntro` (initial lazy state, the `router.subscribe` callback, and `onComplete`) rather than mirrored via a `useEffect` — React fires child effects (`AppLayout` → `useOnboardingTour`) before the parent's (`App`'s), so an effect-based sync would still read a stale `false` on the very first commit, which is exactly the login/OAuth arrival this guards against.
 
 ---
 
