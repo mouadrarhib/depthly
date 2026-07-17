@@ -14,9 +14,9 @@ import type { DriveStep } from 'driver.js'
  * popover (250-300px wide). 'right' has no room to render in there, so
  * driver.js falls back to an unpredictable/overlapping position instead.
  * 'bottom' always has room below each row, on both desktop and mobile, so
- * it's used wherever 'right' would actually be cramped — Dashboard and
- * Timer are cramped even on desktop (they're the two rows right below the
- * branding header) and always use 'bottom', regardless of `isMobile`.
+ * it's used wherever 'right' would actually be cramped — Home and Timer are
+ * cramped even on desktop (they're the two rows right below the branding
+ * header) and always use 'bottom', regardless of `isMobile`.
  */
 export function getTourSteps(isMobile: boolean): DriveStep[] {
   const navSide  = isMobile ? 'bottom' : 'right'
@@ -24,15 +24,15 @@ export function getTourSteps(isMobile: boolean): DriveStep[] {
 
   return [
     {
-      element: '[data-tour="dashboard"]',
+      element: '[data-tour="home"]',
       popover: {
-        title: 'Dashboard',
+        title: 'Home',
         description:
           "Your home base after login — today's focus time, streak, and recent sessions at a glance, plus the timer right there so you can jump straight into a session.",
-        // Dashboard is the very first sidebar row, right below the branding
+        // Home is the very first sidebar row, right below the branding
         // header — 'right' is cramped there even on desktop, so this one
         // always uses 'bottom'/'center' regardless of viewport (arrow lands
-        // on the "Dashboard" label instead of the icon at the row's left edge).
+        // on the "Home" label instead of the icon at the row's left edge).
         side: 'bottom',
         align: 'center',
       },
@@ -55,7 +55,7 @@ export function getTourSteps(isMobile: boolean): DriveStep[] {
         title: 'Your Focus Timer',
         description:
           'Start a Pomodoro or free-form session here — everything else in Depthly builds off the time you track.',
-        // Timer sits right below Dashboard, close to the branding header —
+        // Timer sits right below Home, close to the branding header —
         // same cramped-on-the-right situation, so it gets the same
         // unconditional 'bottom'/'center' treatment regardless of viewport.
         side: 'bottom',

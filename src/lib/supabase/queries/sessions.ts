@@ -76,7 +76,7 @@ export async function fetchSessionsByProject(projectId: string): Promise<Session
 }
 
 // 'all' returns both focus and break sessions. Defaults to 'focus' so every
-// existing caller (e.g. the dashboard's recent-sessions list) keeps its
+// existing caller (e.g. the home page's recent-sessions list) keeps its
 // current behavior unchanged.
 export type SessionTypeFilter = 'all' | 'focus' | 'break'
 

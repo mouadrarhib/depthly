@@ -18,8 +18,10 @@ export const PATHS = {
   // Public marketing site
   home:      '/',            // Landing page (logged-out visitors)
 
-  // App — authenticated area starts at /dashboard.
-  dashboard: '/dashboard',   // Dashboard
+  // App — authenticated area starts at /dashboard (the "Home" page in the
+  // sidebar — the URL wasn't renamed to /home to avoid colliding with
+  // `home` above, which already means the public landing page at `/`).
+  dashboard: '/dashboard',   // Home
   timer:     '/timer',
   settings:  '/settings',
   projects:  '/projects',

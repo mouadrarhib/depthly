@@ -20,13 +20,13 @@ UI (fake numbers), rendered as real React components — not screenshots.
 
 | Route | Before | After |
 |-------|--------|-------|
-| `/` | Protected Dashboard | **Public `LandingPage`** |
-| `/dashboard` | Redirect to `/` | **Protected Dashboard** (real route) |
+| `/` | Protected Home page | **Public `LandingPage`** |
+| `/dashboard` | Redirect to `/` | **Protected Home page** (real route — renders `HomePage`; the URL itself was kept as `/dashboard` when the nav item/page were later renamed "Dashboard" → "Home", to avoid colliding with `PATHS.home` above) |
 
 Knock-on updates (all via `PATHS`, no hardcoded strings):
 
 - `PATHS.home` = `/` now means the landing; `PATHS.dashboard` = `/dashboard`
-- Sidebar Dashboard nav item + its `end` prop → `PATHS.dashboard`
+- Sidebar Home nav item + its `end` prop → `PATHS.dashboard`
 - Login / Signup / EmailConfirmed post-auth redirects → `PATHS.dashboard`
 - "Start the timer" empty-state links (DailyView, WeeklyView, SessionsPage,
   AnalyticsPage) → `PATHS.timer`
@@ -47,7 +47,7 @@ src/components/landing/
                                      Features/Pricing anchor links, and the
                                      logged-in account dropdown (avatar
                                      photo via useProfile, plan badge,
-                                     Dashboard/Settings/Sign out)
+                                     Home/Settings/Sign out)
   HeroSection.tsx                    H1 + subtext + primary CTA
   OverviewSection.tsx                "How it works" 2×2 grid (#features)
   FeatureSection.tsx                 Generic alternating mockup/text layout
@@ -95,7 +95,7 @@ the app's analytics/billing hooks), lucide icons.
        `Topbar` uses, no separate shared component to import since Topbar
        also builds its dropdown inline): email (muted, non-interactive
        label), plan badge pill (Free/Pro/Founding, from `usePlan()`),
-       divider, "Dashboard" (→ `/dashboard`) and "Settings"
+       divider, "Home" (→ `/dashboard`) and "Settings"
        (→ `/settings`) items, divider, "Sign out" (`#E07878`, calls
        `supabase.auth.signOut()`). Fully keyboard-operable (Enter/Space on
        the trigger opens it with the first item auto-highlighted, arrow

@@ -192,7 +192,7 @@ export function LandingNav() {
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem onClick={() => navigate(PATHS.dashboard)}>
-                  Dashboard
+                  Home
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate(PATHS.settings)}>
                   Settings

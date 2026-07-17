@@ -12,7 +12,7 @@ import { SignupPage } from '@/pages/auth/SignupPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { TimerPage } from '@/pages/TimerPage'
 import { BillingPage } from '@/pages/BillingPage'
-import { DashboardPage } from '@/pages/DashboardPage'
+import { HomePage } from '@/pages/HomePage'
 import { LeaderboardPage } from '@/pages/LeaderboardPage'
 import { PublicProfilePage } from '@/pages/PublicProfilePage'
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
@@ -46,7 +46,7 @@ export const router = createBrowserRouter(
         {
           element: <AppLayout />,
           children: [
-            { path: '/dashboard',    element: <ErrorBoundary><DashboardPage /></ErrorBoundary> },
+            { path: '/dashboard',    element: <ErrorBoundary><HomePage /></ErrorBoundary> },
             { path: '/timer',        element: <ErrorBoundary><TimerPage /></ErrorBoundary> },
             { path: '/settings',     element: <ErrorBoundary><SettingsPage /></ErrorBoundary> },
             { path: '/projects',     element: <ErrorBoundary><ProjectsPage /></ErrorBoundary> },

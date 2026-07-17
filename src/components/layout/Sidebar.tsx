@@ -25,7 +25,7 @@ import {
 interface NavItem { label: string; path: string; Icon: LucideIcon; tour?: string }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard',   path: PATHS.dashboard,   Icon: LayoutDashboard, tour: 'dashboard'  },
+  { label: 'Home',        path: PATHS.dashboard,   Icon: LayoutDashboard, tour: 'home'        },
   { label: 'Timer',       path: PATHS.timer,       Icon: Clock,          tour: 'timer'       },
   { label: 'Projects',    path: PATHS.projects,    Icon: FolderOpen,     tour: 'projects'    },
   { label: 'Sessions',    path: PATHS.sessions,    Icon: History,        tour: 'sessions'    },

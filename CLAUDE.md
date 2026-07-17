@@ -23,7 +23,7 @@ freelancers, remote developers building deep work habits. Solo founder, 8-week s
 ```
 src/
   components/       # Reusable UI: Button, Input, Card, Badge, Spinner, Logo, StreakBadge
-  pages/            # Route-level components: Dashboard, Timer, Projects, Tasks, Analytics...
+  pages/            # Route-level components: Home, Timer, Projects, Tasks, Analytics...
   hooks/            # useAuth, useTimer, usePlan, useProjects, useSessions...
   store/            # authStore.ts, timerStore.ts, uiStore.ts (Zustand)
   lib/
@@ -132,7 +132,7 @@ Check limits via `usePlan().checkLimit(type)` — never inline the limit logic.
 **Phase 11 — complete.** Moving to Phase 12 Launch.
 
 ### What Phase 11 delivered
-- Dashboard with live TimerWidget, streak/focus/session stats, project quick-start
+- Home page (sidebar nav item renamed "Dashboard" → "Home" post-Phase-11; URL stayed `/dashboard`) with live TimerWidget, streak/focus/session stats, project quick-start
 - Sidebar redesign: collapse/expand, branding, user section
 - Topbar redesign: today's streak + focus + sessions stat row, avatar dropdown (plan badge, Settings link, Sign out)
 - `useTodayStats` hook: composes `useProfile()` + `useDailySummary(today)`
@@ -140,7 +140,7 @@ Check limits via `usePlan().checkLimit(type)` — never inline the limit logic.
 - Session time displayed per task
 - ErrorBoundary at app root
 - Two session-save bug fixes: early stop (< 1 min) no longer drops data; break restart race condition after Stop eliminated
-- Full mobile responsive pass: all authenticated pages (Dashboard, Projects, ProjectDetail, Billing, Settings, Sessions, Leaderboard, Analytics)
+- Full mobile responsive pass: all authenticated pages (Home, Projects, ProjectDetail, Billing, Settings, Sessions, Leaderboard, Analytics)
 - Analytics mobile: DailyView/WeeklyView top grid stacks to 1-col on mobile; donut+legend flex-col on mobile; YearlyView/MonthlyView stats rows use responsive CSS grid; AllTimeStatsBar 6-cell responsive grid (2→3→6 cols); tab padding tightened for 320 px screens
 - Leaderboard mobile: status badge/countdown stacking fix (flex-col on mobile); rank bar flex-wrap
 
@@ -175,7 +175,7 @@ Check limits via `usePlan().checkLimit(type)` — never inline the limit logic.
 Detailed implementation references live in docs/.
 Read the relevant doc before touching a feature:
 
-- Dashboard: docs/DASHBOARD.md
+- Home:      docs/HOME.md
 - Timer:     docs/timer.md
 - Projects:  docs/PROJECTS.md
 - Tasks:     docs/TASKS.md

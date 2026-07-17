@@ -1,6 +1,7 @@
-# Dashboard
+# Home
 
-The dashboard (`/dashboard`) is the first screen users see after login.
+The Home page (`/dashboard` — see the "Routes" note below on why the URL
+wasn't renamed to match) is the first screen users see after login.
 (The root `/` serves the public marketing landing page — see LANDING.md.)
 It combines the focus timer with an at-a-glance view of today's
 stats, recent activity, and quick navigation.
@@ -16,7 +17,7 @@ Single column on mobile.
 
 | Section | Component(s) | Data source |
 |---------|-------------|-------------|
-| Timer widget | `<TimerPage />` embedded in a `depth-surface` card | `timerStore`, `useSaveSession` |
+| Timer widget | `<TimerWidget />` (`src/components/home/TimerWidget.tsx`) in a `depth-surface` card | `timerStore`, `useSaveSession` |
 | Today's stats row | 3 inline stat cards | `useDailySummary(today)`, `useGoals()` |
 | Recent sessions list | `<SessionRow />` × 5 | `useSessionsPaginated(0)` |
 
@@ -83,7 +84,7 @@ No sessions yet — start the timer to record your first session
 ## Session edit / delete
 
 `SessionRow` is wired to a `<SessionModal>` (edit) and `<ConfirmDialog>`
-(delete) within the dashboard. Both are driven by local `useState` and
+(delete) within the Home page. Both are driven by local `useState` and
 the `useDeleteSession()` mutation.
 
 ---
@@ -92,15 +93,18 @@ the `useDeleteSession()` mutation.
 
 | Path | Behaviour |
 |------|-----------|
-| `/` | Renders `DashboardPage` (wrapped in `<ErrorBoundary>`) |
-| `/dashboard` | Redirects to `/` |
-| `/timer` | Redirects to `/` (timer is embedded in the dashboard) |
+| `/` | Public `LandingPage` (marketing site, logged-out front door) |
+| `/dashboard` | Renders `HomePage`, wrapped in `<ErrorBoundary>` (protected — see `ProtectedRoute`) |
+| `/timer` | Renders `TimerPage` directly — full timer controls, separate from the `TimerWidget` embedded here |
+
+**Why `/dashboard` and not `/home`:** the sidebar nav item and page component were renamed from "Dashboard"/`DashboardPage` to "Home"/`HomePage`, but `PATHS.home` already means `/` (the public landing page — see above), so a `/home` URL for this page would collide with that existing concept. The URL was deliberately left as `/dashboard`; only the display label, component name, and file name changed.
 
 ---
 
 ## Files
 
-- `src/pages/DashboardPage.tsx` — page component
+- `src/pages/HomePage.tsx` — page component
+- `src/components/home/TimerWidget.tsx` — the embedded timer widget
 - `src/components/ui/Skeleton.tsx` — loading skeleton primitives used here
 - `src/components/ui/ProgressRing.tsx` — goal progress ring
 - `src/components/sessions/SessionRow.tsx` — individual session rows
