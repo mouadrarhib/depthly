@@ -34,6 +34,25 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Billing',     path: PATHS.billing,     Icon: CreditCard,     tour: 'billing'     },
 ]
 
+// ── Collapsible text ─────────────────────────────────────────────────────────
+// The branding wordmark, nav labels, bottom-action labels, and the user row's
+// name/plan text used to be conditionally mounted (`{expanded && <span>...}`)
+// or swapped between two entirely separate JSX blocks. React unmounts/mounts
+// that content the instant `expanded` flips — well before the sidebar's own
+// 200ms width transition finishes — so the text popped in/out abruptly while
+// the container was still visibly animating around it. Keeping the text
+// permanently mounted and collapsing it via max-width/opacity instead lets it
+// shrink and fade in step with the container, instead of jumping.
+function collapsibleTextStyle(expanded: boolean, maxWidth: number): React.CSSProperties {
+  return {
+    maxWidth:   expanded ? maxWidth : 0,
+    opacity:    expanded ? 1 : 0,
+    overflow:   'hidden',
+    whiteSpace: 'nowrap',
+    transition: 'max-width 200ms ease, opacity 150ms ease',
+  }
+}
+
 // ── Toggle button ─────────────────────────────────────────────────────────────
 function ToggleBtn({ expanded, onClick }: { expanded: boolean; onClick: () => void }) {
   return (
@@ -92,16 +111,17 @@ function BottomAction({ icon, label, onClick, expanded, tour }: BottomActionProp
       }}
     >
       {icon}
-      {expanded && <span>{label}</span>}
+      <span style={collapsibleTextStyle(expanded, 120)}>{label}</span>
     </div>
   )
 
-  if (expanded) return row
-
+  // Tooltip/TooltipTrigger stay mounted in both states (stable structure —
+  // no remount on toggle); only the content itself is conditional, since
+  // it'd be redundant next to the now-always-visible label above.
   return (
     <Tooltip>
       <TooltipTrigger asChild>{row}</TooltipTrigger>
-      <TooltipContent side="right">{label}</TooltipContent>
+      {!expanded && <TooltipContent side="right">{label}</TooltipContent>}
     </Tooltip>
   )
 }
@@ -160,44 +180,43 @@ export function Sidebar() {
         }}
       >
         {/* ── Branding ───────────────────────────────────────────────── */}
-        {expanded ? (
-          <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid #2E2E38' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {logoMark}
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.03em', color: '#E8E6F0' }}>
-                    Depthly
-                  </div>
-                  <div style={{ fontSize: 11, color: '#7A7890', marginTop: 1 }}>
-                    Stay focused, work deeper
-                  </div>
-                </div>
+        {/* One persistent block instead of two conditionally-swapped ones —
+            React no longer unmounts/remounts the header on every toggle.
+            flexDirection still flips discretely (row ↔ column, unavoidable —
+            there's no room for the logo, wordmark, and toggle button side by
+            side in a 60px rail), but the wordmark/tagline text itself now
+            shrinks and fades via collapsibleTextStyle instead of popping. */}
+        <div
+          style={{
+            padding:        expanded ? '20px 16px 16px' : '16px 0',
+            borderBottom:   '1px solid #2E2E38',
+            display:        'flex',
+            flexDirection:  expanded ? 'row' : 'column',
+            alignItems:     expanded ? 'flex-start' : 'center',
+            justifyContent: expanded ? 'space-between' : 'flex-start',
+            gap:            expanded ? 0 : 8,
+            transition:     'padding 200ms ease',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: expanded ? 10 : 0, transition: 'gap 200ms ease' }}>
+            {logoMark}
+            <div style={collapsibleTextStyle(expanded, 150)}>
+              <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.03em', color: '#E8E6F0' }}>
+                Depthly
               </div>
-              <ToggleBtn expanded onClick={toggleSidebar} />
+              <div style={{ fontSize: 11, color: '#7A7890', marginTop: 1 }}>
+                Stay focused, work deeper
+              </div>
             </div>
           </div>
-        ) : (
-          <div
-            style={{
-              padding:         '16px 0',
-              borderBottom:    '1px solid #2E2E38',
-              display:         'flex',
-              flexDirection:   'column',
-              alignItems:      'center',
-              gap:             8,
-            }}
-          >
-            {logoMark}
-            <ToggleBtn expanded={false} onClick={toggleSidebar} />
-          </div>
-        )}
+          <ToggleBtn expanded={expanded} onClick={toggleSidebar} />
+        </div>
 
         {/* ── Nav ────────────────────────────────────────────────────── */}
         <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {NAV_ITEMS.map(({ label, path, Icon, tour }) => {
             const link = (
-              <NavLink key={label} to={path} end={path === PATHS.dashboard} data-tour={tour}>
+              <NavLink to={path} end={path === PATHS.dashboard} data-tour={tour}>
                 {({ isActive }) => (
                   <div
                     style={{
@@ -217,22 +236,29 @@ export function Sidebar() {
                       size={18}
                       style={{ color: isActive ? '#4B9EFF' : '#7A7890', flexShrink: 0, minWidth: 18 }}
                     />
-                    {expanded && (
-                      <span style={{ fontSize: 14, fontWeight: isActive ? 500 : 400, color: isActive ? '#E8E6F0' : '#7A7890' }}>
-                        {label}
-                      </span>
-                    )}
+                    <span
+                      style={{
+                        fontSize:   14,
+                        fontWeight: isActive ? 500 : 400,
+                        color:      isActive ? '#E8E6F0' : '#7A7890',
+                        ...collapsibleTextStyle(expanded, 160),
+                      }}
+                    >
+                      {label}
+                    </span>
                   </div>
                 )}
               </NavLink>
             )
 
-            if (expanded) return link
-
+            // Tooltip/TooltipTrigger stay mounted in both states (stable
+            // structure — no remount on toggle); only the content itself is
+            // conditional, since it'd be redundant next to the now-always-
+            // visible label above.
             return (
               <Tooltip key={label}>
                 <TooltipTrigger asChild>{link}</TooltipTrigger>
-                <TooltipContent side="right">{label}</TooltipContent>
+                {!expanded && <TooltipContent side="right">{label}</TooltipContent>}
               </Tooltip>
             )
           })}
@@ -240,54 +266,38 @@ export function Sidebar() {
 
         {/* ── Bottom ─────────────────────────────────────────────────── */}
         <div style={{ borderTop: '1px solid #2E2E38', padding: '12px 8px' }}>
-          {/* User row */}
-          {expanded ? (
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate(PATHS.settings)}
-              onKeyDown={e => e.key === 'Enter' && navigate(PATHS.settings)}
-              style={{
-                display:      'flex',
-                alignItems:   'center',
-                gap:          10,
-                padding:      '8px 12px',
-                borderRadius: 8,
-                marginBottom: 4,
-                cursor:       'pointer',
-              }}
-            >
-              {avatar}
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#E8E6F0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {displayName}
+          {/* User row — one persistent block; text collapses via
+              collapsibleTextStyle instead of the row being swapped out. */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(PATHS.settings)}
+                onKeyDown={e => e.key === 'Enter' && navigate(PATHS.settings)}
+                style={{
+                  display:        'flex',
+                  alignItems:     'center',
+                  justifyContent: expanded ? 'flex-start' : 'center',
+                  gap:            expanded ? 10 : 0,
+                  padding:        expanded ? '8px 12px' : '8px 0',
+                  borderRadius:   8,
+                  marginBottom:   4,
+                  cursor:         'pointer',
+                  transition:     'gap 200ms ease, padding 200ms ease',
+                }}
+              >
+                {avatar}
+                <div style={{ minWidth: 0, ...collapsibleTextStyle(expanded, 150) }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: '#E8E6F0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {displayName}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#7A7890' }}>{planLabel}</div>
                 </div>
-                <div style={{ fontSize: 11, color: '#7A7890' }}>{planLabel}</div>
               </div>
-            </div>
-          ) : (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => navigate(PATHS.settings)}
-                  onKeyDown={e => e.key === 'Enter' && navigate(PATHS.settings)}
-                  style={{
-                    display:         'flex',
-                    justifyContent:  'center',
-                    padding:         '8px 0',
-                    borderRadius:    8,
-                    marginBottom:    4,
-                    cursor:          'pointer',
-                  }}
-                >
-                  {avatar}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="right">{displayName} — Settings</TooltipContent>
-            </Tooltip>
-          )}
+            </TooltipTrigger>
+            {!expanded && <TooltipContent side="right">{displayName} — Settings</TooltipContent>}
+          </Tooltip>
 
           <BottomAction
             icon={<Settings size={15} />}
