@@ -81,17 +81,11 @@ function StepperRow({
   suffix:   string
   onChange: (next: number) => void
 }) {
-  // Stepper always passes value ± 1; we recover direction and apply the real step
-  function handleChange(val: number) {
-    const direction = val > value ? 1 : -1
-    onChange(Math.max(min, Math.min(max, value + direction * step)))
-  }
-
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
       <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text)' }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-        <Stepper value={value} min={min} max={max} onChange={handleChange} />
+        <Stepper value={value} min={min} max={max} step={step} onChange={onChange} />
         <span style={{ fontSize: 13, color: 'var(--color-text-muted)', minWidth: 52 }}>{suffix}</span>
       </div>
     </div>
