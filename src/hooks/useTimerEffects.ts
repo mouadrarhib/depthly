@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 import { useTimerStore } from '@/store/timerStore'
+import { useSaveSession } from '@/hooks/useSaveSession'
 
 function playBeep(freq = 880, duration = 0.6) {
   try {
@@ -42,6 +43,8 @@ export function useTimerEffects() {
     tick,
   } = useTimerStore()
 
+  const { saveSession } = useSaveSession()
+
   const focusDoneRef = useRef(false)
   const breakDoneRef = useRef(false)
 
@@ -69,8 +72,11 @@ export function useTimerEffects() {
   }, [isRunning, isPaused, mode, elapsed, duration, sessionType])
 
   // ── 2. Focus session completion ───────────────────────────────────────────
-  // Beep when focus ends. The actual save + break transition is handled in
-  // TimerPage (save) and useSaveSession.onSuccess (startBreak).
+  // Beeps, saves the session, and (via useSaveSession's onSuccess) transitions
+  // to break — all in one place, since this hook is mounted once globally
+  // (AppLayout), not per timer page. A session that completes while the user
+  // is on e.g. Settings still saves and transitions right on time, instead of
+  // only once they navigate back to whichever page used to own this effect.
   useEffect(() => {
     if (
       mode !== 'free' &&
@@ -82,8 +88,9 @@ export function useTimerEffects() {
     ) {
       focusDoneRef.current = true
       playBeep(880, 0.6) // A5 — focus done
+      saveSession()
     }
-  }, [elapsed, duration, sessionType, mode, isRunning])
+  }, [elapsed, duration, sessionType, mode, isRunning, saveSession])
 
   // ── 3. Break completion ───────────────────────────────────────────────────
   useEffect(() => {

@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckSquare, FileText } from 'lucide-react'
 
 import { useTimerStore } from '@/store/timerStore'
 import { useUiStore } from '@/store'
-import { useTimerEffects } from '@/hooks/useTimerEffects'
 import { useSaveSession } from '@/hooks/useSaveSession'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { TimerNotesPanel } from '@/components/timer/TimerNotesPanel'
@@ -28,17 +27,14 @@ function fmt(sec: number, free: boolean): string {
 }
 
 export function TimerWidget() {
-  useTimerEffects()
-
   const {
     elapsed, duration, mode, sessionType,
     isRunning, isPaused, sessionCount,
     start, pause, resume,
   } = useTimerStore()
 
-  const { saveSession, saveAndStop, isSessionLimitReached, toastMessage } = useSaveSession()
+  const { saveAndStop, isSessionLimitReached, toastMessage } = useSaveSession()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
-  const savedRef = useRef(false)
 
   const toggleLog  = useUiStore((s) => s.toggleLog)
   const toggleTodo = useUiStore((s) => s.toggleTodo)
@@ -57,25 +53,6 @@ export function TimerWidget() {
       setUpgradeOpen(true)
     }
   }, [isRunning, sessionType, isSessionLimitReached, upgradeOpen])
-
-  // Save focus session on completion (same logic as TimerPage)
-  useEffect(() => {
-    if (elapsed === 0) {
-      savedRef.current = false
-      return
-    }
-    if (
-      mode !== 'free' &&
-      sessionType === 'focus' &&
-      duration > 0 &&
-      isRunning &&
-      elapsed >= duration &&
-      !savedRef.current
-    ) {
-      savedRef.current = true
-      saveSession()
-    }
-  }, [elapsed, duration, mode, sessionType, isRunning, saveSession])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>

@@ -22,9 +22,16 @@ Everything built for the Depthly focus timer, in one place.
 ## 1. Architecture Overview
 
 ```
+AppLayout
+└── useTimerEffects()        — side effects: tab title, beep sounds, tick interval,
+                                auto-save + break transition on natural completion.
+                                Mounted once here (not per timer page) — see §4.
+
 TimerPage
-├── useTimerEffects()        — side effects: tab title, beep sounds, tick interval
 ├── useSaveSession()         — TanStack Query mutation → Supabase save_session RPC
+│                               (for the manual Stop button + session-limit check;
+│                               natural-completion saves go through AppLayout's
+│                               useTimerEffects instance instead — see §4)
 │
 ├── TimerModeSelector        — shadcn Tabs: Pomodoro / Custom / Free
 ├── SessionDots              — 2 dots showing focus ● / break ○ position
@@ -142,13 +149,15 @@ Both are persisted to localStorage via `persist` middleware under the key `'ui-p
 
 **File:** `src/hooks/useTimerEffects.ts`
 
-Runs all timer side effects. Called once at the top of both `TimerPage` (`/timer`) and `TimerWidget` (the dashboard's embedded timer) — each screen owns its own identical save-guard effect alongside it (see below), since both mount `useTimerEffects()` independently.
+Runs all timer side effects. Called **once, globally, from `AppLayout`** — not per timer page.
+
+**This wasn't always the case, and it was a real bug:** `TimerPage` and `TimerWidget` used to each call `useTimerEffects()` independently (plus their own identical save-guard `useEffect`, duplicated between the two). Since only one of those two components is ever mounted at a time, navigating to *any other page* (Settings, Billing, Projects, …) unmounted whichever one was active, tearing down its `setInterval` — the visible countdown froze, and a session that would have naturally completed while the user was elsewhere didn't save or transition to break until they navigated back to a page that happened to remount the hook. Moving the single `useTimerEffects()` call up to `AppLayout` (which stays mounted across all in-app navigation) and folding the save-guard effect into the hook itself fixed this — the timer, its completion beep/save, and the break transition now all keep running regardless of which page is visible.
 
 | Effect | Trigger | What it does |
 |---|---|---|
 | Tab title | `isRunning, elapsed, sessionType` | Shows `MM:SS — Focus \| Depthly` when running, `Depthly` when idle |
 | Guard reset | `elapsed === 0` | Resets `focusDoneRef` and `breakDoneRef` so sounds/transitions fire again on the next session |
-| Focus completion | `sessionType=focus, elapsed >= duration, isRunning` | Fires once per session: plays A5 beep (880 Hz, 0.6s) only. The actual save (`saveSession()`) and break transition are triggered by a separate save-guard effect living in whichever screen mounted this hook (`TimerPage` or `TimerWidget`), not by `useTimerEffects` itself |
+| Focus completion | `sessionType=focus, elapsed >= duration, isRunning` | Fires once per session: plays A5 beep (880 Hz, 0.6s), then calls `saveSession()` (from its own `useSaveSession()` instance) to save and — via that mutation's `onSuccess` — transition into break |
 | Break completion | `sessionType=break, elapsed >= duration, isRunning` | Fires once per break: plays softer E5 beep (660 Hz, 0.4s), then calls `useTimerStore.getState().endBreak()` — which saves the break via `saveBreakSession()` if it ran ≥ 60s |
 | Tick interval | `isRunning && !isPaused` | `setInterval(tick, 1000)` — cleared on pause/stop |
 
@@ -178,7 +187,7 @@ TanStack Query mutation wrapping the `save_session` Supabase RPC. Returns two sa
 const { saveSession, saveAndStop, isSaving, isSessionLimitReached, toastMessage } = useSaveSession()
 ```
 
-- **`saveSession()`** — natural completion path. Called when a focus session's countdown hits `0` (from `TimerPage`/`TimerWidget`'s own save-guard effects, not from here). Always `p_type: 'focus'`.
+- **`saveSession()`** — natural completion path. Called from `useTimerEffects` (mounted once in `AppLayout`, not per timer page — see §4) when a focus session's countdown hits `0`. Always `p_type: 'focus'`. Note this means `useTimerEffects` holds its own separate `useSaveSession()` instance from whatever `TimerPage`/`TimerWidget` use for `saveAndStop()` — two independent mutations, not a shared one, since they're triggered by mutually exclusive code paths (natural completion vs. the manual Stop button).
 - **`saveAndStop()`** — manual **Stop** button path. Handles both `sessionType`s: resets the timer immediately, then saves in the background if `elapsed >= MIN_SESSION_SECONDS` (60s) — shorter sessions are dropped silently for breaks, or shown a "Session too short to save" toast for focus. Skips saving if a `saveSession()` call is already in flight, so a session is never double-saved.
 - Both funnel through the same `useMutation`; on success both invalidate `['sessions']` and `['analytics']` query keys. `saveSession()`'s per-call success handler also calls `useTimerStore.getState().startBreak()` to transition into the break phase (skipped if the user stopped the timer manually while the save was in flight). Both increment `sessionCount` in the store (UI-only counter for "N sessions today") for focus saves.
 - `isSessionLimitReached` reflects the free-plan monthly session cap (`useSessionMonthLimit`) — focus-session saves are blocked while at limit; break saves are never blocked by it.

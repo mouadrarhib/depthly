@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 
 import { useAuth } from '@/hooks/shared/useAuth'
 import { useOnboardingTour } from '@/hooks/useOnboardingTour'
+import { useTimerEffects } from '@/hooks/useTimerEffects'
 import { useUiStore } from '@/store'
 import { cn } from '@/lib/utils/cn'
 
@@ -12,6 +13,10 @@ import { Topbar } from './Topbar'
 export function AppLayout() {
   useAuth()
   useOnboardingTour()
+  // Mounted once here (not per timer page) so the tick interval, tab title,
+  // completion beeps, auto-save, and break auto-transition all keep running
+  // no matter which page is visible — see useTimerEffects.ts.
+  useTimerEffects()
 
   const { sidebarOpen, toggleSidebar } = useUiStore()
   const { pathname } = useLocation()

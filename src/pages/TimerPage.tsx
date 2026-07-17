@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
-import { useTimerEffects } from '@/hooks/useTimerEffects'
 import { useSaveSession } from '@/hooks/useSaveSession'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { TimerFullscreen } from '@/components/timer/TimerFullscreen'
@@ -215,13 +214,9 @@ function BottomActionRow() {
 // ── Timer page ─────────────────────────────────────────────────────────────
 
 export function TimerPage() {
-  useTimerEffects()
-
-  const { elapsed, duration, mode, sessionType, isRunning } = useTimerStore()
-  const { saveSession, saveAndStop, isSessionLimitReached } = useSaveSession()
+  const { sessionType, isRunning } = useTimerStore()
+  const { saveAndStop, isSessionLimitReached } = useSaveSession()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
-
-  const savedRef = useRef(false)
 
   // Intercept timer start when monthly session limit is reached
   useEffect(() => {
@@ -230,25 +225,6 @@ export function TimerPage() {
       setUpgradeOpen(true)
     }
   }, [isRunning, sessionType, isSessionLimitReached, upgradeOpen])
-
-  useEffect(() => {
-    if (elapsed === 0) {
-      savedRef.current = false
-      return
-    }
-    // Only save focus sessions — break completion is handled in useTimerEffects
-    if (
-      mode !== 'free' &&
-      sessionType === 'focus' &&
-      duration > 0 &&
-      isRunning &&
-      elapsed >= duration &&
-      !savedRef.current
-    ) {
-      savedRef.current = true
-      saveSession()
-    }
-  }, [elapsed, duration, mode, sessionType, isRunning, saveSession])
 
   return (
     <>
