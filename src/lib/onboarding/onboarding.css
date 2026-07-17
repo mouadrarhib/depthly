@@ -65,18 +65,29 @@
   right: 6px;
 }
 
+/*
+ * driver.js's base CSS (driver.css) transparents three of the four arrow
+ * borders per class and leaves the fourth at its default white (#fff) — that
+ * remaining side is the one that actually renders as the visible triangle.
+ * side-left keeps border-left, side-right keeps border-right, etc. These
+ * rules recolor that same remaining side to match the popover's dark
+ * background; targeting the wrong side (as a previous version of this file
+ * did) leaves the default white side untouched and un-transparents an
+ * already-transparent side instead, producing a two-toned "bowtie" instead
+ * of a clean triangle pointing at the target.
+ */
 .driver-popover-arrow-side-left {
-  border-right-color: #141417;
-}
-
-.driver-popover-arrow-side-right {
   border-left-color: #141417;
 }
 
+.driver-popover-arrow-side-right {
+  border-right-color: #141417;
+}
+
 .driver-popover-arrow-side-top {
-  border-bottom-color: #141417;
+  border-top-color: #141417;
 }
 
 .driver-popover-arrow-side-bottom {
-  border-top-color: #141417;
+  border-bottom-color: #141417;
 }

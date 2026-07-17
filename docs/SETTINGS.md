@@ -171,19 +171,27 @@ Clicking "Delete account" opens an inline modal (not a separate file) built on s
 
 ## Onboarding tour
 
-A driver.js walkthrough of the sidebar (Dashboard → Timer → Projects → Sessions → Analytics → Leaderboard → Billing → Settings). Auto-starts once per user. User-facing copy calls this the "quick guide" — code identifiers (`runOnboardingTour`, `tourSteps.ts`, `data-tour`, etc.) keep the "tour"/"onboarding" naming and are unaffected by that.
+A driver.js walkthrough of the sidebar plus the topbar's stat row (Dashboard → Today's Stats → Timer → Projects → Sessions → Analytics → Leaderboard → Billing → Settings). Auto-starts once per user. User-facing copy calls this the "quick guide" — code identifiers (`runOnboardingTour`, `tourSteps.ts`, `data-tour`, etc.) keep the "tour"/"onboarding" naming and are unaffected by that.
 
 Replayable two ways: AccountSection's "Quick guide" card above ("Show me the quick guide"), and a `CircleHelp` icon in the Topbar (right side, opens a one-item menu: "Quick guide"). Both call the same `clearOnboardingTourSeen()` + `runOnboardingTour()` pair.
 
+**Step placement:** `getTourSteps(isMobile: boolean)` picks `side`/`align` per viewport for most sidebar nav-item steps (Projects, Sessions, Analytics, Leaderboard, Billing, Settings) — `'right'/'start'` on desktop, `'bottom'/'center'` on mobile. The open mobile drawer is a fixed 240px wide (not full-viewport — `Sidebar.tsx`'s `width: expanded ? 240 : 60`), which leaves under ~190px to its right on most phones, less than driver.js's own popover (250-300px wide); `'right'` has no room to render there, so driver.js falls back to an unpredictable/overlapping position instead. `runOnboardingTour()` computes `isMobile` once via the same `(max-width: 767px)` query `Sidebar.tsx` uses and passes it into `getTourSteps()`. Dashboard, Timer, and Today's Stats always use `side: 'bottom'` regardless of viewport — Dashboard and Timer are the two rows right under the branding header, cramped on the right even on desktop. `align` differs per target: `'center'` for Dashboard/Timer and the mobile nav-item steps (arrow lands on the label, not the icon), `'end'` for Today's Stats (it sits at the right edge of the topbar, so `'start'`/`'center'` would push the popover off-screen).
+
+**Mobile sidebar drawer, toggled per step, gated on the step *advance* itself:** every step except Today's Stats targets an element inside `<Sidebar>`; Today's Stats targets the Topbar. On mobile the drawer needs to be open for sidebar steps and closed for Today's Stats — closed, it's translated off-screen (nothing to highlight); open, it drives `AppLayout`'s own backdrop, which has no knowledge of driver.js's overlay cutout and would otherwise darken the Topbar during that step.
+
+Two earlier versions of this got the sequencing wrong: (1) opening the drawer once and leaving it open all tour just left Today's Stats permanently darkened; (2) toggling the drawer inside driver.js's `onHighlightStarted` (i.e. reacting to a step *after* driver.js had already decided to show it) raced the drawer's 200ms CSS transition (Sidebar.tsx) — driver.js measures each target synchronously the moment it's told to move there, so the step right after a toggle (e.g. Timer, right after Today's Stats closes the drawer) could highlight a stale, still-mid-transition position, landing the popover on top of the row instead of below it.
+
+The fix: `runOnboardingTour()` sets config-level `onNextClick`/`onPrevClick` hooks, which — confirmed by reading driver.js's source — also cover left/right-arrow-key navigation, not just the popover buttons, making them the single choke point for all forward/backward movement. Each hook computes the *target* step, calls `prepareMobileSidebarForStep()` to toggle the drawer if needed, and only calls through to driver.js's own `moveNext()`/`movePrevious()` once the drawer's state already matches — immediately if nothing changed, or after a 220ms wait (comfortably past the 200ms transition) if it did. The very first step is prepared the same way before `.drive()` is ever called. `onDestroyed` restores whatever drawer state the tour found.
+
 | File | Role |
 |---|---|
-| `src/lib/onboarding/tourSteps.ts` | `getTourSteps()` — step order/copy, each targeting a `[data-tour="…"]` selector |
+| `src/lib/onboarding/tourSteps.ts` | `getTourSteps(isMobile)` — step order/copy/placement/`data.location`, each targeting a `[data-tour="…"]` selector |
 | `src/lib/onboarding/onboarding.css` | Dark-theme overrides for driver.js's default popover classes |
-| `src/hooks/useOnboardingTour.ts` | `useOnboardingTour()` (auto-start effect) + `runOnboardingTour()`, `hasSeenOnboardingTour()`, `clearOnboardingTourSeen()` |
+| `src/hooks/useOnboardingTour.ts` | `useOnboardingTour()` (auto-start effect) + `runOnboardingTour()`, `hasSeenOnboardingTour()`, `clearOnboardingTourSeen()`; gates step advancement on the mobile drawer's state (see above) |
 | `src/store/introStore.ts` | Tracks whether the LogoIntro splash is on screen |
-| `src/components/layout/Sidebar.tsx` | Carries the `data-tour` attributes the steps target |
+| `src/components/layout/Sidebar.tsx` | Carries the `data-tour` attributes the sidebar steps target |
+| `src/components/layout/Topbar.tsx` | Carries `data-tour="today-stats"` on the streak/focus/sessions group, plus `HelpButton` — a second manual entry point, no LogoIntro overlap possible (splash blocks all clicks while visible) |
 | `src/components/layout/AppLayout.tsx` | Calls `useOnboardingTour()` once — not per-page |
-| `src/components/layout/Topbar.tsx` | `HelpButton` — second manual entry point, no LogoIntro overlap possible (splash blocks all clicks while visible) |
 
 **Targets:** only sidebar items that exist as of Phase 11 (Timer, Projects, Analytics, Leaderboard, Settings). Tasks has no sidebar entry — it's nested inside a project — so it isn't a tour step.
 

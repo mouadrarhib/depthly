@@ -116,33 +116,36 @@ export function Topbar() {
       {/* Right-side: stats + avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
 
-        {/* Streak */}
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Flame size={14} style={{ color: '#C8FF64', flexShrink: 0 }} />
-          <span className="font-data" style={{ fontSize: 13, color: '#C8FF64', lineHeight: 1 }}>
-            {streak}
+        {/* Today's stats — streak / focus time / sessions */}
+        <div data-tour="today-stats" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {/* Streak */}
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Flame size={14} style={{ color: '#C8FF64', flexShrink: 0 }} />
+            <span className="font-data" style={{ fontSize: 13, color: '#C8FF64', lineHeight: 1 }}>
+              {streak}
+            </span>
           </span>
-        </span>
 
-        <Divider />
+          <Divider />
 
-        {/* Focus time today */}
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Clock size={14} style={{ color: '#4B9EFF', flexShrink: 0 }} />
-          <span className="font-data" style={{ fontSize: 13, color: '#4B9EFF', lineHeight: 1 }}>
-            {fmtFocus(focusMinutes)}
+          {/* Focus time today */}
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Clock size={14} style={{ color: '#4B9EFF', flexShrink: 0 }} />
+            <span className="font-data" style={{ fontSize: 13, color: '#4B9EFF', lineHeight: 1 }}>
+              {fmtFocus(focusMinutes)}
+            </span>
           </span>
-        </span>
 
-        <Divider />
+          <Divider />
 
-        {/* Sessions today */}
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <CheckCircle size={14} style={{ color: '#3DD68C', flexShrink: 0 }} />
-          <span className="font-data" style={{ fontSize: 13, color: '#3DD68C', lineHeight: 1 }}>
-            {sessions}
+          {/* Sessions today */}
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <CheckCircle size={14} style={{ color: '#3DD68C', flexShrink: 0 }} />
+            <span className="font-data" style={{ fontSize: 13, color: '#3DD68C', lineHeight: 1 }}>
+              {sessions}
+            </span>
           </span>
-        </span>
+        </div>
 
         <Divider />
 

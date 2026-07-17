@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import type { Driver } from 'driver.js'
+import type { Driver, DriveStep } from 'driver.js'
 import 'driver.js/dist/driver.css'
 
 import { useAuthStore, useIntroStore, useUiStore } from '@/store'
@@ -18,38 +18,79 @@ export function clearOnboardingTourSeen(userId: string): void {
   localStorage.removeItem(tourSeenKey(userId))
 }
 
+// Matches Sidebar.tsx's own desktop/mobile threshold (useMediaQuery('(min-width: 768px)')).
+function isMobileViewport(): boolean {
+  return window.matchMedia('(max-width: 767px)').matches
+}
+
+function stepLocation(step: DriveStep): 'sidebar' | 'topbar' {
+  return (step.data?.location as 'sidebar' | 'topbar' | undefined) ?? 'sidebar'
+}
+
 /**
- * Every tour step targets a [data-tour] element inside <Sidebar>. On mobile
- * the sidebar is a drawer that's translated fully off-screen when closed, so
- * without this the tour would try to highlight invisible elements whenever
- * it's replayed after the user has closed the drawer (the common case —
- * mobile users close it right after navigating). Restores the prior
- * open/closed state once the tour ends.
+ * Every step targets either an element inside the mobile sidebar drawer
+ * (closed, it's translated fully off-screen — nothing to highlight) or the
+ * Topbar (the drawer, left open, darkens it via AppLayout's own backdrop,
+ * which has no knowledge of driver.js's overlay cutout). So the drawer needs
+ * to be open for sidebar steps and closed for the Today's Stats step.
+ *
+ * driver.js measures a step's target synchronously the moment it's told to
+ * move there — it won't wait for the drawer's 200ms CSS transition
+ * (Sidebar.tsx). Toggling the drawer and immediately letting driver.js
+ * advance highlighted a stale, still-mid-transition position (the popover
+ * landing on top of the row instead of below it, or the "hidden by the
+ * guide" symptom on mobile). So rather than fix the position up after the
+ * fact, this gates the *advance itself*: `thenAdvance` only runs once the
+ * drawer's state already matches what `step` needs.
  */
-function ensureMobileSidebarOpenForTour(): () => void {
-  const isMobile = window.matchMedia('(max-width: 767px)').matches
-  if (!isMobile) return () => {}
+function prepareMobileSidebarForStep(step: DriveStep, thenAdvance: () => void): void {
+  if (!isMobileViewport()) {
+    thenAdvance()
+    return
+  }
 
+  const wantOpen = stepLocation(step) === 'sidebar'
   const { sidebarOpen, setSidebarOpen } = useUiStore.getState()
-  if (sidebarOpen) return () => {}
+  if (sidebarOpen === wantOpen) {
+    thenAdvance()
+    return
+  }
 
-  setSidebarOpen(true)
-  return () => setSidebarOpen(false)
+  setSidebarOpen(wantOpen)
+  window.setTimeout(thenAdvance, 220)
 }
 
 /** Builds and starts the driver.js tour. Also used by the "Replay welcome tour" button in Settings. */
 export async function runOnboardingTour(userId: string): Promise<void> {
-  const restoreSidebar = ensureMobileSidebarOpenForTour()
+  const wasSidebarOpen = useUiStore.getState().sidebarOpen
+  const steps = getTourSteps(isMobileViewport())
   const { driver } = await import('driver.js')
+
+  // onNextClick/onPrevClick, set at the Config level, take over *all*
+  // forward/backward navigation — driver.js routes left/right-arrow-key
+  // navigation through these same hooks too, not just the popover buttons —
+  // so this is the single choke point for "don't move until the drawer's
+  // ready" regardless of how the user navigates.
   const tourDriver: Driver = driver({
     showProgress: true,
-    steps: getTourSteps(),
+    steps,
+    onNextClick: (_element, _step, opts) => {
+      const nextStep = steps[(opts.driver.getActiveIndex() ?? 0) + 1]
+      if (!nextStep) return
+      prepareMobileSidebarForStep(nextStep, () => opts.driver.moveNext())
+    },
+    onPrevClick: (_element, _step, opts) => {
+      const prevStep = steps[(opts.driver.getActiveIndex() ?? 0) - 1]
+      if (!prevStep) return
+      prepareMobileSidebarForStep(prevStep, () => opts.driver.movePrevious())
+    },
     onDestroyed: () => {
       localStorage.setItem(tourSeenKey(userId), 'true')
-      restoreSidebar()
+      if (isMobileViewport()) useUiStore.getState().setSidebarOpen(wasSidebarOpen)
     },
   })
-  tourDriver.drive()
+
+  prepareMobileSidebarForStep(steps[0], () => tourDriver.drive())
 }
 
 /** Auto-starts the onboarding tour once per user. Mount this only in the main authenticated layout. */
