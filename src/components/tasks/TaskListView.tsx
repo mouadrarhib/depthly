@@ -14,7 +14,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Check, Clock, MoreHorizontal, Timer } from 'lucide-react'
+import { Check, Clock, GripVertical, MoreHorizontal, Timer } from 'lucide-react'
 
 import {
   DropdownMenu,
@@ -136,14 +136,18 @@ function SortableTaskRow({
                  border-depth-border bg-depth-surface px-3 py-2.5 transition-colors
                  hover:bg-depth-raised"
     >
-      {/* Drag handle — visible on hover only */}
+      {/* Drag handle — always visible at a low-key opacity (rows can be
+          reordered via drag-and-drop; hover-only visibility doesn't work
+          on touch devices, which have no hover state). touch-none stops
+          touch-drag gestures here from being hijacked by page scroll. */}
       <span
         {...listeners}
-        className="shrink-0 cursor-grab select-none text-lg leading-none text-ink-muted
-                   opacity-0 transition-opacity group-hover:opacity-100"
+        className="shrink-0 flex touch-none cursor-grab select-none items-center
+                   justify-center text-ink-muted opacity-40 transition-opacity
+                   hover:opacity-100 group-hover:opacity-100"
         aria-label="Drag to reorder"
       >
-        ⠿
+        <GripVertical size={16} />
       </span>
 
       {/* Checkbox + title — always its own flexible row so the title can
@@ -152,95 +156,112 @@ function SortableTaskRow({
           with badge/date/pomodoro/duration columns that reserved space
           unconditionally, even with no metadata present). */}
       <div className="flex min-w-0 flex-1 items-center gap-2.5">
+        {/* Outer button is a 44x44px touch target (mobile tap-target
+            guideline) via negative margin so it doesn't grow the row's
+            layout footprint beyond the visible circle's original 18px. */}
         <button
           type="button"
           onClick={() => onToggle(task)}
           aria-label={done ? 'Mark as to do' : 'Mark as done'}
-          className="shrink-0 flex items-center justify-center rounded-full border
-                     transition-colors"
-          style={{
-            width:           18,
-            height:          18,
-            backgroundColor: done ? '#4B9EFF' : 'transparent',
-            borderColor:     done ? '#4B9EFF' : '#222228',
-          }}
+          className="shrink-0 flex items-center justify-center rounded-full transition-colors"
+          style={{ width: 44, height: 44, margin: -13 }}
         >
-          {done && <Check size={10} strokeWidth={3} color="#ffffff" />}
+          <span
+            aria-hidden="true"
+            className="flex items-center justify-center rounded-full border transition-colors"
+            style={{
+              width:           18,
+              height:          18,
+              backgroundColor: done ? '#4B9EFF' : 'transparent',
+              borderColor:     done ? '#4B9EFF' : '#222228',
+            }}
+          >
+            {done && <Check size={10} strokeWidth={3} color="#ffffff" />}
+          </span>
         </button>
 
         <span
-          className="min-w-0 flex-1 truncate text-sm"
+          className="min-w-0 flex-1 text-sm"
           style={{
-            color:          done ? '#7A7890' : '#E8E6F0',
-            textDecoration: done ? 'line-through' : 'none',
+            color:              done ? '#7A7890' : '#E8E6F0',
+            textDecoration:     done ? 'line-through' : 'none',
+            display:            '-webkit-box',
+            WebkitLineClamp:    2,
+            WebkitBoxOrient:    'vertical',
+            overflow:           'hidden',
           }}
         >
           {task.title}
         </span>
       </div>
 
-      {/* Metadata — priority, due date, pomodoro count, duration. On md+ this
-          becomes a fixed-column grid so values line up across rows regardless
-          of content width or missing data. On mobile it's set to order-last +
-          w-full so it always wraps onto its own line instead of competing
-          with the title for space. */}
-      {(task.priority || dueText || showPomCount || (sessionMins != null && sessionMins > 0)) && (
-        <div
-          className="order-last flex w-full flex-wrap items-center gap-2 pl-14
-                     md:order-none md:w-auto md:grid md:flex-nowrap md:items-center
-                     md:gap-2.5 md:pl-0"
-          style={{ gridTemplateColumns: '90px 90px 70px 80px' }}
-        >
-          {/* Priority badge */}
-          <div>
-            {task.priority && (
-              <PriorityBadge
-                priority={task.priority as 'low' | 'medium' | 'high' | 'urgent'}
-                dimmed={done}
-              />
-            )}
-          </div>
-
-          {/* Due date */}
-          <div>
-            {dueText && (
-              <span
-                className="shrink-0"
-                style={{ fontSize: 12, color: overdue ? '#F25C5C' : '#7A7890' }}
-              >
-                {dueText}
-              </span>
-            )}
-          </div>
-
-          {/* Pomodoro count */}
-          <div className="flex md:justify-end">
-            {showPomCount && (
-              <span
-                className="font-data inline-flex shrink-0 items-center gap-1 text-ink-muted"
-                style={{ fontSize: 12 }}
-              >
-                {task.actual_pomodoros ?? 0}
-                {task.estimated_pomodoros != null && ` / ${task.estimated_pomodoros}`}
-                <Timer size={12} style={{ flexShrink: 0 }} />
-              </span>
-            )}
-          </div>
-
-          {/* Duration */}
-          <div className="flex md:justify-end">
-            {sessionMins != null && sessionMins > 0 && (
-              <span
-                className="flex shrink-0 items-center gap-1 font-data"
-                style={{ fontSize: 12, color: '#3D3B4E' }}
-              >
-                <Clock size={11} style={{ color: '#3D3B4E', flexShrink: 0 }} />
-                {formatMinutesToHours(sessionMins)}
-              </span>
-            )}
-          </div>
+      {/* Metadata — priority, due date, pomodoro count, duration. Always
+          rendered (even fully empty) so every row reserves the same vertical
+          space and the list doesn't look uneven between rows that have
+          metadata and rows that don't. On md+ this becomes a fixed-column
+          grid so values line up across rows regardless of content width or
+          missing data. On mobile it's set to order-last + w-full so it
+          always wraps onto its own line instead of competing with the title
+          for space. */}
+      <div
+        className="order-last flex min-h-[17px] w-full flex-wrap items-center gap-2 pl-14
+                   md:order-none md:w-auto md:grid md:flex-nowrap md:items-center
+                   md:gap-2.5 md:pl-0"
+        style={{ gridTemplateColumns: '90px 90px 70px 80px' }}
+      >
+        {/* Priority badge */}
+        <div>
+          {task.priority && (
+            <PriorityBadge
+              priority={task.priority as 'low' | 'medium' | 'high' | 'urgent'}
+              dimmed={done}
+            />
+          )}
         </div>
-      )}
+
+        {/* Due date */}
+        <div>
+          {dueText && (
+            <span
+              className="shrink-0"
+              style={{ fontSize: 12, color: overdue ? '#F25C5C' : '#7A7890' }}
+            >
+              {dueText}
+            </span>
+          )}
+        </div>
+
+        {/* Pomodoro count */}
+        <div className="flex md:justify-end">
+          {showPomCount && (
+            <span
+              className="font-data inline-flex shrink-0 items-center gap-1 text-ink-muted"
+              style={{ fontSize: 12 }}
+              aria-label={`Pomodoro count: ${task.actual_pomodoros ?? 0}${
+                task.estimated_pomodoros != null ? ` of ${task.estimated_pomodoros} estimated` : ''
+              }`}
+            >
+              {task.actual_pomodoros ?? 0}
+              {task.estimated_pomodoros != null && ` / ${task.estimated_pomodoros}`}
+              <Timer size={12} style={{ flexShrink: 0 }} aria-hidden="true" />
+            </span>
+          )}
+        </div>
+
+        {/* Duration */}
+        <div className="flex md:justify-end">
+          {sessionMins != null && sessionMins > 0 && (
+            <span
+              className="flex shrink-0 items-center gap-1 font-data"
+              style={{ fontSize: 12, color: '#3D3B4E' }}
+              aria-label={`Time logged: ${formatMinutesToHours(sessionMins)}`}
+            >
+              <Clock size={11} style={{ color: '#3D3B4E', flexShrink: 0 }} aria-hidden="true" />
+              {formatMinutesToHours(sessionMins)}
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* Three-dot menu — visible on hover only */}
       <DropdownMenu>

@@ -166,7 +166,7 @@ export function AccountSection() {
         </p>
 
         <div>
-          <Button variant="ghost" size="sm" onClick={handleReplayTour}>
+          <Button variant="outline" size="sm" onClick={handleReplayTour}>
             Show me the quick guide
           </Button>
         </div>
