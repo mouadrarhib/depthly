@@ -45,12 +45,6 @@ export function LoginPage() {
             Sign up
           </Link>
         </p>
-        <Link
-          to={PATHS.forgotPassword}
-          className="text-sm text-text-muted hover:text-text"
-        >
-          Forgot password?
-        </Link>
       </div>
 
       <div className="space-y-4">

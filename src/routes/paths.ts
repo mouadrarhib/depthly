@@ -12,8 +12,7 @@ export const PATHS = {
   // Auth
   login:           '/login',
   signup:          '/signup',
-  forgotPassword:   '/forgot-password',
-  resetPassword:    '/reset-password',
+  // forgotPassword / resetPassword removed — not wired up in Supabase yet
 
   // Public marketing site
   home:      '/',            // Landing page (logged-out visitors)

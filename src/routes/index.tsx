@@ -5,9 +5,7 @@ import { AuthLayout } from '@/components/layout/AuthLayout'
 import { LandingPage } from '@/pages/LandingPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
-import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
-import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { TimerPage } from '@/pages/TimerPage'
@@ -34,8 +32,6 @@ export const router = createBrowserRouter(
       children: [
         { path: '/login',           element: <LoginPage /> },
         { path: '/signup',          element: <SignupPage /> },
-        { path: '/forgot-password', element: <ForgotPasswordPage /> },
-        { path: '/reset-password',  element: <ResetPasswordPage /> },
       ],
     },
 
