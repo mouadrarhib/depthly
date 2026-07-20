@@ -76,7 +76,15 @@ export async function runOnboardingTour(userId: string): Promise<void> {
     steps,
     onNextClick: (_element, _step, opts) => {
       const nextStep = steps[(opts.driver.getActiveIndex() ?? 0) + 1]
-      if (!nextStep) return
+      // No `onDoneClick` is configured, so driver.js falls back to firing
+      // this same onNextClick handler for the "Done" button on the last
+      // step too — there's no next step to prepare for, so finish the tour
+      // directly instead of silently no-op'ing (which read as "Done" doing
+      // nothing at all).
+      if (!nextStep) {
+        opts.driver.destroy()
+        return
+      }
       prepareMobileSidebarForStep(nextStep, () => opts.driver.moveNext())
     },
     onPrevClick: (_element, _step, opts) => {

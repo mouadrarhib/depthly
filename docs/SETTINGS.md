@@ -183,6 +183,8 @@ Two earlier versions of this got the sequencing wrong: (1) opening the drawer on
 
 The fix: `runOnboardingTour()` sets config-level `onNextClick`/`onPrevClick` hooks, which — confirmed by reading driver.js's source — also cover left/right-arrow-key navigation, not just the popover buttons, making them the single choke point for all forward/backward movement. Each hook computes the *target* step, calls `prepareMobileSidebarForStep()` to toggle the drawer if needed, and only calls through to driver.js's own `moveNext()`/`movePrevious()` once the drawer's state already matches — immediately if nothing changed, or after a 220ms wait (comfortably past the 200ms transition) if it did. The very first step is prepared the same way before `.drive()` is ever called. `onDestroyed` restores whatever drawer state the tour found.
 
+**"Done" button gotcha:** no `onDoneClick` is configured, and driver.js's default behavior (confirmed by reading its source) is to fall back to firing `onNextClick` for the last step's "Done" button too, not just "Next". `onNextClick` looks up `steps[currentIndex + 1]`, which is `undefined` past the last step — so it must explicitly call `opts.driver.destroy()` in that case rather than silently returning, or clicking "Done" does nothing at all (a real regression that shipped and was reported before being caught).
+
 | File | Role |
 |---|---|
 | `src/lib/onboarding/tourSteps.ts` | `getTourSteps(isMobile)` — step order/copy/placement/`data.location`, each targeting a `[data-tour="…"]` selector |
