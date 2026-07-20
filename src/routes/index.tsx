@@ -4,6 +4,8 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { LandingPage } from '@/pages/LandingPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { PrivacyPage } from '@/pages/PrivacyPage'
+import { TermsPage } from '@/pages/TermsPage'
 
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
@@ -25,6 +27,8 @@ export const router = createBrowserRouter(
   [
     // ── Public marketing site ──────────────────────────────────────────────
     { path: '/', element: <LandingPage /> },
+    { path: '/terms', element: <TermsPage /> },
+    { path: '/privacy', element: <PrivacyPage /> },
 
     // ── Auth routes (no sidebar, no auth required) ─────────────────────────
     {

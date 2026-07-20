@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Clock, Flame, Globe, SlidersHorizontal, TimerReset, TrendingUp, Users } from 'lucide-react'
 
@@ -26,12 +26,23 @@ export function LandingPage() {
   // Sync Supabase session into the store (this page renders outside AppLayout).
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     if (user) {
       navigate(PATHS.dashboard, { replace: true, state: { fromAuth: true } })
     }
   }, [user, navigate])
+
+  // Footer/nav links from other routes navigate here with `scrollTo` in
+  // state (e.g. clicking "Features" from /login) — land at the top first,
+  // then smooth-scroll to the target section once mounted.
+  useEffect(() => {
+    const scrollTo = (location.state as { scrollTo?: string } | null)?.scrollTo
+    if (!scrollTo) return
+    document.getElementById(scrollTo)?.scrollIntoView({ behavior: 'smooth' })
+    navigate(location.pathname, { replace: true, state: null })
+  }, [location, navigate])
 
   const rootRef = useRef<HTMLDivElement>(null)
   useLandingAnimations(rootRef)

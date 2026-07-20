@@ -16,6 +16,8 @@ export const PATHS = {
 
   // Public marketing site
   home:      '/',            // Landing page (logged-out visitors)
+  terms:     '/terms',
+  privacy:   '/privacy',
 
   // App — authenticated area starts at /dashboard (the "Home" page in the
   // sidebar — the URL wasn't renamed to /home to avoid colliding with
