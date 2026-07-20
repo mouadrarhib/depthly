@@ -10,6 +10,7 @@ import { useUiStore, useAuthStore } from '@/store'
 import { usePlan } from '@/hooks/usePlan'
 import { useTodayStats } from '@/hooks/useTodayStats'
 import { useMediaQuery } from '@/hooks/shared/useMediaQuery'
+import { usePendingFriendRequestsCount } from '@/hooks/useLeaderboard'
 import { PATHS } from '@/routes/paths'
 import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils/cn'
@@ -133,6 +134,7 @@ export function Sidebar() {
   const { plan }                       = usePlan()
   const navigate                       = useNavigate()
   const { avatarUrl, displayName: profileDisplayName } = useTodayStats()
+  const { data: pendingRequestsCount } = usePendingFriendRequestsCount()
 
   // The icon-only "rail" collapse is a desktop-only affordance. On mobile,
   // sidebarOpen purely controls whether the (always full-width, always
@@ -232,10 +234,40 @@ export function Sidebar() {
                       transition:      'all 150ms',
                     }}
                   >
-                    <Icon
-                      size={18}
-                      style={{ color: isActive ? '#4B9EFF' : '#7A7890', flexShrink: 0, minWidth: 18 }}
-                    />
+                    {label === 'Leaderboard' && !!pendingRequestsCount && pendingRequestsCount > 0 ? (
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <Icon
+                          size={18}
+                          style={{ color: isActive ? '#4B9EFF' : '#7A7890', flexShrink: 0, minWidth: 18 }}
+                        />
+                        <span
+                          style={{
+                            position:       'absolute',
+                            top:            -4,
+                            right:          -4,
+                            minWidth:       16,
+                            height:         16,
+                            padding:        pendingRequestsCount > 9 ? '0 3px' : 0,
+                            borderRadius:   9999,
+                            background:     '#F25C5C',
+                            color:          '#fff',
+                            fontSize:       10,
+                            fontWeight:     600,
+                            lineHeight:     1,
+                            display:        'flex',
+                            alignItems:     'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount}
+                        </span>
+                      </div>
+                    ) : (
+                      <Icon
+                        size={18}
+                        style={{ color: isActive ? '#4B9EFF' : '#7A7890', flexShrink: 0, minWidth: 18 }}
+                      />
+                    )}
                     <span
                       style={{
                         fontSize:   14,

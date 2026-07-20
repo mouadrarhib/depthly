@@ -7,11 +7,17 @@ import {
   fetchAllTimeLeaderboard,
   fetchFriendsLeaderboard,
   fetchUserRank,
-  fetchFollowStatus,
-  followUser,
+  fetchFriendsRank,
   unfollowUser,
   fetchProfileBySlug,
   fetchPublicHeatmap,
+  searchPublicProfiles,
+  sendFriendRequest,
+  acceptFriendRequest,
+  declineFriendRequest,
+  fetchPendingFriendRequests,
+  fetchPendingFriendRequestsCount,
+  fetchFriendshipStatus,
 } from '@/lib/supabase/queries/leaderboard'
 
 export function useGlobalLeaderboard(periodType: string, periodKey: string) {
@@ -47,12 +53,110 @@ export function useUserRank(periodType: string, periodKey: string) {
   })
 }
 
-export function useFollowStatus(followingId: string) {
+export function useFriendsRank(periodType: string, periodKey: string) {
   const userId = useAuthStore(s => s.user?.id ?? '')
   return useQuery({
-    queryKey: leaderboardKeys.followStatus(userId, followingId),
-    queryFn:  () => fetchFollowStatus(userId, followingId),
-    enabled:  !!userId && followingId !== userId,
+    queryKey: leaderboardKeys.friendsRank(userId, periodType, periodKey),
+    queryFn:  () => fetchFriendsRank(userId, periodType as 'daily' | 'weekly' | 'monthly' | 'yearly', periodKey),
+    enabled:  !!userId,
+  })
+}
+
+export function useSearchProfiles(query: string) {
+  const currentUserId = useAuthStore(s => s.user?.id ?? '')
+  const trimmed = query.trim()
+  return useQuery({
+    queryKey: leaderboardKeys.search(trimmed),
+    queryFn:  () => searchPublicProfiles(trimmed, currentUserId),
+    enabled:  trimmed.length >= 2 && !!currentUserId,
+  })
+}
+
+export function useFriendshipStatus(otherUserId: string) {
+  const userId = useAuthStore(s => s.user?.id ?? '')
+  return useQuery({
+    queryKey: leaderboardKeys.friendshipStatus(userId, otherUserId),
+    queryFn:  () => fetchFriendshipStatus(userId, otherUserId),
+    enabled:  !!userId && !!otherUserId && otherUserId !== userId,
+  })
+}
+
+export function usePendingFriendRequests() {
+  const userId = useAuthStore(s => s.user?.id ?? '')
+  return useQuery({
+    queryKey: leaderboardKeys.pendingRequests(userId),
+    queryFn:  () => fetchPendingFriendRequests(userId),
+    enabled:  !!userId,
+  })
+}
+
+export function usePendingFriendRequestsCount() {
+  const userId = useAuthStore(s => s.user?.id ?? '')
+  return useQuery({
+    queryKey:        leaderboardKeys.pendingRequestsCount(userId),
+    queryFn:         () => fetchPendingFriendRequestsCount(userId),
+    enabled:         !!userId,
+    refetchInterval: 60000,
+  })
+}
+
+export function useSendFriendRequest() {
+  const qc = useQueryClient()
+  const userId = useAuthStore(s => s.user?.id ?? '')
+  return useMutation({
+    mutationFn: (targetId: string) => sendFriendRequest(userId, targetId),
+    onSuccess: (_data, targetId) => {
+      qc.invalidateQueries({ queryKey: leaderboardKeys.friendshipStatus(userId, targetId) })
+      qc.invalidateQueries({ queryKey: ['leaderboard', 'friends'] })
+    },
+  })
+}
+
+export function useAcceptFriendRequest() {
+  const qc = useQueryClient()
+  const userId = useAuthStore(s => s.user?.id ?? '')
+  return useMutation({
+    mutationFn: ({ requestRowId, requesterId }: { requestRowId: string; requesterId: string }) =>
+      acceptFriendRequest(requestRowId, userId, requesterId),
+    onSuccess: (_data, { requesterId }) => {
+      qc.invalidateQueries({ queryKey: leaderboardKeys.friendshipStatus(userId, requesterId) })
+      qc.invalidateQueries({ queryKey: leaderboardKeys.pendingRequests(userId) })
+      qc.invalidateQueries({ queryKey: leaderboardKeys.pendingRequestsCount(userId) })
+      qc.invalidateQueries({ queryKey: ['leaderboard', 'friends'] })
+    },
+  })
+}
+
+export function useDeclineFriendRequest() {
+  const qc = useQueryClient()
+  const userId = useAuthStore(s => s.user?.id ?? '')
+  return useMutation({
+    mutationFn: ({ requestRowId }: { requestRowId: string; requesterId: string }) =>
+      declineFriendRequest(requestRowId),
+    onSuccess: (_data, { requesterId }) => {
+      qc.invalidateQueries({ queryKey: leaderboardKeys.friendshipStatus(userId, requesterId) })
+      qc.invalidateQueries({ queryKey: leaderboardKeys.pendingRequests(userId) })
+      qc.invalidateQueries({ queryKey: leaderboardKeys.pendingRequestsCount(userId) })
+    },
+  })
+}
+
+export function useUnfriend() {
+  const qc = useQueryClient()
+  const userId = useAuthStore(s => s.user?.id ?? '')
+  return useMutation({
+    mutationFn: async (otherUserId: string) => {
+      // A mutual friendship is two rows, one per direction — both must go.
+      // "delete own" (follower_id = auth.uid()) covers the first; "delete as
+      // recipient" (following_id = auth.uid()), added alongside the
+      // friend-request migration, covers the second.
+      await unfollowUser(userId, otherUserId)
+      await unfollowUser(otherUserId, userId)
+    },
+    onSuccess: (_data, otherUserId) => {
+      qc.invalidateQueries({ queryKey: leaderboardKeys.friendshipStatus(userId, otherUserId) })
+      qc.invalidateQueries({ queryKey: ['leaderboard', 'friends'] })
+    },
   })
 }
 
@@ -72,26 +176,3 @@ export function usePublicHeatmap(userId: string, startDate: string, endDate: str
   })
 }
 
-export function useFollowUser() {
-  const qc = useQueryClient()
-  const userId = useAuthStore(s => s.user?.id ?? '')
-  return useMutation({
-    mutationFn: (followingId: string) => followUser(userId, followingId),
-    onSuccess: (_data, followingId) => {
-      qc.invalidateQueries({ queryKey: leaderboardKeys.followStatus(userId, followingId) })
-      qc.invalidateQueries({ queryKey: ['leaderboard', 'friends'] })
-    },
-  })
-}
-
-export function useUnfollowUser() {
-  const qc = useQueryClient()
-  const userId = useAuthStore(s => s.user?.id ?? '')
-  return useMutation({
-    mutationFn: (followingId: string) => unfollowUser(userId, followingId),
-    onSuccess: (_data, followingId) => {
-      qc.invalidateQueries({ queryKey: leaderboardKeys.followStatus(userId, followingId) })
-      qc.invalidateQueries({ queryKey: ['leaderboard', 'friends'] })
-    },
-  })
-}

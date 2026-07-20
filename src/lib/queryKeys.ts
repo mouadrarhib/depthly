@@ -32,8 +32,16 @@ export const leaderboardKeys = {
                 ['leaderboard', 'friends', userId, period, key] as const,
   userRank:     (userId: string, period: string, key: string) =>
                 ['leaderboard', 'rank', userId, period, key] as const,
-  followStatus: (followerId: string, followingId: string) =>
-                ['leaderboard', 'follow', followerId, followingId] as const,
+  friendsRank:  (userId: string, period: string, key: string) =>
+                ['leaderboard', 'friends-rank', userId, period, key] as const,
+  search:       (query: string) =>
+                ['leaderboard', 'search', query] as const,
+  friendshipStatus: (userId: string, otherUserId: string) =>
+                ['leaderboard', 'friendship-status', userId, otherUserId] as const,
+  pendingRequests:  (userId: string) =>
+                ['leaderboard', 'pending-requests', userId] as const,
+  pendingRequestsCount: (userId: string) =>
+                ['leaderboard', 'pending-requests-count', userId] as const,
 }
 
 export const billingKeys = {

@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       daily_summaries: {
@@ -58,18 +83,21 @@ export type Database = {
           follower_id: string
           following_id: string
           id: string
+          status: string
         }
         Insert: {
           created_at?: string
           follower_id: string
           following_id: string
           id?: string
+          status?: string
         }
         Update: {
           created_at?: string
           follower_id?: string
           following_id?: string
           id?: string
+          status?: string
         }
         Relationships: [
           {
@@ -560,7 +588,41 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      save_session: {
+        Args: {
+          p_duration_mins: number
+          p_ended_at: string
+          p_local_date: string
+          p_notes: string
+          p_project_id: string
+          p_started_at: string
+          p_task_id: string
+          p_timer_mode: string
+          p_type: Database["public"]["Enums"]["session_type"]
+          p_user_id: string
+        }
+        Returns: {
+          created_at: string
+          duration_mins: number
+          ended_at: string
+          id: string
+          is_manual: boolean
+          notes: string | null
+          project_id: string | null
+          started_at: string
+          task_id: string | null
+          timer_mode: Database["public"]["Enums"]["timer_mode_type"] | null
+          type: Database["public"]["Enums"]["session_type"]
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       period_type: "daily" | "weekly" | "monthly" | "yearly"
@@ -704,6 +766,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       period_type: ["daily", "weekly", "monthly", "yearly"],

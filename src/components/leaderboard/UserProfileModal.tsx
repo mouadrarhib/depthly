@@ -1,9 +1,18 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/Spinner'
-import { useFollowStatus, useFollowUser, useUnfollowUser } from '@/hooks/useLeaderboard'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import {
+  useFriendshipStatus,
+  usePendingFriendRequests,
+  useSendFriendRequest,
+  useAcceptFriendRequest,
+  useDeclineFriendRequest,
+  useUnfriend,
+} from '@/hooks/useLeaderboard'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase/client'
 import { formatMinutesToHours } from '@/lib/utils/analytics'
@@ -29,22 +38,80 @@ function StatCell({ value, label }: { value: string; label: string }) {
 
 function FollowActionButton({ targetUserId }: { targetUserId: string }) {
   const currentUserId = useAuthStore(s => s.user?.id ?? '')
-  const { data: isFollowing, isLoading } = useFollowStatus(targetUserId)
-  const follow   = useFollowUser()
-  const unfollow = useUnfollowUser()
-  const pending  = follow.isPending || unfollow.isPending
+  const { data: status, isLoading }  = useFriendshipStatus(targetUserId)
+  const { data: pendingRequests }    = usePendingFriendRequests()
+  const sendRequest    = useSendFriendRequest()
+  const acceptRequest  = useAcceptFriendRequest()
+  const declineRequest = useDeclineFriendRequest()
+  const unfriend        = useUnfriend()
+  const [confirmUnfriendOpen, setConfirmUnfriendOpen] = useState(false)
 
   if (!currentUserId || currentUserId === targetUserId) return null
   if (isLoading) return <div style={{ width: 80, height: 36 }} />
 
-  return isFollowing ? (
-    <Button variant="ghost" size="sm" isLoading={pending} onClick={() => unfollow.mutate(targetUserId)}
-      style={{ color: '#7A7890' }}>
-      Following
-    </Button>
-  ) : (
-    <Button variant="default" size="sm" isLoading={pending} onClick={() => follow.mutate(targetUserId)}>
-      Follow
+  if (status === 'friends') {
+    return (
+      <>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setConfirmUnfriendOpen(true)}
+          style={{ color: '#7A7890' }}
+        >
+          Friends
+        </Button>
+        <ConfirmDialog
+          open={confirmUnfriendOpen}
+          onClose={() => setConfirmUnfriendOpen(false)}
+          onConfirm={() => unfriend.mutate(targetUserId, { onSuccess: () => setConfirmUnfriendOpen(false) })}
+          title="Remove friend"
+          description="You'll stop appearing on each other's Friends leaderboard. You can send a new request later."
+          confirmLabel="Remove"
+          isLoading={unfriend.isPending}
+          variant="danger"
+        />
+      </>
+    )
+  }
+
+  if (status === 'pending_sent') {
+    return (
+      <Button variant="ghost" size="sm" disabled style={{ color: '#7A7890' }}>
+        Requested
+      </Button>
+    )
+  }
+
+  if (status === 'pending_received') {
+    const incoming = pendingRequests?.find(r => r.requester_id === targetUserId)
+    return (
+      <div style={{ display: 'flex', gap: 8 }}>
+        <Button
+          variant="default"
+          size="sm"
+          isLoading={acceptRequest.isPending}
+          disabled={!incoming}
+          onClick={() => incoming && acceptRequest.mutate({ requestRowId: incoming.id, requesterId: targetUserId })}
+        >
+          Accept
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          isLoading={declineRequest.isPending}
+          disabled={!incoming}
+          onClick={() => incoming && declineRequest.mutate({ requestRowId: incoming.id, requesterId: targetUserId })}
+          style={{ color: '#7A7890' }}
+        >
+          Decline
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <Button variant="default" size="sm" isLoading={sendRequest.isPending} onClick={() => sendRequest.mutate(targetUserId)}>
+      Add Friend
     </Button>
   )
 }

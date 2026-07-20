@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BarChart2, Clock, Users } from 'lucide-react'
+import { BarChart2, Clock, Search, Users } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { LeaderboardRow } from '@/components/leaderboard/LeaderboardRow'
@@ -9,12 +9,22 @@ import { PeriodCountdown } from '@/components/leaderboard/PeriodCountdown'
 import { UserProfileModal } from '@/components/leaderboard/UserProfileModal'
 import { PeriodNavigator } from '@/components/analytics/PeriodNavigator'
 import { Spinner } from '@/components/ui/Spinner'
-import { useGlobalLeaderboard, useFriendsLeaderboard, useUserRank } from '@/hooks/useLeaderboard'
+import {
+  useGlobalLeaderboard,
+  useFriendsLeaderboard,
+  useUserRank,
+  useFriendsRank,
+  useSearchProfiles,
+  usePendingFriendRequests,
+  useAcceptFriendRequest,
+  useDeclineFriendRequest,
+} from '@/hooks/useLeaderboard'
+import { useDebounce } from '@/hooks/shared/useDebounce'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase/client'
 import { formatMinutesToHours, formatPeriodKey } from '@/lib/utils/analytics'
 import { PATHS } from '@/routes/paths'
-import type { LeaderboardEntry } from '@/lib/supabase/queries/leaderboard'
+import type { LeaderboardEntry, ProfileSearchResult, PendingFriendRequest } from '@/lib/supabase/queries/leaderboard'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -86,6 +96,157 @@ async function fetchStreakLeaderboard(mode: StreakNav, limit = 50): Promise<Stre
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
+
+function getAvatarColor(name: string): string {
+  const colors = [
+    '#4B9EFF', '#3DD68C', '#F5A623',
+    '#F25C5C', '#A78BFA', '#F472B6',
+    '#FB923C', '#34D399',
+  ]
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return colors[Math.abs(hash) % colors.length]
+}
+
+function SearchResultRow({
+  profile,
+  onClick,
+}: {
+  profile: ProfileSearchResult
+  onClick:  () => void
+}) {
+  const [imgError, setImgError] = useState(false)
+
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        display:      'flex',
+        alignItems:   'center',
+        gap:          12,
+        padding:      '10px 16px',
+        borderBottom: '1px solid #2E2E38',
+        cursor:       'pointer',
+        transition:   'background 0.12s',
+      }}
+      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#1C1C23' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
+    >
+      {profile.avatar_url && !imgError ? (
+        <img
+          src={profile.avatar_url}
+          alt={profile.display_name}
+          onError={() => setImgError(true)}
+          style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+        />
+      ) : (
+        <div style={{
+          width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+          backgroundColor: getAvatarColor(profile.display_name),
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 13, fontWeight: 600, color: '#fff',
+        }}>
+          {profile.display_name?.[0]?.toUpperCase() ?? '?'}
+        </div>
+      )}
+      <div style={{ minWidth: 0 }}>
+        <p style={{
+          fontSize: 13, fontWeight: 500, color: '#E8E6F0', margin: 0,
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {profile.display_name}
+        </p>
+        <p style={{ fontSize: 12, color: '#7A7890', margin: 0 }}>
+          @{profile.profile_slug}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function PendingRequestRow({ request }: { request: PendingFriendRequest }) {
+  const [imgError, setImgError] = useState(false)
+  const acceptRequest  = useAcceptFriendRequest()
+  const declineRequest = useDeclineFriendRequest()
+  const pending = acceptRequest.isPending || declineRequest.isPending
+
+  return (
+    <div style={{
+      display:      'flex',
+      alignItems:   'center',
+      gap:          12,
+      padding:      '10px 16px',
+      borderBottom: '1px solid #2E2E38',
+    }}>
+      {request.avatar_url && !imgError ? (
+        <img
+          src={request.avatar_url}
+          alt={request.display_name}
+          onError={() => setImgError(true)}
+          style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+        />
+      ) : (
+        <div style={{
+          width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+          backgroundColor: getAvatarColor(request.display_name),
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 13, fontWeight: 600, color: '#fff',
+        }}>
+          {request.display_name?.[0]?.toUpperCase() ?? '?'}
+        </div>
+      )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{
+          fontSize: 13, fontWeight: 500, color: '#E8E6F0', margin: 0,
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {request.display_name}
+        </p>
+        <p style={{ fontSize: 12, color: '#7A7890', margin: 0 }}>
+          @{request.profile_slug}
+        </p>
+      </div>
+      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+        <button
+          onClick={() => acceptRequest.mutate({ requestRowId: request.id, requesterId: request.requester_id })}
+          disabled={pending}
+          style={{
+            padding:      '5px 12px',
+            borderRadius: 8,
+            border:       '1px solid rgba(75,158,255,0.2)',
+            background:   'rgba(75,158,255,0.08)',
+            color:        '#4B9EFF',
+            fontSize:     12,
+            fontWeight:   500,
+            cursor:       pending ? 'default' : 'pointer',
+            opacity:      pending ? 0.6 : 1,
+          }}
+        >
+          {acceptRequest.isPending ? 'Accepting…' : 'Accept'}
+        </button>
+        <button
+          onClick={() => declineRequest.mutate({ requestRowId: request.id, requesterId: request.requester_id })}
+          disabled={pending}
+          style={{
+            padding:      '5px 12px',
+            borderRadius: 8,
+            border:       '1px solid #2E2E38',
+            background:   '#222228',
+            color:        '#7A7890',
+            fontSize:     12,
+            fontWeight:   500,
+            cursor:       pending ? 'default' : 'pointer',
+            opacity:      pending ? 0.6 : 1,
+          }}
+        >
+          {declineRequest.isPending ? 'Declining…' : 'Decline'}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function NavSection({
   title,
@@ -174,6 +335,7 @@ export function LeaderboardPage() {
   const [viewTab,         setViewTab]         = useState<ViewTab>('global')
   const [currentDate,     setCurrentDate]     = useState(() => new Date())
   const [selectedUserId,  setSelectedUserId]  = useState<string | null>(null)
+  const [searchQuery,     setSearchQuery]     = useState<string>('')
 
   const currentUserId = useAuthStore(s => s.user?.id ?? '')
   const isTimeMode    = IS_TIME_NAV(activeNav)
@@ -206,6 +368,18 @@ export function LeaderboardPage() {
     isTimeMode && activeNav !== 'all_time' ? activeNav : 'yearly',
     isTimeMode && activeNav !== 'all_time' ? periodKey : formatPeriodKey(new Date(), 'yearly'),
   )
+  const friendsRankQuery = useFriendsRank(
+    isTimeMode && activeNav !== 'all_time' ? activeNav : 'yearly',
+    isTimeMode && activeNav !== 'all_time' ? periodKey : formatPeriodKey(new Date(), 'yearly'),
+  )
+  const activeRankQuery = viewTab === 'friends' ? friendsRankQuery : rankQuery
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
+  const searchResultsQuery   = useSearchProfiles(debouncedSearchQuery)
+  const searchResults        = searchResultsQuery.data ?? []
+
+  const pendingRequestsQuery = usePendingFriendRequests()
+  const pendingRequests      = pendingRequestsQuery.data ?? []
 
   const streakQuery = useQuery({
     queryKey: ['leaderboard', 'streak', activeNav],
@@ -379,7 +553,7 @@ export function LeaderboardPage() {
           {/* User rank bar */}
           {isTimeMode && (() => {
             const rankedEntry = activeNav === 'all_time' ? allTimeRankEntry : null
-            const periodRank  = activeNav !== 'all_time' ? rankQuery.data : null
+            const periodRank  = activeNav !== 'all_time' ? activeRankQuery.data : null
             const isRanked    = !!(rankedEntry || periodRank)
 
             const rankNum     = rankedEntry?.rank ?? periodRank?.rank
@@ -433,6 +607,88 @@ export function LeaderboardPage() {
             )
           })()}
 
+          {/* Incoming friend requests */}
+          {isTimeMode && viewTab === 'friends' && pendingRequests.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <p style={{
+                fontSize:      11,
+                textTransform: 'uppercase',
+                letterSpacing: '0.07em',
+                color:         '#7A7890',
+                marginBottom:  8,
+                fontWeight:    500,
+              }}>
+                Incoming Requests
+              </p>
+              <div style={{
+                backgroundColor: '#141417',
+                border:          '1px solid #2E2E38',
+                borderRadius:    10,
+                overflow:        'hidden',
+              }}>
+                {pendingRequests.map(request => (
+                  <PendingRequestRow key={request.id} request={request} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Friends search */}
+          {isTimeMode && viewTab === 'friends' && (
+            <div style={{ marginBottom: 16 }}>
+              <div className="relative">
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted"
+                  style={{ width: 15, height: 15 }}
+                />
+                <input
+                  id="friends-search-input"
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search by name..."
+                  className="h-9 w-full rounded-lg border border-depth-border bg-depth-raised
+                             pl-9 pr-3 text-[13px] text-ink-primary
+                             placeholder:text-ink-muted
+                             focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand
+                             transition-colors"
+                />
+              </div>
+
+              {searchQuery.length > 0 && (
+                <div style={{
+                  marginTop:       8,
+                  backgroundColor: '#141417',
+                  border:          '1px solid #2E2E38',
+                  borderRadius:    10,
+                  overflow:        'hidden',
+                }}>
+                  {searchResultsQuery.isLoading ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: 20 }}>
+                      <Spinner />
+                    </div>
+                  ) : searchQuery.trim().length < 2 ? (
+                    <p style={{ fontSize: 12, color: '#3D3B4E', margin: 0, padding: '14px 16px' }}>
+                      Type at least 2 characters to search
+                    </p>
+                  ) : searchResults.length === 0 ? (
+                    <p style={{ fontSize: 13, color: '#7A7890', margin: 0, padding: '16px 16px', textAlign: 'center' }}>
+                      No users found
+                    </p>
+                  ) : (
+                    searchResults.map(profile => (
+                      <SearchResultRow
+                        key={profile.id}
+                        profile={profile}
+                        onClick={() => setSelectedUserId(profile.id)}
+                      />
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* List */}
           <div style={{
             backgroundColor: '#141417',
@@ -475,7 +731,7 @@ export function LeaderboardPage() {
               <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}>
                 <Spinner />
               </div>
-            ) : entries.length === 0 ? (
+            ) : entries.length === 0 && viewTab === 'friends' && isTimeMode && searchQuery.trim().length > 0 ? null : entries.length === 0 ? (
               <div style={{
                 display:        'flex',
                 flexDirection:  'column',
@@ -491,7 +747,7 @@ export function LeaderboardPage() {
                       No friends yet
                     </p>
                     <p style={{ fontSize: 13, color: '#3D3B4E', margin: 0 }}>
-                      Click a user on the Everyone tab to follow them
+                      Search above, or browse Everyone to find people to follow
                     </p>
                     <button
                       onClick={() => setViewTab('global')}

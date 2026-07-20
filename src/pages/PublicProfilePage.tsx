@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Lock } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/Spinner'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import {
   Tooltip,
   TooltipContent,
@@ -12,9 +14,12 @@ import {
 import {
   usePublicProfile,
   usePublicHeatmap,
-  useFollowStatus,
-  useFollowUser,
-  useUnfollowUser,
+  useFriendshipStatus,
+  usePendingFriendRequests,
+  useSendFriendRequest,
+  useAcceptFriendRequest,
+  useDeclineFriendRequest,
+  useUnfriend,
 } from '@/hooks/useLeaderboard'
 import { useAuthStore } from '@/store/authStore'
 import { formatMinutesToHours, formatPeriodKey, getWeeksInYear } from '@/lib/utils/analytics'
@@ -199,35 +204,89 @@ function ProfileHeatmap({ summaries }: ProfileHeatmapProps) {
   )
 }
 
-// ── Follow button (requires own component for hooks) ─────────────────────────
+// ── Friend action button (requires own component for hooks) ──────────────────
 
-function FollowButton({ targetUserId }: { targetUserId: string }) {
-  const { data: isFollowing, isLoading: statusLoading } = useFollowStatus(targetUserId)
-  const follow   = useFollowUser()
-  const unfollow = useUnfollowUser()
-  const pending  = follow.isPending || unfollow.isPending
+function FriendActionButton({ targetUserId }: { targetUserId: string }) {
+  const { data: status, isLoading }  = useFriendshipStatus(targetUserId)
+  const { data: pendingRequests }    = usePendingFriendRequests()
+  const sendRequest    = useSendFriendRequest()
+  const acceptRequest  = useAcceptFriendRequest()
+  const declineRequest = useDeclineFriendRequest()
+  const unfriend        = useUnfriend()
+  const [confirmUnfriendOpen, setConfirmUnfriendOpen] = useState(false)
 
-  if (statusLoading) return <div style={{ width: 100, height: 36 }} />
+  if (isLoading) return <div style={{ width: 100, height: 36 }} />
 
-  return isFollowing ? (
-    <Button
-      variant="ghost"
-      size="sm"
-      isLoading={pending}
-      onClick={() => unfollow.mutate(targetUserId)}
-      style={{ color: '#7A7890' }}
-    >
-      Following
-    </Button>
-  ) : (
+  if (status === 'friends') {
+    return (
+      <>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setConfirmUnfriendOpen(true)}
+          style={{ color: '#7A7890' }}
+        >
+          Friends
+        </Button>
+        <ConfirmDialog
+          open={confirmUnfriendOpen}
+          onClose={() => setConfirmUnfriendOpen(false)}
+          onConfirm={() => unfriend.mutate(targetUserId, { onSuccess: () => setConfirmUnfriendOpen(false) })}
+          title="Remove friend"
+          description="You'll stop appearing on each other's Friends leaderboard, and won't be able to see this profile again if it's private. You can send a new request later."
+          confirmLabel="Remove"
+          isLoading={unfriend.isPending}
+          variant="danger"
+        />
+      </>
+    )
+  }
+
+  if (status === 'pending_sent') {
+    return (
+      <Button variant="ghost" size="sm" disabled style={{ color: '#7A7890' }}>
+        Requested
+      </Button>
+    )
+  }
+
+  if (status === 'pending_received') {
+    const incoming = pendingRequests?.find(r => r.requester_id === targetUserId)
+    return (
+      <div style={{ display: 'flex', gap: 8 }}>
+        <Button
+          variant="outline"
+          size="sm"
+          isLoading={acceptRequest.isPending}
+          disabled={!incoming}
+          onClick={() => incoming && acceptRequest.mutate({ requestRowId: incoming.id, requesterId: targetUserId })}
+          style={{ color: '#4B9EFF', borderColor: '#4B9EFF' }}
+        >
+          Accept
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          isLoading={declineRequest.isPending}
+          disabled={!incoming}
+          onClick={() => incoming && declineRequest.mutate({ requestRowId: incoming.id, requesterId: targetUserId })}
+          style={{ color: '#7A7890' }}
+        >
+          Decline
+        </Button>
+      </div>
+    )
+  }
+
+  return (
     <Button
       variant="outline"
       size="sm"
-      isLoading={pending}
-      onClick={() => follow.mutate(targetUserId)}
+      isLoading={sendRequest.isPending}
+      onClick={() => sendRequest.mutate(targetUserId)}
       style={{ color: '#4B9EFF', borderColor: '#4B9EFF' }}
     >
-      Follow
+      Add Friend
     </Button>
   )
 }
@@ -270,18 +329,34 @@ export function PublicProfilePage() {
 
   const { data: profile, isLoading } = usePublicProfile(slug)
 
+  // A private profile is still viewable by an accepted friend — RLS already
+  // grants the read (see is_connected_via_follows), but a *pending* request
+  // (either direction) must NOT unlock the full profile here, only a
+  // confirmed mutual friendship. This hook call must stay unconditional
+  // (rules of hooks); its `enabled` guard (in useFriendshipStatus) makes an
+  // empty-string id a no-op instead of an extra branch here.
+  const isOwnProfile     = !!currentUserId && !!profile && currentUserId === profile.id
+  const needsFriendCheck = !!profile && !profile.is_public && !isOwnProfile
+  const friendshipQuery  = useFriendshipStatus(needsFriendCheck ? profile!.id : '')
+  const isFriend         = friendshipQuery.data === 'friends'
+
   const year      = new Date().getFullYear()
   const startDate = formatPeriodKey(new Date(year, 0, 1), 'daily')
   const endDate   = formatPeriodKey(new Date(year, 11, 31), 'daily')
 
-  const showHeatmap    = profile?.is_public && profile.show_heatmap_on_profile
+  const showHeatmap    = !!profile && (profile.is_public || isOwnProfile || isFriend) && profile.show_heatmap_on_profile
   const { data: heat } = usePublicHeatmap(
     showHeatmap ? (profile?.id ?? '') : '',
     startDate,
     endDate,
   )
 
-  if (isLoading) {
+  // Wait for the friendship check too when it's actually needed, so a
+  // private-but-friended profile doesn't flash the "private" lock screen
+  // before the connection status comes back.
+  const stillCheckingFriendship = needsFriendCheck && friendshipQuery.isLoading
+
+  if (isLoading || stillCheckingFriendship) {
     return (
       <div style={{
         minHeight:       '100dvh',
@@ -295,7 +370,7 @@ export function PublicProfilePage() {
     )
   }
 
-  const isPrivate = !profile || !profile.is_public
+  const isPrivate = !profile || (!profile.is_public && !isOwnProfile && !isFriend)
 
   if (isPrivate) {
     return (
@@ -328,8 +403,7 @@ export function PublicProfilePage() {
     )
   }
 
-  const isOwnProfile  = !!currentUserId && currentUserId === profile.id
-  const streakColor   = profile.current_streak > 0 ? '#C8FF64' : '#E8E6F0'
+  const streakColor = profile.current_streak > 0 ? '#C8FF64' : '#E8E6F0'
 
   return (
     <div style={{
@@ -383,7 +457,7 @@ export function PublicProfilePage() {
           </div>
 
           {!isOwnProfile && !!currentUserId && (
-            <FollowButton targetUserId={profile.id} />
+            <FriendActionButton targetUserId={profile.id} />
           )}
         </div>
 
