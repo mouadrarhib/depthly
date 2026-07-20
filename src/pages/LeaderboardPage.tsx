@@ -23,6 +23,7 @@ import { useDebounce } from '@/hooks/shared/useDebounce'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase/client'
 import { formatMinutesToHours, formatPeriodKey } from '@/lib/utils/analytics'
+import { getEffectiveStreak } from '@/lib/utils/streak'
 import { PATHS } from '@/routes/paths'
 import type { LeaderboardEntry, ProfileSearchResult, PendingFriendRequest } from '@/lib/supabase/queries/leaderboard'
 
@@ -73,14 +74,15 @@ const IS_TIME_NAV = (n: NavItem): n is TimeNav =>
 
 // ── Inline streak queries (avoids touching query/hooks files) ─────────────────
 
-async function fetchStreakLeaderboard(mode: StreakNav, limit = 50): Promise<StreakEntry[]> {
-  const orderCol = mode === 'current_streak' ? 'current_streak' : 'longest_streak'
+// longest_streak is a lifetime record — it never decays, so it can be
+// ordered and paginated server-side as-is.
+async function fetchBestStreakLeaderboard(limit: number): Promise<StreakEntry[]> {
   const { data, error } = await supabase
     .from('profiles')
     .select('id, display_name, avatar_url, profile_slug, current_streak, longest_streak')
     .eq('is_public', true)
-    .gt(orderCol, 0)
-    .order(orderCol, { ascending: false })
+    .gt('longest_streak', 0)
+    .order('longest_streak', { ascending: false })
     .limit(limit)
 
   if (error) throw error
@@ -93,6 +95,42 @@ async function fetchStreakLeaderboard(mode: StreakNav, limit = 50): Promise<Stre
     current_streak: row.current_streak,
     longest_streak: row.longest_streak,
   }))
+}
+
+// current_streak only self-corrects the next time a user saves a focus
+// session, so it can be stale (see getEffectiveStreak). Effective streak is
+// always either 0 or exactly the stored value — never partially decayed —
+// so a plain descending fetch by the raw column is still a valid superset
+// to sort from; we just can't apply the row limit until after zeroing out
+// stale entries, or a stale row could push a genuinely active streak off
+// the page.
+async function fetchCurrentStreakLeaderboard(limit: number): Promise<StreakEntry[]> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, display_name, avatar_url, profile_slug, current_streak, longest_streak, last_focus_date')
+    .eq('is_public', true)
+    .gt('current_streak', 0)
+    .order('current_streak', { ascending: false })
+
+  if (error) throw error
+  return (data ?? [])
+    .map((row) => ({
+      user_id:        row.id,
+      display_name:   row.display_name,
+      avatar_url:     row.avatar_url,
+      profile_slug:   row.profile_slug,
+      current_streak: getEffectiveStreak(row.current_streak, row.last_focus_date),
+      longest_streak: row.longest_streak,
+    }))
+    .filter((entry) => entry.current_streak > 0)
+    .slice(0, limit)
+    .map((entry, i) => ({ rank: i + 1, ...entry }))
+}
+
+async function fetchStreakLeaderboard(mode: StreakNav, limit = 50): Promise<StreakEntry[]> {
+  return mode === 'current_streak'
+    ? fetchCurrentStreakLeaderboard(limit)
+    : fetchBestStreakLeaderboard(limit)
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────

@@ -16,6 +16,7 @@ import {
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase/client'
 import { formatMinutesToHours } from '@/lib/utils/analytics'
+import { getEffectiveStreak } from '@/lib/utils/streak'
 
 const AVATAR_COLORS = ['#4B9EFF', '#7C3AED', '#059669', '#DC2626', '#D97706', '#DB2777']
 
@@ -128,12 +129,14 @@ export function UserProfileModal({ userId, onClose }: UserProfileModalProps) {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          'id, display_name, avatar_url, profile_slug, current_streak, longest_streak, total_focus_minutes, total_sessions',
+          'id, display_name, avatar_url, profile_slug, current_streak, longest_streak, total_focus_minutes, total_sessions, last_focus_date',
         )
         .eq('id', userId)
         .maybeSingle()
       if (error) throw error
-      return data
+      if (!data) return null
+
+      return { ...data, current_streak: getEffectiveStreak(data.current_streak, data.last_focus_date) }
     },
     enabled: !!userId,
   })

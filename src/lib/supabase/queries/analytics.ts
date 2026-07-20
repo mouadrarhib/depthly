@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
 import type { Tables } from '@/types/database'
+import { getEffectiveStreak } from '@/lib/utils/streak'
 
 type DailySummary = Tables<'daily_summaries'>
 type UserStats = Tables<'user_stats'>
@@ -173,5 +174,9 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
     .maybeSingle()
 
   if (error) throw error
-  return data
+  if (!data) return null
+
+  // current_streak is stale until the next save_session() call — display
+  // the corrected value everywhere this profile is consumed.
+  return { ...data, current_streak: getEffectiveStreak(data.current_streak, data.last_focus_date) }
 }

@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
 import type { Database } from '@/types/database'
+import { getEffectiveStreak } from '@/lib/utils/streak'
 
 type PeriodType = Database['public']['Enums']['period_type']
 
@@ -21,13 +22,16 @@ export async function fetchProfileBySlug(slug: string): Promise<PublicProfile | 
   const { data, error } = await supabase
     .from('profiles')
     .select(
-      'id, display_name, avatar_url, profile_slug, is_public, member_since, current_streak, longest_streak, total_focus_minutes, total_sessions, show_heatmap_on_profile',
+      'id, display_name, avatar_url, profile_slug, is_public, member_since, current_streak, longest_streak, total_focus_minutes, total_sessions, show_heatmap_on_profile, last_focus_date',
     )
     .eq('profile_slug', slug)
     .maybeSingle()
 
   if (error) throw error
-  return data as PublicProfile | null
+  if (!data) return null
+
+  const { last_focus_date, ...profile } = data as PublicProfile & { last_focus_date: string | null }
+  return { ...profile, current_streak: getEffectiveStreak(profile.current_streak, last_focus_date) }
 }
 
 export async function fetchPublicHeatmap(
@@ -68,6 +72,7 @@ type RawPeriodRow = {
     avatar_url: string | null
     profile_slug: string
     current_streak: number
+    last_focus_date: string | null
     is_public: boolean
   }
 }
@@ -81,7 +86,7 @@ function toEntry(row: RawPeriodRow, rank: number): LeaderboardEntry {
     profile_slug: row.profiles.profile_slug,
     focus_minutes: row.focus_minutes,
     session_count: row.session_count,
-    current_streak: row.profiles.current_streak,
+    current_streak: getEffectiveStreak(row.profiles.current_streak, row.profiles.last_focus_date),
     is_public: row.profiles.is_public,
   }
 }
@@ -94,7 +99,7 @@ export async function fetchGlobalLeaderboard(
   const { data, error } = await supabase
     .from('user_stats')
     .select(
-      'user_id, focus_minutes, session_count, profiles!inner(display_name, avatar_url, profile_slug, current_streak, is_public)',
+      'user_id, focus_minutes, session_count, profiles!inner(display_name, avatar_url, profile_slug, current_streak, last_focus_date, is_public)',
     )
     .eq('period_type', periodType)
     .eq('period_key', periodKey)
@@ -110,7 +115,7 @@ export async function fetchAllTimeLeaderboard(limit: number = 50): Promise<Leade
   const { data, error } = await supabase
     .from('profiles')
     .select(
-      'id, display_name, avatar_url, profile_slug, total_focus_minutes, total_sessions, current_streak, is_public',
+      'id, display_name, avatar_url, profile_slug, total_focus_minutes, total_sessions, current_streak, last_focus_date, is_public',
     )
     .eq('is_public', true)
     .order('total_focus_minutes', { ascending: false })
@@ -125,7 +130,7 @@ export async function fetchAllTimeLeaderboard(limit: number = 50): Promise<Leade
     profile_slug: row.profile_slug,
     focus_minutes: row.total_focus_minutes,
     session_count: row.total_sessions,
-    current_streak: row.current_streak,
+    current_streak: getEffectiveStreak(row.current_streak, row.last_focus_date),
     is_public: row.is_public,
   }))
 }
@@ -236,7 +241,7 @@ export async function fetchFriendsLeaderboard(
 
   const { data: profilesData, error: profilesError } = await supabase
     .from('profiles')
-    .select('id, display_name, avatar_url, profile_slug, current_streak, is_public')
+    .select('id, display_name, avatar_url, profile_slug, current_streak, last_focus_date, is_public')
     .in('id', statsData.map((s) => s.user_id))
 
   if (profilesError) throw profilesError
@@ -255,7 +260,7 @@ export async function fetchFriendsLeaderboard(
       profile_slug: profile.profile_slug,
       focus_minutes: row.focus_minutes,
       session_count: row.session_count,
-      current_streak: profile.current_streak,
+      current_streak: getEffectiveStreak(profile.current_streak, profile.last_focus_date),
       is_public: profile.is_public,
     })
   }
