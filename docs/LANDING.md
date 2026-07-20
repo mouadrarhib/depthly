@@ -140,9 +140,10 @@ the app's analytics/billing hooks), lucide icons.
    primary "Get started free" + ghost "View pricing" (anchor-scrolls to
    `#pricing`) → the hero's trust line ("Free forever • No credit card
    required").
-7. **Footer** — Product (`#features`, `#pricing`, Changelog `#`), Company
-   (About `#`, Contact mailto), Legal (Terms/Privacy `#`), copyright line.
-   Placeholder `#` links need real pages before launch.
+7. **Footer** — Product (`#features`, `#pricing`), Company (Contact
+   mailto), Legal (Terms/Privacy — real routes), copyright line. See
+   `docs/LEGAL_PAGES.md` for the full implementation (Changelog/About were
+   removed rather than left as placeholders).
 
 ---
 
@@ -263,7 +264,8 @@ per explicit instruction to skip verification/commit/push for that change
 
 - The ~3.7s `LogoIntro` splash (App.tsx) also plays before the landing —
   consider skipping it for `/` so visitors see the hero immediately.
-- Footer Changelog / About / Terms / Privacy are `#` placeholders.
+- ~~Footer Changelog / About / Terms / Privacy are `#` placeholders.~~
+  Resolved — see `docs/LEGAL_PAGES.md`.
 - Pricing CTAs encode `plan`/`interval` as query params (e.g.
   `/signup?plan=pro&interval=annual`) but nothing on `/signup` reads them
   yet — wire this up once Lemon Squeezy checkout exists.
