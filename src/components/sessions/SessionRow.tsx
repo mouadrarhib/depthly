@@ -48,7 +48,7 @@ export function SessionRow({ session, onOpenDetail, onEdit, onDelete }: SessionR
         }
       }}
       className={cn(
-        'group flex cursor-pointer items-center gap-4 rounded-[10px] border',
+        'group flex flex-wrap cursor-pointer items-center gap-x-4 gap-y-1.5 rounded-[10px] border',
         'border-depth-border',
         'transition-all duration-150',
         isBreak ? 'px-[18px] py-[10px]' : 'px-[18px] py-[14px]',
@@ -106,59 +106,67 @@ export function SessionRow({ session, onOpenDetail, onEdit, onDelete }: SessionR
         )}
       </div>
 
-      {/* DURATION — fixed 80px, right-aligned */}
-      <div className="shrink-0 text-right" style={{ width: 80 }}>
-        <span
-          className={cn(
-            'font-data text-[15px] font-semibold',
-            isBreak ? 'text-ink-muted' : 'text-ink-primary',
-          )}
+      {/* Trailing metadata — duration, view-details chevron, three-dot menu.
+          On mobile this is order-last + w-full so it always wraps onto its
+          own line instead of competing with the project/task column for
+          space (that's what previously forced project names and notes to
+          truncate down to a few characters). Stays inline on desktop. */}
+      <div className="order-last flex w-full items-center justify-end gap-4 md:order-none md:w-auto">
+
+        {/* DURATION — fixed 80px, right-aligned */}
+        <div className="shrink-0 text-right" style={{ width: 80 }}>
+          <span
+            className={cn(
+              'font-data text-[15px] font-semibold',
+              isBreak ? 'text-ink-muted' : 'text-ink-primary',
+            )}
+          >
+            {formatDuration(session.duration_mins)}
+          </span>
+        </div>
+
+        {/* VIEW DETAILS affordance — fixed 16px, always visible */}
+        <div className="flex shrink-0 items-center justify-center" style={{ width: 16 }}>
+          <ChevronRight
+            style={{ width: 15, height: 15 }}
+            className="text-ink-muted transition-colors group-hover:text-ink-secondary"
+          />
+        </div>
+
+        {/* THREE-DOT MENU — fixed 32px, always visible */}
+        <div
+          className="flex shrink-0 items-center justify-center"
+          style={{ width: 32 }}
+          onClick={e => e.stopPropagation()}
         >
-          {formatDuration(session.duration_mins)}
-        </span>
-      </div>
-
-      {/* VIEW DETAILS affordance — fixed 16px, always visible */}
-      <div className="flex shrink-0 items-center justify-center" style={{ width: 16 }}>
-        <ChevronRight
-          style={{ width: 15, height: 15 }}
-          className="text-ink-muted transition-colors group-hover:text-ink-secondary"
-        />
-      </div>
-
-      {/* THREE-DOT MENU — fixed 32px, always visible */}
-      <div
-        className="flex shrink-0 items-center justify-center"
-        style={{ width: 32 }}
-        onClick={e => e.stopPropagation()}
-      >
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="flex h-7 w-7 items-center justify-center rounded
-                         text-ink-muted transition-colors
-                         hover:bg-depth-raised hover:text-ink-primary
-                         focus:outline-none"
-              aria-label="Session options"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuItem onClick={onEdit}>
-              <Pencil className="h-3.5 w-3.5" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={onDelete}
-              className="text-feedback-error focus:text-feedback-error"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="flex h-7 w-7 items-center justify-center rounded
+                           text-ink-muted transition-colors
+                           hover:bg-depth-raised hover:text-ink-primary
+                           focus:outline-none"
+                aria-label="Session options"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-36">
+              <DropdownMenuItem onClick={onEdit}>
+                <Pencil className="h-3.5 w-3.5" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={onDelete}
+                className="text-feedback-error focus:text-feedback-error"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </div>
   )
