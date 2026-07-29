@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock, Download, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
 
+import { cn } from '@/lib/utils'
+
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import {
@@ -99,6 +101,7 @@ export function SessionsPage() {
   const [deletingSession, setDeletingSession] = useState<SessionWithRelations | null>(null)
   const [viewingSession,  setViewingSession] = useState<SessionWithRelations | null>(null)
   const [exportOpen,      setExportOpen]     = useState(false)
+  const [filtersOpen,     setFiltersOpen]    = useState(false)
 
   // Filter state
   const [searchTerm,     setSearchTerm]     = useState('')
@@ -149,6 +152,16 @@ export function SessionsPage() {
     projectFilter  !== 'all' ||
     durationFilter !== 'all' ||
     typeFilter     !== 'all'
+
+  // The "secondary" filters (date range, project, duration) collapse behind
+  // a toggle on mobile — Type and Search stay visible since those are the
+  // ones people reach for first. This count badges that toggle so a filter
+  // set from a previous visit isn't invisible just because the row is closed.
+  const secondaryFilterCount =
+    (fromDate !== '' ? 1 : 0) +
+    (toDate   !== '' ? 1 : 0) +
+    (projectFilter  !== 'all' ? 1 : 0) +
+    (durationFilter !== 'all' ? 1 : 0)
 
   // Client-side filtering applied to the fetched sessions
   const filteredSessions = useMemo(() => {
@@ -248,7 +261,7 @@ export function SessionsPage() {
     <div className="px-4 py-4 sm:px-8 sm:py-6">
 
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-[22px] font-medium text-ink-primary">Sessions</h1>
           {!isPending && (
@@ -268,7 +281,7 @@ export function SessionsPage() {
               onClick={() => setExportOpen(o => !o)}
             >
               <Download className="h-4 w-4" />
-              Export
+              <span className="hidden sm:inline">Export</span>
               {exportOpen ? (
                 <ChevronUp className="h-4 w-4" />
               ) : (
@@ -356,10 +369,8 @@ export function SessionsPage() {
               )}
             </div>
 
-            {/* Row 2 — Filter pills */}
-            <div className="flex flex-wrap items-end gap-3">
-
-              {/* Type filter */}
+            {/* Row 2 — Type (always visible) + mobile Filters toggle */}
+            <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <p className="mb-1 text-[11px] text-ink-muted">Type</p>
                 <Tabs
@@ -390,6 +401,37 @@ export function SessionsPage() {
                 </Tabs>
               </div>
 
+              {/* Date range / project / duration collapse behind this on
+                  mobile — surfacing all four at once above the session list
+                  ate too much of the screen before showing any content. */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFiltersOpen(o => !o)}
+                className="h-9 gap-1.5 text-[13px] sm:hidden"
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                Filters
+                {secondaryFilterCount > 0 && (
+                  <span
+                    className="inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold"
+                    style={{ background: 'rgba(75,158,255,0.18)', color: '#4B9EFF' }}
+                  >
+                    {secondaryFilterCount}
+                  </span>
+                )}
+                {filtersOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              </Button>
+            </div>
+
+            {/* Row 3 — Date range, project, duration. Always visible at
+                sm+; on mobile only when the Filters toggle above is open. */}
+            <div
+              className={cn(
+                'mt-3 flex-col gap-3 sm:mt-3 sm:flex sm:flex-row sm:flex-wrap sm:items-end sm:gap-3',
+                filtersOpen ? 'flex' : 'hidden',
+              )}
+            >
               {/* Date range */}
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                 <div>
@@ -416,7 +458,7 @@ export function SessionsPage() {
 
               {/* Project filter */}
               <Select value={projectFilter} onValueChange={setProjectFilter}>
-                <SelectTrigger style={{ width: 160 }} className="h-9 text-[13px]">
+                <SelectTrigger className="h-9 w-full text-[13px] sm:w-[160px]">
                   <div className="flex items-center gap-2 overflow-hidden">
                     <SlidersHorizontal style={{ width: 13, height: 13, flexShrink: 0 }} className="text-ink-muted" />
                     <SelectValue placeholder="All projects" />
@@ -443,7 +485,7 @@ export function SessionsPage() {
                 value={durationFilter}
                 onValueChange={v => setDurationFilter(v as DurationFilter)}
               >
-                <SelectTrigger style={{ width: 160 }} className="h-9 text-[13px]">
+                <SelectTrigger className="h-9 w-full text-[13px] sm:w-[160px]">
                   <SelectValue placeholder="Any duration" />
                 </SelectTrigger>
                 <SelectContent>
@@ -460,7 +502,7 @@ export function SessionsPage() {
                   variant="ghost"
                   size="sm"
                   onClick={clearFilters}
-                  className="text-[13px] text-ink-secondary"
+                  className="w-full text-[13px] text-ink-secondary sm:w-auto"
                 >
                   Clear filters
                 </Button>
@@ -556,11 +598,12 @@ export function SessionsPage() {
                     size="sm"
                     onClick={() => setCurrentPage(p => p - 1)}
                     disabled={!hasPrev}
+                    aria-label="Previous page"
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    Previous
+                    <span className="hidden sm:inline">Previous</span>
                   </Button>
-                  <span className="text-[12px] text-ink-muted">
+                  <span className="text-[12px] text-ink-muted whitespace-nowrap">
                     Page {currentPage + 1} of {totalPages}
                   </span>
                   <Button
@@ -568,8 +611,9 @@ export function SessionsPage() {
                     size="sm"
                     onClick={() => setCurrentPage(p => p + 1)}
                     disabled={!hasNext}
+                    aria-label="Next page"
                   >
-                    Next
+                    <span className="hidden sm:inline">Next</span>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>

@@ -56,22 +56,20 @@ export function ExportPanel({ projects, totalCount }: ExportPanelProps) {
     return (
       <>
         <div
+          className="flex flex-col items-start gap-3 sm:flex-row sm:items-center"
           style={{
             background:    '#141417',
             border:        '1px solid #2E2E38',
             borderRadius:  14,
             padding:       '20px 24px',
             marginBottom:  20,
-            display:       'flex',
-            alignItems:    'center',
-            gap:           12,
           }}
         >
           <Lock size={16} style={{ color: '#7A7890', flexShrink: 0 }} />
           <span style={{ fontSize: 14, color: '#7A7890', flex: 1 }}>
             CSV export is a Pro feature
           </span>
-          <Button variant="primary" size="sm" onClick={() => setUpgradeOpen(true)}>
+          <Button variant="primary" size="sm" onClick={() => setUpgradeOpen(true)} className="w-full sm:w-auto">
             Upgrade to Pro
           </Button>
         </div>
@@ -105,7 +103,7 @@ export function ExportPanel({ projects, totalCount }: ExportPanelProps) {
       }}
     >
       {/* Header row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
 
         {/* Left: icon + title + badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -135,6 +133,7 @@ export function ExportPanel({ projects, totalCount }: ExportPanelProps) {
           size="sm"
           isLoading={isExporting}
           onClick={handleExport}
+          className="w-full sm:w-auto"
         >
           <Download size={14} />
           Export CSV
@@ -145,10 +144,10 @@ export function ExportPanel({ projects, totalCount }: ExportPanelProps) {
       <div style={{ height: 1, background: '#2E2E38', margin: '16px 0' }} />
 
       {/* Filters row */}
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-4">
 
         {/* From */}
-        <div style={{ display: 'flex', flexDirection: 'column', width: 148 }}>
+        <div className="flex flex-col sm:w-[148px]">
           <span style={LABEL_STYLE}>From</span>
           <input
             type="date"
@@ -159,7 +158,7 @@ export function ExportPanel({ projects, totalCount }: ExportPanelProps) {
         </div>
 
         {/* To */}
-        <div style={{ display: 'flex', flexDirection: 'column', width: 148 }}>
+        <div className="flex flex-col sm:w-[148px]">
           <span style={LABEL_STYLE}>To</span>
           <input
             type="date"
@@ -171,13 +170,12 @@ export function ExportPanel({ projects, totalCount }: ExportPanelProps) {
         </div>
 
         {/* Project */}
-        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 180 }}>
+        <div className="flex flex-col sm:min-w-[180px]">
           <span style={LABEL_STYLE}>Project</span>
           <Select value={projectId} onValueChange={setProjectId}>
             <SelectTrigger
               style={{
                 height:       36,
-                minWidth:     180,
                 background:   '#222228',
                 border:       '1px solid #2E2E38',
                 borderRadius: 8,
@@ -210,8 +208,8 @@ export function ExportPanel({ projects, totalCount }: ExportPanelProps) {
           </div>
         </div>
 
-        {/* Session count — right-aligned */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginLeft: 'auto' }}>
+        {/* Session count */}
+        <div className="flex flex-col items-start sm:ml-auto sm:items-end">
           {totalCount > 0 ? (
             <>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
