@@ -160,6 +160,7 @@ export type Database = {
           id: string
           is_founding_member: boolean
           is_public: boolean
+          is_seed_account: boolean
           last_focus_date: string | null
           longest_streak: number
           member_since: string
@@ -187,6 +188,7 @@ export type Database = {
           id: string
           is_founding_member?: boolean
           is_public?: boolean
+          is_seed_account?: boolean
           last_focus_date?: string | null
           longest_streak?: number
           member_since?: string
@@ -214,6 +216,7 @@ export type Database = {
           id?: string
           is_founding_member?: boolean
           is_public?: boolean
+          is_seed_account?: boolean
           last_focus_date?: string | null
           longest_streak?: number
           member_since?: string

@@ -252,6 +252,30 @@ merges the current user's ID into the `userIds` array before querying `user_stat
 
 ---
 
+## Seed Accounts (launch cold-start)
+
+To avoid an empty leaderboard/public-profile experience at launch, `scripts/seed-production-leaderboard.ts`
+creates ~20 synthetic public profiles with realistic session history generated through the real
+`save_session()` RPC (so streaks, `daily_summaries`, and heatmaps are all internally consistent —
+unlike the older dev-only `scripts/seed-leaderboard-users.ts`, which pokes fake numbers directly
+into `profiles`/`user_stats`).
+
+Seeded profiles are flagged via `profiles.is_seed_account` (added in
+`supabase/migrations/011_add_is_seed_account.sql`). That flag is **not** used to filter them out of
+the leaderboard, friends search, or anything else — they're meant to render identically to real
+users. It exists only so a future admin/metrics view can exclude them from real growth numbers,
+and so they can be bulk-deleted later:
+
+```sql
+delete from auth.users where id in (select id from profiles where is_seed_account = true);
+```
+
+Seeded profiles all stay on the default `free` plan (no subscriptions/billing rows), so they can
+never pollute revenue metrics. See the script's header comment for full details, including the
+`SEED_CONFIRM=yes-seed-production` safety gate required to run it.
+
+---
+
 ## Known Limitations
 
 1. **`useUserRank` does not support `all_time`.**
