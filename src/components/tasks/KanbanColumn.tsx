@@ -17,6 +17,7 @@ interface KanbanColumnProps {
   status:          Status
   tasks:           Task[]
   sessionMinsMap?: Record<string, number>
+  onOpenTask:      (task: Task) => void
   onEditTask:      (task: Task) => void
   onDeleteTask:    (task: Task) => void
   onDuplicateTask: (task: Task) => void
@@ -27,6 +28,7 @@ export function KanbanColumn({
   status,
   tasks,
   sessionMinsMap,
+  onOpenTask,
   onEditTask,
   onDeleteTask,
   onDuplicateTask,
@@ -118,6 +120,7 @@ export function KanbanColumn({
                 key={task.id}
                 task={task}
                 sessionMins={sessionMinsMap?.[task.id]}
+                onOpen={onOpenTask}
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
                 onDuplicate={onDuplicateTask}

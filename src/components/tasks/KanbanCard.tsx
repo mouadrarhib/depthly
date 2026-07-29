@@ -18,12 +18,13 @@ import type { Task } from '@/lib/supabase/queries/tasks'
 interface KanbanCardProps {
   task:         Task
   sessionMins?: number
+  onOpen:       (task: Task) => void
   onEdit:       (task: Task) => void
   onDelete:     (task: Task) => void
   onDuplicate:  (task: Task) => void
 }
 
-export function KanbanCard({ task, sessionMins, onEdit, onDelete, onDuplicate }: KanbanCardProps) {
+export function KanbanCard({ task, sessionMins, onOpen, onEdit, onDelete, onDuplicate }: KanbanCardProps) {
   const [isHovered, setIsHovered] = useState(false)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -52,6 +53,7 @@ export function KanbanCard({ task, sessionMins, onEdit, onDelete, onDuplicate }:
       ref={setNodeRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => onOpen(task)}
       style={{
         transform:       CSS.Transform.toString(transform),
         transition:      composedTransition,

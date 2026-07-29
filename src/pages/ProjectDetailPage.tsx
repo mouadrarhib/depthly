@@ -7,14 +7,16 @@ import { Spinner } from '@/components/ui/Spinner'
 import { ProjectModal } from '@/components/projects/ProjectModal'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { TaskModal } from '@/components/tasks/TaskModal'
+import { TaskDetailModal } from '@/components/tasks/TaskDetailModal'
 import { TaskListView } from '@/components/tasks/TaskListView'
 import { TaskKanbanView } from '@/components/tasks/TaskKanbanView'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ProjectSessionsList } from '@/components/projects/ProjectSessionsList'
 import { useProject, useProjectStats, useArchiveProject, useUpdateProject } from '@/hooks/useProjects'
-import { useDeleteTask } from '@/hooks/useTasks'
+import { useDeleteTask, useTaskSessionMins } from '@/hooks/useTasks'
 import { usePlan } from '@/hooks/usePlan'
+import { useTimerStore, showSaveToast } from '@/store/timerStore'
 import { PATHS } from '@/routes/paths'
 import type { Task } from '@/lib/supabase/queries/tasks'
 
@@ -29,11 +31,14 @@ export function ProjectDetailPage() {
   const [createStatus,    setCreateStatus]    = useState<string | undefined>(undefined)
   const [deletingTask,    setDeletingTask]    = useState<Task | null>(null)
   const [upgradeOpen,     setUpgradeOpen]     = useState(false)
+  const [viewingTask,     setViewingTask]     = useState<Task | null>(null)
+  const [isDetailOpen,    setIsDetailOpen]    = useState(false)
 
   const { isPro } = usePlan()
 
   const { data: project, isLoading: projectLoading } = useProject(id)
   const { data: stats,   isLoading: statsLoading   } = useProjectStats(id)
+  const { data: sessionMinsMap }                     = useTaskSessionMins(id)
   const archiveProject = useArchiveProject()
   const updateProject  = useUpdateProject()
   const deleteTask     = useDeleteTask()
@@ -71,10 +76,28 @@ export function ProjectDetailPage() {
     setIsTaskModalOpen(true)
   }
 
+  function openTaskDetail(task: Task) {
+    setViewingTask(task)
+    setIsDetailOpen(true)
+  }
+
   function closeTaskModal() {
     setIsTaskModalOpen(false)
     setEditingTask(null)
     setCreateStatus(undefined)
+  }
+
+  function handleStartTimerFromTask(task: Task) {
+    const { isRunning, isPaused } = useTimerStore.getState()
+    if (isRunning || isPaused) {
+      showSaveToast('Finish or stop your current session before starting a new one')
+    } else {
+      useTimerStore.getState().setSelectedProject(project!.id)
+      useTimerStore.getState().setSelectedTask(task.id)
+      useTimerStore.getState().start()
+    }
+    setIsDetailOpen(false)
+    navigate(PATHS.timer)
   }
 
   return (
@@ -239,6 +262,7 @@ export function ProjectDetailPage() {
           {taskView === 'list' && (
             <TaskListView
               projectId={id}
+              onOpenTask={openTaskDetail}
               onEditTask={openEditTask}
               onCreateTask={() => openCreateTask()}
             />
@@ -248,6 +272,7 @@ export function ProjectDetailPage() {
           {taskView === 'kanban' && (
             <TaskKanbanView
               projectId={id}
+              onOpenTask={openTaskDetail}
               onEditTask={openEditTask}
               onAddTask={openCreateTask}
             />
@@ -453,6 +478,15 @@ export function ProjectDetailPage() {
         projectId={id}
         task={editingTask ?? undefined}
         defaultStatus={createStatus as 'todo' | 'in_progress' | 'done' | undefined}
+      />
+
+      <TaskDetailModal
+        open={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        task={viewingTask}
+        sessionMins={viewingTask ? sessionMinsMap?.[viewingTask.id] : undefined}
+        onEdit={task => { setIsDetailOpen(false); openEditTask(task) }}
+        onStartTimer={handleStartTimerFromTask}
       />
 
       <ConfirmDialog

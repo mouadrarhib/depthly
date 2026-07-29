@@ -157,6 +157,30 @@ The count badge uses `${color}26` (15% opacity hex alpha) as background with mat
 
 ---
 
+### `TaskDetailModal`
+**File:** `src/components/tasks/TaskDetailModal.tsx`
+
+Read-only detail view opened by clicking anywhere on a task row (`TaskListView`) or card (`KanbanCard`) — the checkbox, drag handle, and three-dot menu all `stopPropagation` so they don't also trigger it.
+
+**Props:**
+| Prop | Type | Description |
+|---|---|---|
+| `open` | `boolean` | Controls dialog visibility |
+| `onClose` | `() => void` | Called on close (X button or backdrop) |
+| `task` | `Task \| null` | Task being viewed |
+| `sessionMins?` | `number` | Total logged minutes for this task, passed down from the parent's `useTaskSessionMins` map |
+| `onEdit` | `(task: Task) => void` | Closes the detail modal and opens `TaskModal` in edit mode |
+| `onStartTimer` | `(task: Task) => void` | See below |
+
+**Renders:** title, status + priority pills, description (or "No description" if empty), due date (red if overdue), focus session count (`actual_pomodoros / estimated_pomodoros`), and total time logged.
+
+**Start Timer button** — wired in `ProjectDetailPage.handleStartTimerFromTask`:
+- If a timer is already running or paused (`timerStore.isRunning || isPaused`), the click does **not** touch `selectedProjectId`/`selectedTaskId` — reassigning them mid-session would silently attribute the *currently running* session to the new task on save. Instead it shows a toast ("Finish or stop your current session before starting a new one") via `showSaveToast` and just navigates to `/timer` so the user can see the active session.
+- If idle, it calls `setSelectedProject(project.id)`, `setSelectedTask(task.id)`, then `start()` — the timer begins immediately at the configured focus duration, pre-linked to that task, then navigates to `/timer`.
+- Because `save_session()` already reads `selectedTaskId` off the store (see `useSaveSession.ts` and `docs/timer.md` §4), no other wiring was needed for the resulting session — and its natural break — to save with `task_id` set and increment `tasks.actual_pomodoros`.
+
+---
+
 ### `TaskModal`
 **File:** `src/components/tasks/TaskModal.tsx`
 

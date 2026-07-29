@@ -101,6 +101,7 @@ interface RowProps {
   task:            Task
   projectId:       string
   sessionMins?:    number
+  onOpen:          (task: Task) => void
   onEdit:          (task: Task) => void
   onDeleteRequest: (id: string) => void
   onToggle:        (task: Task) => void
@@ -111,6 +112,7 @@ function SortableTaskRow({
   task,
   projectId: _projectId,
   sessionMins,
+  onOpen,
   onEdit,
   onDeleteRequest,
   onToggle,
@@ -130,8 +132,9 @@ function SortableTaskRow({
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, cursor: 'pointer' }}
       {...attributes}
+      onClick={() => onOpen(task)}
       className="group flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border
                  border-depth-border bg-depth-surface px-3 py-2.5 transition-colors
                  hover:bg-depth-raised"
@@ -161,7 +164,7 @@ function SortableTaskRow({
             layout footprint beyond the visible circle's original 18px. */}
         <button
           type="button"
-          onClick={() => onToggle(task)}
+          onClick={e => { e.stopPropagation(); onToggle(task) }}
           aria-label={done ? 'Mark as to do' : 'Mark as done'}
           className="shrink-0 flex items-center justify-center rounded-full transition-colors"
           style={{ width: 44, height: 44, margin: -13 }}
@@ -294,11 +297,12 @@ function SortableTaskRow({
 
 interface TaskListViewProps {
   projectId:      string
+  onOpenTask:     (task: Task) => void
   onEditTask:     (task: Task) => void
   onCreateTask?:  () => void
 }
 
-export function TaskListView({ projectId, onEditTask, onCreateTask }: TaskListViewProps) {
+export function TaskListView({ projectId, onOpenTask, onEditTask, onCreateTask }: TaskListViewProps) {
   const { data: tasks = [], isLoading } = useTasks(projectId)
   const { data: sessionMinsMap }        = useTaskSessionMins(projectId)
 
@@ -464,6 +468,7 @@ export function TaskListView({ projectId, onEditTask, onCreateTask }: TaskListVi
                   task={task}
                   projectId={projectId}
                   sessionMins={sessionMinsMap?.[task.id]}
+                  onOpen={onOpenTask}
                   onEdit={onEditTask}
                   onDeleteRequest={setDeleteTarget}
                   onToggle={handleToggle}

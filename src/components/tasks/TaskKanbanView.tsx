@@ -28,11 +28,12 @@ const COLUMNS: Status[] = ['todo', 'in_progress', 'done']
 
 interface TaskKanbanViewProps {
   projectId:   string
+  onOpenTask:  (task: Task) => void
   onEditTask:  (task: Task) => void
   onAddTask?:  (status: string) => void
 }
 
-export function TaskKanbanView({ projectId, onEditTask, onAddTask }: TaskKanbanViewProps) {
+export function TaskKanbanView({ projectId, onOpenTask, onEditTask, onAddTask }: TaskKanbanViewProps) {
   const { data: tasks = [], isLoading } = useTasks(projectId)
   const { data: sessionMinsMap }        = useTaskSessionMins(projectId)
 
@@ -127,6 +128,7 @@ export function TaskKanbanView({ projectId, onEditTask, onAddTask }: TaskKanbanV
             status={status}
             tasks={getColumnTasks(status)}
             sessionMinsMap={sessionMinsMap}
+            onOpenTask={onOpenTask}
             onEditTask={onEditTask}
             onDeleteTask={task => deleteTask.mutate({ id: task.id, projectId })}
             onDuplicateTask={task => duplicateTask.mutate(task.id)}
