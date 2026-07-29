@@ -98,7 +98,7 @@ const PRESETS = {
 | `start()` | Sets `isRunning: true, elapsed: 0, sessionType: 'focus'` |
 | `pause()` | Sets `isRunning: false, isPaused: true` |
 | `resume()` | Sets `isRunning: true, isPaused: false` |
-| `stop()` | Resets to idle in focus mode: `isRunning: false, isPaused: false, elapsed: 0, sessionType: 'focus'` |
+| `stop()` | Resets to idle in focus mode: `isRunning: false, isPaused: false, elapsed: 0, sessionType: 'focus', duration: focusDuration` (duration restore added — previously left over the break's duration if stopped mid-break) |
 | `reset()` | Same as stop but keeps `sessionType` and `duration` unchanged (used internally after save) |
 | `startBreak()` | Called by `useSaveSession.onSuccess` — sets `sessionType: 'break', elapsed: 0, duration: breakDuration, isRunning: true` (always auto-starts) |
 | `endBreak()` | Called by `useTimerEffects` when break completes — sets `sessionType: 'focus', elapsed: 0, duration: focusDuration, isRunning: autoStartFocus` |

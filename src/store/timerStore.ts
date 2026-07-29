@@ -140,7 +140,7 @@ export const useTimerStore = create<TimerState>()((set, get) => ({
 
   resume: () => set({ isRunning: true, isPaused: false }),
 
-  stop: () => set({ isRunning: false, isPaused: false, elapsed: 0, sessionType: 'focus' }),
+  stop: () => set((s) => ({ isRunning: false, isPaused: false, elapsed: 0, sessionType: 'focus', duration: s.focusDuration })),
 
   reset: () => set({ isRunning: false, isPaused: false, elapsed: 0 }),
 
