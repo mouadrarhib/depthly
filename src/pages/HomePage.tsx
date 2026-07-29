@@ -7,7 +7,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts'
-import { BarChart2, CheckCircle, Clock, FolderOpen, History, Trophy } from 'lucide-react'
+import { BarChart2, CheckCircle, Clock, FolderOpen, History, Target, Trophy } from 'lucide-react'
 
 import { TimerWidget } from '@/components/home/TimerWidget'
 import { SessionRow } from '@/components/sessions/SessionRow'
@@ -26,6 +26,59 @@ import {
 } from '@/lib/utils/analytics'
 import { PATHS } from '@/routes/paths'
 import type { SessionWithRelations } from '@/lib/supabase/queries/sessions'
+
+const STAT_COLORS = {
+  focus:    '#4B9EFF',
+  sessions: '#3DD68C',
+  goal:     '#F5A623',
+} as const
+
+// ── Today's stats row — icon chip + value + caption ─────────────────────────
+
+function IconChip({ color, icon }: { color: string; icon: React.ReactNode }) {
+  return (
+    <div
+      className="flex shrink-0 items-center justify-center rounded-full"
+      style={{ width: 32, height: 32, background: `${color}1F` }}
+    >
+      {icon}
+    </div>
+  )
+}
+
+interface StatCardProps {
+  accent?:   string
+  icon:      React.ReactNode
+  value:     React.ReactNode
+  label?:    string
+  children?: React.ReactNode
+}
+
+function StatCard({ accent, icon, value, label, children }: StatCardProps) {
+  return (
+    <div
+      className="flex flex-col items-center gap-1 rounded-xl border border-depth-border bg-depth-surface"
+      style={{
+        padding:   '14px 8px',
+        borderTop: accent ? `2px solid ${accent}` : undefined,
+      }}
+    >
+      {icon}
+      <span className="font-data mt-1 text-[20px] font-semibold leading-none text-ink-primary sm:text-[22px]">
+        {value}
+      </span>
+      {label && (
+        <span
+          className="text-center leading-tight text-ink-secondary"
+          style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}
+        >
+          {label}
+        </span>
+      )}
+      {children}
+    </div>
+  )
+}
 
 const QUICK_LINKS = [
   { label: 'Analytics',   icon: <BarChart2  size={24} style={{ color: '#4B9EFF' }} />, path: PATHS.analytics   },
@@ -154,64 +207,67 @@ export function HomePage() {
           </div>
 
           {/* Today's stats row */}
-          <div className="order-4 grid grid-cols-3 gap-3 lg:order-none">
+          <div className="order-4 grid grid-cols-3 gap-2.5 sm:gap-3 lg:order-none">
             {profileLoading ? (
               /* Skeleton stat cards */
               <>
                 {[0, 1, 2].map(i => (
                   <div
                     key={i}
-                    className="flex flex-col items-center gap-2 rounded-xl border border-depth-border bg-depth-surface" style={{ padding: '12px 16px' }}
+                    className="flex flex-col items-center gap-2 rounded-xl border border-depth-border bg-depth-surface"
+                    style={{ padding: '14px 8px' }}
                   >
-                    <Skeleton width={18} height={18} borderRadius={4} />
-                    <Skeleton width={60} height={22} borderRadius={4} />
-                    <Skeleton width={40} height={12} borderRadius={4} />
+                    <Skeleton width={32} height={32} borderRadius="50%" />
+                    <Skeleton width={48} height={20} borderRadius={4} />
+                    <Skeleton width={56} height={10} borderRadius={4} />
                   </div>
                 ))}
               </>
             ) : (
               <>
-                {/* Focus Today */}
-                <div className="flex flex-col items-center gap-0.5 rounded-xl border border-depth-border bg-depth-surface" style={{ padding: '12px 16px' }}>
-                  <Clock style={{ width: 18, height: 18, color: '#4B9EFF', marginBottom: 6 }} />
-                  <span className="font-data text-[22px] font-semibold text-ink-primary">
-                    {formatMinutesToHours(focusMinutes)}
-                  </span>
-                  <span className="text-[12px] text-ink-secondary">today</span>
-                </div>
+                <StatCard
+                  accent={STAT_COLORS.focus}
+                  icon={<IconChip color={STAT_COLORS.focus} icon={<Clock style={{ width: 16, height: 16, color: STAT_COLORS.focus }} />} />}
+                  value={formatMinutesToHours(focusMinutes)}
+                  label="Focus today"
+                />
 
-                {/* Sessions Today */}
-                <div className="flex flex-col items-center gap-0.5 rounded-xl border border-depth-border bg-depth-surface" style={{ padding: '12px 16px' }}>
-                  <CheckCircle style={{ width: 18, height: 18, color: '#3DD68C', marginBottom: 6 }} />
-                  <span className="font-data text-[22px] font-semibold text-ink-primary">
-                    {sessionCount}
-                  </span>
-                  <span className="text-[12px] text-ink-secondary">sessions</span>
-                </div>
+                <StatCard
+                  accent={STAT_COLORS.sessions}
+                  icon={<IconChip color={STAT_COLORS.sessions} icon={<CheckCircle style={{ width: 16, height: 16, color: STAT_COLORS.sessions }} />} />}
+                  value={sessionCount}
+                  label="Sessions today"
+                />
 
-                {/* Daily Goal */}
-                <div className="flex flex-col items-center gap-0.5 rounded-xl border border-depth-border bg-depth-surface" style={{ padding: '12px 16px' }}>
-                  {dailyGoalMins === null ? (
-                    <>
-                      <span className="font-data text-[22px] font-semibold text-ink-muted">—</span>
-                      <Link
-                        to={PATHS.settings}
-                        className="mt-1 text-[12px] text-brand hover:underline"
-                      >
-                        Set goal →
-                      </Link>
-                    </>
-                  ) : (
-                    <>
-                      <ProgressRing progress={goalPct / 100} size={48} strokeWidth={4}>
-                        <span className="font-data text-[11px] font-semibold text-ink-primary">
-                          {goalPct}%
-                        </span>
-                      </ProgressRing>
-                      <span className="mt-1 text-[12px] text-ink-secondary">of daily goal</span>
-                    </>
+                {/* Daily Goal — a real ring once a goal exists; a neutral
+                    target icon (not an empty/misleading 0% ring) as a
+                    prompt when it doesn't. */}
+                <StatCard
+                  accent={dailyGoalMins === null ? undefined : STAT_COLORS.goal}
+                  icon={
+                    dailyGoalMins === null ? (
+                      <IconChip color="#7A7890" icon={<Target style={{ width: 16, height: 16, color: '#7A7890' }} />} />
+                    ) : (
+                      <ProgressRing
+                        progress={goalPct / 100}
+                        size={32}
+                        strokeWidth={3}
+                        color={STAT_COLORS.goal}
+                      />
+                    )
+                  }
+                  value={dailyGoalMins === null ? '—' : `${goalPct}%`}
+                  label={dailyGoalMins === null ? undefined : 'Daily goal'}
+                >
+                  {dailyGoalMins === null && (
+                    <Link
+                      to={PATHS.settings}
+                      className="text-[11px] font-medium text-brand hover:underline"
+                    >
+                      Set a goal →
+                    </Link>
                   )}
-                </div>
+                </StatCard>
               </>
             )}
           </div>
