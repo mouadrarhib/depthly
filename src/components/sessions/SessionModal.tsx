@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Calendar, Clock, FolderOpen, CheckSquare, FileText, Plus, Check } from 'lucide-react'
 
 import {
   Dialog,
@@ -28,6 +29,8 @@ interface SessionModalProps {
   session?: SessionWithRelations
 }
 
+const DURATION_PRESETS = [15, 25, 30, 45, 60]
+
 function toLocalDateStr(iso: string): string {
   return new Date(iso).toLocaleDateString('en-CA') // YYYY-MM-DD
 }
@@ -36,9 +39,38 @@ function toLocalTimeStr(iso: string): string {
   return new Date(iso).toTimeString().slice(0, 5) // HH:MM
 }
 
-const inputCls =
-  'h-10 w-full rounded border border-border bg-surface-overlay px-3 text-sm text-text ' +
+// ── Section label — icon + uppercase micro-label, matches TimerSettings/TaskDetailModal ──
+
+function SectionLabel({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <Icon size={13} style={{ color: '#7A7890' }} />
+      <span
+        style={{
+          fontSize:      11,
+          fontWeight:    600,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color:         '#7A7890',
+        }}
+      >
+        {children}
+      </span>
+    </div>
+  )
+}
+
+// ── Native date/time inputs, restyled to match the app's own fields ─────────
+// color-scheme:dark tells the browser to render its native calendar/clock
+// picker glyph and popover in a dark-appropriate tone instead of assuming a
+// light page — the default (unset) is what made these look like a raw OS
+// widget dropped onto a dark UI rather than part of it.
+
+const nativeFieldCls =
+  'font-data h-10 w-full rounded-lg border border-depth-border bg-depth-bg px-3 text-sm text-ink-primary ' +
   'focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand transition-colors'
+
+const selectTriggerCls = 'border-depth-border bg-depth-bg text-ink-primary h-10 rounded-lg'
 
 export function SessionModal({ open, onClose, session }: SessionModalProps) {
   const userId = useAuthStore(s => s.user?.id ?? '')
@@ -90,6 +122,16 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
     createManualSession.reset()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
+
+  // "Ends at" preview — quiet confirmation that date + time + duration add
+  // up to what the user expects, without making them do the math.
+  const endTimeLabel = (() => {
+    if (!date || !time) return null
+    const start = new Date(`${date}T${time}`)
+    if (Number.isNaN(start.getTime())) return null
+    const end = new Date(start.getTime() + durationMins * 60_000)
+    return end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  })()
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -144,117 +186,192 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
           <DialogTitle className="text-ink-primary">
             {isEdit ? 'Edit session' : 'Add session'}
           </DialogTitle>
+          <p style={{ fontSize: 13, color: '#7A7890' }}>
+            {isEdit
+              ? 'Update the time, duration, or project for this session.'
+              : 'Log a focus session you tracked outside the timer.'}
+          </p>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 pt-1">
 
-          {/* Date + Time */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-text-muted">
-              Date &amp; time
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <input
-                type="date"
-                value={date}
-                onChange={e => {
-                  setDate(e.target.value)
-                  if (dateError) setDateError('')
-                }}
-                required
-                className={inputCls}
-              />
-              <input
-                type="time"
-                value={time}
-                onChange={e => {
-                  setTime(e.target.value)
-                  if (dateError) setDateError('')
-                }}
-                required
-                className={inputCls}
-              />
+          {/* Session time */}
+          <div
+            style={{
+              display:      'flex',
+              flexDirection: 'column',
+              gap:          12,
+              borderRadius: 10,
+              padding:      14,
+              border:       '1px solid #2E2E38',
+              borderLeft:   '2px solid #4B9EFF',
+              background:   'rgba(255,255,255,0.015)',
+            }}
+          >
+            <SectionLabel icon={Clock}>Session time</SectionLabel>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1 text-xs text-ink-secondary">
+                  <Calendar size={12} /> Date
+                </label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={e => {
+                    setDate(e.target.value)
+                    if (dateError) setDateError('')
+                  }}
+                  required
+                  style={{ colorScheme: 'dark' }}
+                  className={nativeFieldCls}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1 text-xs text-ink-secondary">
+                  <Clock size={12} /> Start time
+                </label>
+                <input
+                  type="time"
+                  value={time}
+                  onChange={e => {
+                    setTime(e.target.value)
+                    if (dateError) setDateError('')
+                  }}
+                  required
+                  style={{ colorScheme: 'dark' }}
+                  className={nativeFieldCls}
+                />
+              </div>
             </div>
             {dateError && (
               <p className="text-xs text-feedback-error">{dateError}</p>
             )}
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-ink-secondary">Duration</label>
+              <div className="flex flex-wrap items-center gap-2">
+                <Stepper
+                  value={durationMins}
+                  min={1}
+                  max={480}
+                  onChange={setDurationMins}
+                />
+                <div className="flex flex-wrap gap-1.5">
+                  {DURATION_PRESETS.map(mins => (
+                    <button
+                      key={mins}
+                      type="button"
+                      onClick={() => setDurationMins(mins)}
+                      className="transition-colors"
+                      style={{
+                        padding:      '4px 10px',
+                        fontSize:     12,
+                        fontWeight:   500,
+                        borderRadius: 999,
+                        border:       '1px solid',
+                        borderColor:  durationMins === mins ? 'rgba(75,158,255,0.4)' : '#2E2E38',
+                        background:   durationMins === mins ? 'rgba(75,158,255,0.12)' : 'transparent',
+                        color:        durationMins === mins ? '#4B9EFF' : '#7A7890',
+                      }}
+                    >
+                      {mins}m
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {endTimeLabel && (
+              <p className="font-data text-xs" style={{ color: '#7A7890' }}>
+                Ends at {endTimeLabel}
+              </p>
+            )}
           </div>
 
-          {/* Duration */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-text-muted">
-              Duration (minutes)
-            </label>
-            <Stepper
-              value={durationMins}
-              min={1}
-              max={480}
-              onChange={setDurationMins}
-            />
-          </div>
+          {/* Link to work */}
+          <div
+            style={{
+              display:       'flex',
+              flexDirection: 'column',
+              gap:           10,
+              borderRadius:  10,
+              padding:       14,
+              border:        '1px solid #2E2E38',
+              background:    'rgba(255,255,255,0.015)',
+            }}
+          >
+            <SectionLabel icon={FolderOpen}>Link to work (optional)</SectionLabel>
 
-          {/* Project */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-text-muted">Project</label>
-            <Select
-              value={projectId}
-              onValueChange={v => {
-                setProjectId(v === '__none__' ? '' : v)
-                setTaskId('')
-              }}
-            >
-              <SelectTrigger className="border-border bg-surface-overlay text-text">
-                <SelectValue placeholder="No project" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">No project</SelectItem>
-                {projects.map(p => (
-                  <SelectItem key={p.id} value={p.id}>
-                    <span className="flex items-center gap-2">
-                      <span
-                        className="inline-block h-2 w-2 shrink-0 rounded-full"
-                        style={{ backgroundColor: p.color }}
-                      />
-                      {p.name}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1 text-xs text-ink-secondary">
+                  <FolderOpen size={12} /> Project
+                </label>
+                <Select
+                  value={projectId}
+                  onValueChange={v => {
+                    setProjectId(v === '__none__' ? '' : v)
+                    setTaskId('')
+                  }}
+                >
+                  <SelectTrigger className={selectTriggerCls}>
+                    <SelectValue placeholder="No project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">No project</SelectItem>
+                    {projects.map(p => (
+                      <SelectItem key={p.id} value={p.id}>
+                        <span className="flex items-center gap-2">
+                          <span
+                            className="inline-block h-2 w-2 shrink-0 rounded-full"
+                            style={{ backgroundColor: p.color }}
+                          />
+                          {p.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Task */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-text-muted">Task</label>
-            <Select
-              value={taskId}
-              onValueChange={v => setTaskId(v === '__none__' ? '' : v)}
-              disabled={!projectId}
-            >
-              <SelectTrigger className="border-border bg-surface-overlay text-text">
-                <SelectValue placeholder="No task" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">No task</SelectItem>
-                {tasks.map(t => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1 text-xs text-ink-secondary">
+                  <CheckSquare size={12} /> Task
+                </label>
+                <Select
+                  value={taskId}
+                  onValueChange={v => setTaskId(v === '__none__' ? '' : v)}
+                  disabled={!projectId}
+                >
+                  <SelectTrigger className={selectTriggerCls}>
+                    <SelectValue placeholder="No task" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">No task</SelectItem>
+                    {tasks.map(t => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
 
           {/* Notes */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-text-muted">Notes</label>
+            <label className="flex items-center gap-1 text-xs text-ink-secondary">
+              <FileText size={12} /> Notes
+            </label>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="Add notes about this session..."
               rows={3}
-              className="w-full resize-none rounded border border-border bg-surface-overlay
-                         px-3 py-2 text-sm text-text placeholder:text-text-faint
+              className="w-full resize-none rounded-lg border border-depth-border bg-depth-bg
+                         px-3 py-2 text-sm text-ink-primary placeholder:text-ink-muted
                          focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand
                          transition-colors"
             />
@@ -274,7 +391,8 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" variant="primary" isLoading={isPending}>
+            <Button type="submit" variant="primary" isLoading={isPending} style={{ gap: 6 }}>
+              {isEdit ? <Check size={14} /> : <Plus size={14} />}
               {isEdit ? 'Save changes' : 'Add session'}
             </Button>
           </DialogFooter>
