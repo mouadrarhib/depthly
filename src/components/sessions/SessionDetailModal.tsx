@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react'
+import { Calendar, Clock, FolderOpen, FileText, Pencil, Trash2 } from 'lucide-react'
 
 import {
   Dialog,
@@ -43,6 +43,27 @@ function formatDuration(mins: number): string {
   return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
+// ── Section label — icon + uppercase micro-label, matches SessionModal/TaskDetailModal ──
+
+function SectionLabel({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <Icon size={13} style={{ color: '#7A7890' }} />
+      <span
+        style={{
+          fontSize:      11,
+          fontWeight:    600,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color:         '#7A7890',
+        }}
+      >
+        {children}
+      </span>
+    </div>
+  )
+}
+
 export function SessionDetailModal({ open, onClose, session, onEdit, onDelete }: SessionDetailModalProps) {
   if (!session) return null
 
@@ -74,10 +95,58 @@ export function SessionDetailModal({ open, onClose, session, onEdit, onDelete }:
 
         <div className="flex flex-col gap-4 pt-1">
 
+          {/* Session time */}
+          <div
+            style={{
+              display:      'flex',
+              flexDirection: 'column',
+              gap:          12,
+              borderRadius: 10,
+              padding:      14,
+              border:       '1px solid #2E2E38',
+              borderLeft:   '2px solid #4B9EFF',
+              background:   'rgba(255,255,255,0.015)',
+            }}
+          >
+            <SectionLabel icon={Clock}>Session time</SectionLabel>
+
+            <div className="flex flex-col gap-1">
+              <label className="flex items-center gap-1 text-xs text-ink-secondary">
+                <Calendar size={12} /> Date
+              </label>
+              <p className="text-[14px] text-ink-primary">{formatDate(session.started_at)}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-ink-secondary">Start – End</label>
+                <p className="font-data text-[13px] text-ink-primary">
+                  {formatTime(session.started_at)} &ndash; {formatTime(session.ended_at)}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-ink-secondary">Duration</label>
+                <p className="font-data text-[15px] font-semibold text-ink-primary">
+                  {formatDuration(session.duration_mins)}
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Project + task */}
           {!isBreak && (
-            <div className="flex flex-col gap-1.5">
-              <p className="text-[11px] text-ink-muted">Project</p>
+            <div
+              style={{
+                display:       'flex',
+                flexDirection: 'column',
+                gap:           8,
+                borderRadius:  10,
+                padding:       14,
+                border:        '1px solid #2E2E38',
+                background:    'rgba(255,255,255,0.015)',
+              }}
+            >
+              <SectionLabel icon={FolderOpen}>Project &amp; task</SectionLabel>
               {session.projects ? (
                 <div className="flex items-center gap-2">
                   <span
@@ -97,32 +166,19 @@ export function SessionDetailModal({ open, onClose, session, onEdit, onDelete }:
             </div>
           )}
 
-          {/* Date + time range */}
-          <div className="flex flex-col gap-1.5">
-            <p className="text-[11px] text-ink-muted">Date &amp; time</p>
-            <p className="text-[14px] text-ink-primary">{formatDate(session.started_at)}</p>
-            <p className="font-data text-[13px] text-ink-secondary">
-              {formatTime(session.started_at)} &ndash; {formatTime(session.ended_at)}
-            </p>
-          </div>
-
-          {/* Duration */}
-          <div className="flex flex-col gap-1.5">
-            <p className="text-[11px] text-ink-muted">Duration</p>
-            <p className="font-data text-[15px] font-semibold text-ink-primary">
-              {formatDuration(session.duration_mins)}
-            </p>
-          </div>
-
           {/* Notes */}
           <div className="flex flex-col gap-1.5">
-            <p className="text-[11px] text-ink-muted">Notes</p>
+            <label className="flex items-center gap-1 text-xs text-ink-secondary">
+              <FileText size={12} /> Notes
+            </label>
             {session.notes ? (
-              <p className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-lg border border-depth-border bg-depth-raised px-3 py-2 text-[13px] text-ink-primary">
+              <p className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-lg border border-depth-border bg-depth-bg px-3 py-2 text-[13px] text-ink-primary">
                 {session.notes}
               </p>
             ) : (
-              <p className="text-[13px] text-ink-muted">No notes for this session</p>
+              <span style={{ color: '#3D3B4E', fontStyle: 'italic', fontSize: 13 }}>
+                No notes for this session
+              </span>
             )}
           </div>
 
@@ -132,12 +188,12 @@ export function SessionDetailModal({ open, onClose, session, onEdit, onDelete }:
           <Button type="button" variant="ghost" onClick={onClose}>
             Close
           </Button>
-          <Button type="button" variant="danger" onClick={onDelete}>
-            <Trash2 className="h-3.5 w-3.5" />
+          <Button type="button" variant="danger" onClick={onDelete} style={{ gap: 6 }}>
+            <Trash2 size={14} />
             Delete
           </Button>
-          <Button type="button" variant="primary" onClick={onEdit}>
-            <Pencil className="h-3.5 w-3.5" />
+          <Button type="button" variant="primary" onClick={onEdit} style={{ gap: 6 }}>
+            <Pencil size={14} />
             Edit
           </Button>
         </DialogFooter>
