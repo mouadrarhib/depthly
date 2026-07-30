@@ -112,6 +112,8 @@ function ChartTooltip({ active, payload }: ChartTooltipProps) {
       border:          '1px solid #2E2E38',
       borderRadius:    8,
       padding:         '10px 14px',
+      maxWidth:        180,
+      boxShadow:       '0 4px 16px rgba(0,0,0,0.4)',
     }}>
       <div style={{ fontSize: 13, color: '#E8E6F0', fontWeight: 500, marginBottom: 4 }}>
         {dayName}, {dateStr}
@@ -369,6 +371,8 @@ export function WeeklyView({ date }: WeeklyViewProps) {
               <Tooltip
                 content={<ChartTooltip />}
                 cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                allowEscapeViewBox={{ x: true, y: true }}
+                wrapperStyle={{ zIndex: 20 }}
               />
               <Bar dataKey="focus_minutes" radius={[6, 6, 0, 0]} maxBarSize={48}>
                 <LabelList
