@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Calendar, ChevronDown, Clock, FolderOpen, CheckSquare, FileText, Plus, Check } from 'lucide-react'
+import { Calendar, Clock, FolderOpen, CheckSquare, FileText, Plus, Check } from 'lucide-react'
 
 import {
   Dialog,
@@ -211,43 +211,37 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
             <SectionLabel icon={Clock}>Session time</SectionLabel>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
+              <div className="flex min-w-0 flex-col gap-1.5">
                 <label className="flex items-center gap-1 text-xs text-ink-secondary">
                   <Calendar size={12} /> Date
                 </label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={e => {
-                      setDate(e.target.value)
-                      if (dateError) setDateError('')
-                    }}
-                    required
-                    style={{ colorScheme: 'dark' }}
-                    className={`${nativeFieldCls} pr-9`}
-                  />
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-secondary opacity-50" />
-                </div>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={e => {
+                    setDate(e.target.value)
+                    if (dateError) setDateError('')
+                  }}
+                  required
+                  style={{ colorScheme: 'dark' }}
+                  className={nativeFieldCls}
+                />
               </div>
-              <div className="flex flex-col gap-1.5">
+              <div className="flex min-w-0 flex-col gap-1.5">
                 <label className="flex items-center gap-1 text-xs text-ink-secondary">
                   <Clock size={12} /> Start time
                 </label>
-                <div className="relative">
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={e => {
-                      setTime(e.target.value)
-                      if (dateError) setDateError('')
-                    }}
-                    required
-                    style={{ colorScheme: 'dark' }}
-                    className={`${nativeFieldCls} pr-9`}
-                  />
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-secondary opacity-50" />
-                </div>
+                <input
+                  type="time"
+                  value={time}
+                  onChange={e => {
+                    setTime(e.target.value)
+                    if (dateError) setDateError('')
+                  }}
+                  required
+                  style={{ colorScheme: 'dark' }}
+                  className={nativeFieldCls}
+                />
               </div>
             </div>
             {dateError && (
