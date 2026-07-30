@@ -140,4 +140,15 @@
   *::-webkit-scrollbar-thumb:hover {
     background-color: var(--color-text-faint);
   }
+
+  /* Native <input type="date"|"time"> center their value on iOS/WebKit no
+     matter what text-align is set on the input itself — this is the one
+     part of these inputs WebKit exposes a pseudo-element for, and without
+     it every date/time field in the app reads as centered text with no
+     affordance icon, visually inconsistent with the left-aligned,
+     chevron-trailing Select fields sitting right next to them. */
+  input[type="date"]::-webkit-date-and-time-value,
+  input[type="time"]::-webkit-date-and-time-value {
+    text-align: left;
+  }
 }
