@@ -18,6 +18,7 @@ import { formatPeriodKey, formatMinutesToHours, getGoalProgress, getDaysInWeek }
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { ConfettiBurst } from '@/components/ui/ConfettiBurst'
 import { GoalHistoryRow } from '@/components/goals/GoalHistoryRow'
+import { GoalDialog } from '@/components/goals/GoalDialog'
 import { PATHS } from '@/routes/paths'
 
 interface DailyViewProps {
@@ -146,6 +147,7 @@ export function DailyView({ date }: DailyViewProps) {
 
   const { windowDays, isPro } = useAnalyticsWindow()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
+  const [goalDialogOpen, setGoalDialogOpen] = useState(false)
 
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - windowDays)
@@ -250,12 +252,13 @@ export function DailyView({ date }: DailyViewProps) {
                   />
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', gap: 8 }}>
                     <span style={{ fontSize: 13, color: '#7A7890' }}>No goal set</span>
-                    <Link
-                      to={PATHS.settings}
-                      style={{ fontSize: 13, color: '#4B9EFF', textDecoration: 'none' }}
+                    <button
+                      type="button"
+                      onClick={() => setGoalDialogOpen(true)}
+                      style={{ fontSize: 13, color: '#4B9EFF', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                     >
                       Set goal →
-                    </Link>
+                    </button>
                   </div>
                 </div>
               )
@@ -431,6 +434,7 @@ export function DailyView({ date }: DailyViewProps) {
       </div>
 
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="analytics" />
+      <GoalDialog open={goalDialogOpen} onClose={() => setGoalDialogOpen(false)} />
     </div>
   )
 }

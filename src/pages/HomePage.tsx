@@ -13,6 +13,7 @@ import { TimerWidget } from '@/components/home/TimerWidget'
 import { SessionRow } from '@/components/sessions/SessionRow'
 import { SessionDetailModal } from '@/components/sessions/SessionDetailModal'
 import { SessionModal } from '@/components/sessions/SessionModal'
+import { GoalDialog } from '@/components/goals/GoalDialog'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -119,6 +120,7 @@ export function HomePage() {
   const [editingSession,  setEditingSession]  = useState<SessionWithRelations | null>(null)
   const [deletingSession, setDeletingSession] = useState<SessionWithRelations | null>(null)
   const [viewingSession,  setViewingSession]  = useState<SessionWithRelations | null>(null)
+  const [goalDialogOpen,  setGoalDialogOpen]  = useState(false)
   const deleteSession = useDeleteSession()
 
   const sessions       = sessionsData?.sessions ?? []
@@ -260,12 +262,13 @@ export function HomePage() {
                   label={dailyGoalMins === null ? undefined : 'Daily goal'}
                 >
                   {dailyGoalMins === null && (
-                    <Link
-                      to={PATHS.settings}
+                    <button
+                      type="button"
+                      onClick={() => setGoalDialogOpen(true)}
                       className="text-[11px] font-medium text-brand hover:underline"
                     >
                       Set a goal →
-                    </Link>
+                    </button>
                   )}
                 </StatCard>
               </>
@@ -432,6 +435,9 @@ export function HomePage() {
         isLoading={deleteSession.isPending}
         variant="danger"
       />
+
+      {/* Quick-set goal dialog */}
+      <GoalDialog open={goalDialogOpen} onClose={() => setGoalDialogOpen(false)} />
 
     </div>
   )
