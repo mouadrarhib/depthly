@@ -210,8 +210,13 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
           >
             <SectionLabel icon={Clock}>Session time</SectionLabel>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="flex min-w-0 flex-col gap-1.5">
+            {/* flex, not grid — native date/time inputs don't reliably respect
+                CSS Grid's track-sizing constraints on WebKit (unlike the plain
+                custom-styled Select triggers in "Link to work" below), and can
+                overflow their grid cell even with width:100% set. Flexbox's
+                shrink algorithm is honored properly for native form controls. */}
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row">
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <label className="flex items-center gap-1 text-xs text-ink-secondary">
                   <Calendar size={12} /> Date
                 </label>
@@ -227,7 +232,7 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
                   className={nativeFieldCls}
                 />
               </div>
-              <div className="flex min-w-0 flex-col gap-1.5">
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <label className="flex items-center gap-1 text-xs text-ink-secondary">
                   <Clock size={12} /> Start time
                 </label>
