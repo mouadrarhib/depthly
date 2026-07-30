@@ -67,7 +67,7 @@ function SectionLabel({ icon: Icon, children }: { icon: React.ElementType; child
 // widget dropped onto a dark UI rather than part of it.
 
 const nativeFieldCls =
-  'font-data h-10 w-full rounded-lg border border-depth-border bg-depth-raised px-3 text-sm text-ink-primary ' +
+  'font-data h-10 w-full min-w-0 max-w-full rounded-lg border border-depth-border bg-depth-raised px-3 text-sm text-ink-primary ' +
   'focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand transition-colors'
 
 const selectTriggerCls = 'border-depth-border bg-depth-raised text-ink-primary h-10 rounded-lg'
@@ -181,7 +181,7 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) onClose() }}>
-      <DialogContent className="bg-depth-surface border-depth-border max-w-md">
+      <DialogContent className="bg-depth-surface border-depth-border max-w-md overflow-x-hidden">
         <DialogHeader>
           <DialogTitle className="text-ink-primary">
             {isEdit ? 'Edit session' : 'Add session'}
