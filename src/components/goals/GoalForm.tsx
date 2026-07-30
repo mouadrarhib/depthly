@@ -1,71 +1,105 @@
 import { useState, useEffect } from 'react'
+import { Check, Clock, Calendar } from 'lucide-react'
 
 import { useGoals, useUpdateGoals } from '@/hooks/useGoals'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/Spinner'
+import { formatMinutesToHours } from '@/lib/utils/analytics'
 
 const DAILY_PRESETS  = [{ label: '1h', minutes: 60 }, { label: '2h', minutes: 120 }, { label: '4h', minutes: 240 }, { label: '6h', minutes: 360 }]
 const WEEKLY_PRESETS = [{ label: '5h', minutes: 300 }, { label: '10h', minutes: 600 }, { label: '20h', minutes: 1200 }, { label: '30h', minutes: 1800 }]
 
 function GoalRow({
+  icon,
+  accent,
   label,
   value,
   onChange,
   presets,
 }: {
+  icon:     React.ReactNode
+  accent:   string
   label:    string
   value:    string
   onChange: (val: string) => void
   presets:  { label: string; minutes: number }[]
 }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>{label}</span>
+  const minutes = Number(value)
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <input
-          type="number"
-          min={1}
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          placeholder="e.g. 120"
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        {icon}
+        <span
           style={{
-            width:           96,
-            height:          36,
-            padding:         '0 10px',
-            fontSize:        13,
-            background:      'var(--color-surface-overlay)',
-            border:          '1px solid var(--color-border)',
-            borderRadius:    8,
-            color:           'var(--color-text)',
-            outline:         'none',
+            fontSize:      11,
+            fontWeight:    600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color:         'var(--color-text-faint)',
           }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-brand)' }}
-          onBlur={e  => { e.currentTarget.style.borderColor = 'var(--color-border)' }}
-        />
-        <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>minutes</span>
+        >
+          {label}
+        </span>
       </div>
 
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {presets.map(p => (
-          <button
-            key={p.label}
-            onClick={() => onChange(String(p.minutes))}
+      <div style={{ borderLeft: `2px solid ${accent}`, paddingLeft: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <input
+            type="number"
+            min={1}
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            placeholder="e.g. 120"
             style={{
-              padding:      '4px 12px',
-              fontSize:     12,
-              fontWeight:   500,
-              borderRadius: 999,
-              cursor:       'pointer',
-              transition:   'all 0.15s',
-              ...(value === String(p.minutes)
-                ? { background: 'var(--color-surface-overlay)', color: 'var(--color-brand)', border: '1px solid rgba(75,158,255,0.4)' }
-                : { background: 'transparent', color: 'var(--color-text-faint)', border: '1px solid var(--color-border)' }),
+              width:           110,
+              height:          38,
+              padding:         '0 12px',
+              fontSize:        14,
+              fontWeight:      500,
+              background:      'var(--color-surface-overlay)',
+              border:          '1px solid var(--color-border)',
+              borderRadius:    8,
+              color:           'var(--color-text)',
+              outline:         'none',
             }}
-          >
-            {p.label}
-          </button>
-        ))}
+            onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-brand)' }}
+            onBlur={e  => { e.currentTarget.style.borderColor = 'var(--color-border)' }}
+          />
+          <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>minutes</span>
+
+          {value && minutes > 0 && (
+            <span
+              className="font-data"
+              style={{ fontSize: 12, fontWeight: 600, color: accent, marginLeft: 'auto' }}
+            >
+              → {formatMinutesToHours(minutes)}
+            </span>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {presets.map(p => (
+            <button
+              key={p.label}
+              type="button"
+              onClick={() => onChange(String(p.minutes))}
+              className="transition-all"
+              style={{
+                padding:      '4px 12px',
+                fontSize:     12,
+                fontWeight:   500,
+                borderRadius: 999,
+                cursor:       'pointer',
+                ...(value === String(p.minutes)
+                  ? { background: 'var(--color-surface-overlay)', color: accent, border: `1px solid ${accent}66` }
+                  : { background: 'transparent', color: 'var(--color-text-faint)', border: '1px solid var(--color-border)' }),
+              }}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -123,12 +157,19 @@ export function GoalForm({ onSaved }: GoalFormProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <GoalRow
+        icon={<Clock size={13} style={{ color: 'var(--color-brand)' }} />}
+        accent="var(--color-brand)"
         label="Daily goal"
         value={daily}
         onChange={setDaily}
         presets={DAILY_PRESETS}
       />
+
+      <div style={{ height: 1, background: 'var(--color-border)' }} />
+
       <GoalRow
+        icon={<Calendar size={13} style={{ color: '#3DD68C' }} />}
+        accent="#3DD68C"
         label="Weekly goal"
         value={weekly}
         onChange={setWeekly}
@@ -145,9 +186,11 @@ export function GoalForm({ onSaved }: GoalFormProps) {
           Save
         </Button>
 
-        {saved ? (
-          <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>Saved</span>
-        ) : null}
+        {saved && (
+          <span style={{ fontSize: 12, color: 'var(--color-success)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Check size={12} /> Saved
+          </span>
+        )}
       </div>
     </div>
   )
