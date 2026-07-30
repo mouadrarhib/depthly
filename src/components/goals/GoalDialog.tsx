@@ -1,8 +1,11 @@
+import { Target } from 'lucide-react'
+
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import { GoalForm } from '@/components/goals/GoalForm'
 
@@ -18,10 +21,16 @@ export function GoalDialog({ open, onClose }: GoalDialogProps) {
     <Dialog open={open} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent className="bg-depth-surface border-depth-border max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-ink-primary">Set a focus goal</DialogTitle>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Target size={16} style={{ color: 'var(--color-brand)', flexShrink: 0 }} />
+            <DialogTitle className="text-ink-primary">Set a focus goal</DialogTitle>
+          </div>
+          <DialogDescription style={{ fontSize: 12, marginTop: 2 }}>
+            Track how much focus time you're aiming for each day and week.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="pt-1">
+        <div className="pt-2">
           <GoalForm onSaved={onClose} />
         </div>
       </DialogContent>
