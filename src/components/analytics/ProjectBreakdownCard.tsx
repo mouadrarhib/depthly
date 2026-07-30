@@ -169,7 +169,7 @@ export function ProjectBreakdownCard({
                   <div
                     key={entry.name}
                     title={entry.name}
-                    className="hover:bg-white/[0.03] rounded-md transition-colors"
+                    className="hover:bg-white/[0.03] rounded-md transition-colors min-w-0"
                     style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '6px 8px' }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
