@@ -67,10 +67,10 @@ function SectionLabel({ icon: Icon, children }: { icon: React.ElementType; child
 // widget dropped onto a dark UI rather than part of it.
 
 const nativeFieldCls =
-  'font-data h-10 w-full rounded-lg border border-depth-border bg-depth-bg px-3 text-sm text-ink-primary ' +
+  'font-data h-10 w-full rounded-lg border border-depth-border bg-depth-raised px-3 text-sm text-ink-primary ' +
   'focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand transition-colors'
 
-const selectTriggerCls = 'border-depth-border bg-depth-bg text-ink-primary h-10 rounded-lg'
+const selectTriggerCls = 'border-depth-border bg-depth-raised text-ink-primary h-10 rounded-lg'
 
 export function SessionModal({ open, onClose, session }: SessionModalProps) {
   const userId = useAuthStore(s => s.user?.id ?? '')
@@ -370,7 +370,7 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
               onChange={e => setNotes(e.target.value)}
               placeholder="Add notes about this session..."
               rows={3}
-              className="w-full resize-none rounded-lg border border-depth-border bg-depth-bg
+              className="w-full resize-none rounded-lg border border-depth-border bg-depth-raised
                          px-3 py-2 text-sm text-ink-primary placeholder:text-ink-muted
                          focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand
                          transition-colors"
