@@ -154,13 +154,14 @@ export function ProjectBreakdownCard({
 
             return (
               <div
+                className={useTwoColumn ? 'flex flex-col gap-1 md:grid md:grid-cols-2 md:gap-x-6 md:gap-y-2.5' : undefined}
                 style={{
                   flex:     '0 1 auto',
                   minWidth: 200,
                   maxWidth: useTwoColumn ? 480 : 260,
                   width:    useTwoColumn ? '100%' : undefined,
                   ...(useTwoColumn
-                    ? { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', columnGap: 24, rowGap: 10 }
+                    ? {}
                     : { display: 'flex', flexDirection: 'column', gap: 4 }),
                 }}
               >
