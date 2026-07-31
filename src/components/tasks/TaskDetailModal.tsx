@@ -24,7 +24,7 @@ interface TaskDetailModalProps {
 
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="min-w-0 flex flex-col gap-1">
       <span
         style={{
           fontSize:      11,
@@ -36,7 +36,7 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
       >
         {label}
       </span>
-      <div style={{ fontSize: 13, color: '#E8E6F0' }}>{children}</div>
+      <div className="min-w-0" style={{ fontSize: 13, color: '#E8E6F0' }}>{children}</div>
     </div>
   )
 }
@@ -61,7 +61,7 @@ export function TaskDetailModal({ open, onClose, task, sessionMins, onEdit, onSt
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 pt-1">
+        <div className="min-w-0 flex flex-col gap-4 pt-1">
 
           {/* Status + priority pills */}
           <div className="flex flex-wrap items-center gap-2">
@@ -85,7 +85,10 @@ export function TaskDetailModal({ open, onClose, task, sessionMins, onEdit, onSt
           {/* Description */}
           <DetailRow label="Description">
             {task.description ? (
-              <p className="whitespace-pre-wrap" style={{ lineHeight: 1.5, color: '#B0AECB' }}>
+              <p
+                className="min-w-0 max-h-40 overflow-y-auto whitespace-pre-wrap break-words"
+                style={{ lineHeight: 1.5, color: '#B0AECB' }}
+              >
                 {task.description}
               </p>
             ) : (
