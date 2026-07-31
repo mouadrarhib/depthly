@@ -65,11 +65,14 @@ export function SessionRow({ session, onOpenDetail, onEdit, onDelete }: SessionR
         el.style.borderColor = ''
       }}
     >
-      {/* TIME — fixed 80px */}
-      <div style={{ width: 80, flexShrink: 0 }}>
+      {/* TIME — fixed 80px. self-start so it lines up with the project name
+          on the first line, instead of the row's items-center vertically
+          centering it against the full two-line project+task block (which
+          left it floating between the title and subtitle). */}
+      <div className="self-start" style={{ width: 80, flexShrink: 0, marginTop: -4 }}>
         <span
           className={cn(
-            'font-data text-[14px] font-medium whitespace-nowrap',
+            'font-data text-[14px] font-medium leading-none whitespace-nowrap',
             isBreak ? 'text-ink-muted' : 'text-ink-primary',
           )}
         >
