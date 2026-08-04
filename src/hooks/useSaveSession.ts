@@ -50,7 +50,7 @@ export function useSaveSession() {
         // Guard: skip startBreak if the user manually stopped the timer between
         // the save firing and the DB response coming back
         if (useTimerStore.getState().isRunning) {
-          useTimerStore.getState().startBreak()
+          useTimerStore.getState().startBreak(true)
         }
       },
     })

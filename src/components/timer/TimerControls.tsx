@@ -19,12 +19,18 @@ export function TimerControls({ onStop }: TimerControlsProps = {}) {
   const handleStop = onStop ?? saveAndStop
 
   const isIdle = !isRunning && !isPaused
+  // Idle can mean "haven't started a focus session yet" OR "auto-start break
+  // is off, so the break phase is sitting idle waiting for the user" — the
+  // latter must resume() (keep the already-set break duration/elapsed)
+  // rather than start(), which would force sessionType back to focus and
+  // discard the break the user was just about to take.
+  const isBreakIdle = isIdle && sessionType === 'break'
 
   if (isIdle) {
     return (
       <>
         <button
-          onClick={start}
+          onClick={isBreakIdle ? resume : start}
           className={cn(base, 'w-full max-w-[220px] h-[48px] sm:h-[52px] rounded-[14px] text-[14px] sm:text-[15px] font-semibold tracking-wide')}
           style={{
             background:  'rgba(75, 158, 255, 0.08)',
@@ -47,7 +53,7 @@ export function TimerControls({ onStop }: TimerControlsProps = {}) {
             el.style.boxShadow   = 'inset 0 1px 0 rgba(255,255,255,0.04)'
           }}
         >
-          Start Focus Session
+          {isBreakIdle ? 'Start Break' : 'Start Focus Session'}
         </button>
         <SaveToast message={toastMessage} />
       </>

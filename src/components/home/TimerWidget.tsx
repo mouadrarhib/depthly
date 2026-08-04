@@ -44,6 +44,10 @@ export function TimerWidget() {
   const remaining = isFree ? elapsed : Math.max(0, duration - elapsed)
   const ringColor = sessionType === 'focus' ? '#3DD68C' : 'var(--color-brand)'
   const isIdle    = !isRunning && !isPaused
+  // See TimerControls.tsx — idle-in-break (auto-start break off) must
+  // resume() to keep the break's duration/elapsed instead of start(),
+  // which would force sessionType back to focus.
+  const isBreakIdle = isIdle && sessionType === 'break'
   const fontSz    = Math.round((isFree ? 48 : 72) * SCALE)
 
   // Intercept start when monthly session limit is reached
@@ -104,7 +108,7 @@ export function TimerWidget() {
       {/* Controls */}
       {isIdle ? (
         <button
-          onClick={start}
+          onClick={isBreakIdle ? resume : start}
           style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             width: RING, height: 48, borderRadius: 14,
@@ -128,7 +132,7 @@ export function TimerWidget() {
             el.style.color = '#B8D4FF'
           }}
         >
-          Start Focus Session
+          {isBreakIdle ? 'Start Break' : 'Start Focus Session'}
         </button>
       ) : isPaused ? (
         <div style={{ display: 'flex', gap: 8 }}>

@@ -102,7 +102,7 @@ interface TimerState {
   resume:             () => void
   stop:               () => void
   reset:              () => void
-  startBreak:         () => void
+  startBreak:         (auto?: boolean) => void
   endBreak:           () => void
   skipBreak:          () => void
   tick:               () => void
@@ -144,14 +144,20 @@ export const useTimerStore = create<TimerState>()((set, get) => ({
 
   reset: () => set({ isRunning: false, isPaused: false, elapsed: 0 }),
 
-  // Called after a focus session is saved — always auto-starts the break.
-  startBreak: () => {
-    const { breakDuration } = get()
+  // Transitions into the break phase. `auto` distinguishes why this was
+  // called: true means it's the automatic transition right after a focus
+  // session completes, which should honor the autoStartBreak setting (sit
+  // idle in the break phase if the user turned auto-start off, instead of
+  // running unasked-for). false (the default) means an explicit user action
+  // — clicking the Break dot to switch phases manually — which should always
+  // start running immediately, same as the Start Focus Session button does.
+  startBreak: (auto = false) => {
+    const { breakDuration, autoStartBreak } = get()
     set({
       sessionType: 'break',
       elapsed:     0,
       duration:    breakDuration,
-      isRunning:   true,
+      isRunning:   auto ? autoStartBreak : true,
       isPaused:    false,
     })
   },
