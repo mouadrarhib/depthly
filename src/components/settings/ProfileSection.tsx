@@ -119,6 +119,7 @@ export function ProfileSection() {
       setImgError(false)
       qc.invalidateQueries({ queryKey: analyticsKeys.profile(userId) })
       qc.invalidateQueries({ queryKey: settingsKeys.profile(userId) })
+      qc.invalidateQueries({ queryKey: ['leaderboard'] })
       if (user) setUser({ ...user, user_metadata: { ...user.user_metadata, avatar_url: null } })
     },
   })

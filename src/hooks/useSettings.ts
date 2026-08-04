@@ -81,7 +81,15 @@ export function useUploadAvatar() {
   return useMutation({
     mutationFn: (file: File) => uploadAvatar(userId, file),
     onSuccess: (publicUrl) => {
+      // Every surface that shows an avatar reads from one of these three
+      // caches — settings' own profile query, the analytics-sourced profile
+      // used by Sidebar/Topbar (useTodayStats), and anywhere the leaderboard
+      // is cached (rows, rank cards, friend search). Missing any of them
+      // left that surface showing the old (e.g. Google-provided) avatar
+      // until an unrelated refetch or a full page reload happened to catch it up.
       qc.invalidateQueries({ queryKey: settingsKeys.profile(userId) })
+      qc.invalidateQueries({ queryKey: analyticsKeys.profile(userId) })
+      qc.invalidateQueries({ queryKey: ['leaderboard'] })
       if (user) {
         setUser({
           ...user,

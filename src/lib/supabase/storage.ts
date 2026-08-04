@@ -36,14 +36,24 @@ export async function uploadAvatar(userId: string, file: File): Promise<string> 
     .from('avatars')
     .getPublicUrl(path)
 
+  // getPublicUrl is deterministic from the bucket+path alone, so re-uploading
+  // a new photo with the same file extension as before (the common case —
+  // most people re-upload the same format) produces the exact same URL as
+  // last time. Browsers (and any CDN in front of Storage) then keep serving
+  // the old cached bytes for that URL even though upsert:true really did
+  // overwrite the object — the new photo silently never appears. A
+  // cache-busting query param makes each upload a distinct URL so it's
+  // always treated as a fresh resource.
+  const versionedUrl = `${publicUrl}?v=${Date.now()}`
+
   const { error: updateError } = await supabase
     .from('profiles')
-    .update({ avatar_url: publicUrl })
+    .update({ avatar_url: versionedUrl })
     .eq('id', userId)
 
   if (updateError) throw updateError
 
-  return publicUrl
+  return versionedUrl
 }
 
 export async function deleteAvatar(userId: string): Promise<void> {
