@@ -13,6 +13,15 @@ export const STATUS_CONFIG = {
   done:        { label: 'Done',        color: '#3DD68C' },
 } as const
 
+// Lower rank = shown first. Used to sort tasks within a status group in the
+// list view (urgent work first, low priority last).
+export const PRIORITY_ORDER: Record<keyof typeof PRIORITY_CONFIG, number> = {
+  urgent: 0,
+  high:   1,
+  medium: 2,
+  low:    3,
+}
+
 export function formatDueDate(date: string | null): string {
   if (!date) return ''
 
@@ -46,13 +55,6 @@ export function isOverdue(due_date: string | null, status: string): boolean {
   due.setHours(0, 0, 0, 0)
 
   return due < today
-}
-
-export function getListOrder(tasks: Task[], index: number): number {
-  if (tasks.length === 0) return 1
-  if (index <= 0) return tasks[0].list_order - 1
-  if (index >= tasks.length) return tasks[tasks.length - 1].list_order + 1
-  return (tasks[index - 1].list_order + tasks[index].list_order) / 2
 }
 
 export function getKanbanOrder(tasks: Task[], index: number): number {

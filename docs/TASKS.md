@@ -2,12 +2,12 @@
 
 ## 1. Overview
 
-Tasks are work items that belong to a project. They surface inside the project detail page under the "Tasks" tab and can be viewed in two modes: a vertical **List view** (with drag-to-reorder) and a three-column **Kanban board** (with drag within and across columns).
+Tasks are work items that belong to a project. They surface inside the project detail page under the "Tasks" tab and can be viewed in two modes: a vertical **List view** (auto-sorted — grouped by status, then by priority within each group; not manually reorderable) and a three-column **Kanban board** (with drag within and across columns).
 
 - Tasks are always scoped to a project — there is no global task list.
 - A task can optionally be linked to a focus session via the timer's task selector.
 - Completing a task (status → `done`) records a `completed_at` timestamp; toggling back to `todo` clears it.
-- Two independent float columns control sort order: `list_order` for the list view and `kanban_order` for the kanban view. They are never shared.
+- `kanban_order` (float) controls position within a kanban column via drag-and-drop. `list_order` still exists on the row (set once at creation) but is no longer read for display order — the list view computes its order live from status + priority instead. See `list_order` vs `kanban_order` below.
 
 ---
 
@@ -35,12 +35,8 @@ Table: `tasks`
 
 ### `list_order` vs `kanban_order`
 
-These two columns are **completely independent**:
-
-- **`list_order`**: Controls position in the list view. Dragging in list view updates only `list_order`. The database query in `fetchTasksByProject` orders by `list_order` ascending.
-- **`kanban_order`**: Controls position within a kanban column (i.e. within the same `status`). Dragging in kanban view updates only `kanban_order`. Tasks are sorted by `kanban_order` when rendering each column.
-
-Using separate float columns means that reordering in one view never disturbs the other. Both use fractional indexing (midpoint averaging) to allow unlimited insertions without renumbering.
+- **`list_order`**: Set once on creation (`tasks.length + 1`, see `TaskModal`'s order calculation below) so `fetchTasksByProject`'s `.order('list_order')` clause has a stable, deterministic base ordering to fall back on before `TaskListView` re-sorts it client-side by status/priority. There is no UI to change it after creation — the list view dropped drag-to-reorder in favor of automatic status+priority ordering (logging a session against, or reordering, a task shouldn't require manually filing it into place).
+- **`kanban_order`**: Controls position within a kanban column (i.e. within the same `status`). Dragging in kanban view updates only `kanban_order`, using fractional indexing (midpoint averaging, via `getKanbanOrder`) so a drag only ever writes the one moved row.
 
 ### `completed_at` behavior
 
@@ -60,16 +56,16 @@ Using separate float columns means that reordering in one view never disturbs th
 | `onEditTask` | `(task: Task) => void` | Opens edit modal |
 | `onCreateTask` | `() => void \| undefined` | Optional; shown in empty state |
 
-**Renders:** A filter bar + drag-sortable list of task rows.
+**Renders:** A filter bar + task rows grouped by status, sorted by priority within each group.
 
 **Sub-components (internal):**
 - `SkeletonRow`: animated placeholder row during loading
 - `FilterPill`: a toggleable pill with optional color dot; used for status and priority filters
-- `SortableTaskRow`: a single draggable task row wrapping `useSortable`
+- `GroupHeader`: colored dot + status label + count, shown above each status group — only rendered when the status filter is `'all'` (a single-status filter would just repeat itself)
+- `TaskRow`: a single task row (no drag handle — see §4 List View)
 
 **Key behaviors:**
 - Filters are client-side; applied to the already-fetched task list
-- Drag handle (`⠿` character) is the only element that receives `useSortable` listeners — the rest of the row uses `{...attributes}` only, so checkbox and menu clicks don't trigger drag
 - Two distinct empty states: `isEmpty` (no tasks at all) shows a "Create task" button; `noMatch` (filters hiding everything) shows a "Clear filters" link
 
 ---
@@ -160,7 +156,7 @@ The count badge uses `${color}26` (15% opacity hex alpha) as background with mat
 ### `TaskDetailModal`
 **File:** `src/components/tasks/TaskDetailModal.tsx`
 
-Read-only detail view opened by clicking anywhere on a task row (`TaskListView`) or card (`KanbanCard`) — the checkbox, drag handle, and three-dot menu all `stopPropagation` so they don't also trigger it.
+Read-only detail view opened by clicking anywhere on a task row (`TaskListView`) or card (`KanbanCard`) — the checkbox, (Kanban) drag handle, and three-dot menu all `stopPropagation` so they don't also trigger it.
 
 **Props:**
 | Prop | Type | Description |
@@ -229,20 +225,33 @@ kanban_order = tasks.filter(t => t.status === status).length + 1  // append to t
 
 ### List View
 
-**Drag and drop:**
-- Library: `@dnd-kit/core` + `@dnd-kit/sortable`
-- Sensor: `PointerSensor` with `activationConstraint: { distance: 5 }` (5px movement before drag activates, prevents accidental drags on clicks)
-- Collision detection: `closestCenter`
-- Only the `⠿` drag handle receives `{...listeners}` — the `{...attributes}` (for keyboard navigation) go on the outer row div
+**No drag-and-drop.** Order is fully derived, not stored: tasks are grouped by
+status (`STATUS_ORDER = ['todo', 'in_progress', 'done']`), and within each
+group sorted by priority (`PRIORITY_ORDER`: urgent → high → medium → low),
+with due date (soonest first, undated last) as a tiebreaker for same-priority
+tasks. Toggling a task's status (or editing its priority/due date) simply
+moves it to its new position on the next render — no mutation beyond the
+normal status/priority update is needed.
 
-**`list_order` recalculation on reorder:**
 ```ts
-// After arrayMove to get the new visual order:
-const reordered    = arrayMove(filtered, oldIndex, newIndex)
-const withoutMoved = reordered.filter((_, i) => i !== newIndex)
-const newOrder     = getListOrder(withoutMoved, newIndex)
-// Only the moved task's list_order is updated — not all tasks
+function sortByPriority(list: Task[]): Task[] {
+  return [...list].sort((a, b) => {
+    const rankA = PRIORITY_ORDER[a.priority ?? 'medium']
+    const rankB = PRIORITY_ORDER[b.priority ?? 'medium']
+    if (rankA !== rankB) return rankA - rankB
+    if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date)
+    if (a.due_date) return -1
+    if (b.due_date) return 1
+    return 0
+  })
+}
 ```
+
+When the status filter is `'all'`, tasks render as separate groups (each with
+a `GroupHeader`); picking a specific status filter collapses this to one
+flat, priority-sorted list (a group header would just repeat the filter
+pill). This replaced the earlier `list_order` drag-to-reorder — see
+`list_order` vs `kanban_order` above for why.
 
 **Filters (client-side):**
 - Status filter: `'all' | 'todo' | 'in_progress' | 'done'`
@@ -319,19 +328,9 @@ All hooks are in `src/hooks/useTasks.ts`.
 - **Variables:** `id: string` (the source task ID)
 - **On success:** Invalidates `taskKeys.byProject(result.project_id)` (project ID comes from the returned copy)
 
-### `useReorderTasks(projectId: string)`
-- `projectId` is passed at hook call time (not per-mutation)
-- **Variables:** `Array<{ id: string; list_order: number }>`
-- **Optimistic update:**
-  1. `cancelQueries` on the task list
-  2. Snapshot previous data
-  3. Patch cache: update `list_order` for matching task IDs
-  4. Return `{ previous }` for rollback
-- **On error:** Restores snapshot
-- **On settled:** Invalidates to sync with server
-
 ### `useReorderKanban(projectId: string)`
-- Same structure as `useReorderTasks`
+- Kanban-only — the list view has no reorder mutation (see §4 List View)
+- `projectId` is passed at hook call time (not per-mutation)
 - **Variables:** `Array<{ id: string; kanban_order: number; status?: string }>`
 - **Optimistic update:** Patches both `kanban_order` and `status` (if provided) in the cache
 - On cross-column drag, the status change is reflected immediately in the UI before the server responds
@@ -359,6 +358,17 @@ const STATUS_CONFIG = {
 } as const
 ```
 
+### `PRIORITY_ORDER`
+```ts
+const PRIORITY_ORDER: Record<keyof typeof PRIORITY_CONFIG, number> = {
+  urgent: 0,
+  high:   1,
+  medium: 2,
+  low:    3,
+}
+```
+Lower rank sorts first. Used by `TaskListView`'s `sortByPriority` to order tasks within a status group — not used by Kanban, which orders by `kanban_order` (drag position) instead.
+
 ### `formatDueDate(date: string | null): string`
 Returns a human-readable relative date string. Appends `T00:00:00` before parsing to avoid UTC offset shifting the date.
 
@@ -379,37 +389,25 @@ Returns `true` only if:
 
 Also appends `T00:00:00` before parsing for the same UTC offset reason.
 
-### `getListOrder(tasks: Task[], index: number): number`
-Computes the `list_order` float for inserting at `index` in `tasks` (tasks at this point should exclude the item being moved).
-
-```
-index <= 0       → tasks[0].list_order - 1        (prepend)
-index >= length  → tasks[last].list_order + 1     (append)
-else             → (tasks[index-1].list_order + tasks[index].list_order) / 2  (midpoint)
-```
-
-Example: inserting between tasks with `list_order` 3 and 5 → returns 4.
-
 ### `getKanbanOrder(tasks: Task[], index: number): number`
-Same logic as `getListOrder` but operates on `kanban_order` instead.
+Computes the `kanban_order` float for inserting at `index` in `tasks` (tasks at this point should exclude the item being moved) — fractional midpoint insertion, Kanban-only (the list view has nothing analogous since it doesn't support reordering):
+
+```
+index <= 0       → tasks[0].kanban_order - 1        (prepend)
+index >= length  → tasks[last].kanban_order + 1     (append)
+else             → (tasks[index-1].kanban_order + tasks[index].kanban_order) / 2  (midpoint)
+```
 
 ---
 
 ## 7. Drag and Drop Architecture
 
+Kanban-only — the list view has no drag-and-drop (see §4 List View).
+
 **Packages used:**
 - `@dnd-kit/core` — `DndContext`, `DragOverlay`, `useDroppable`, sensors, collision detection
 - `@dnd-kit/sortable` — `SortableContext`, `useSortable`, `arrayMove`, `verticalListSortingStrategy`
 - `@dnd-kit/utilities` — `CSS.Transform.toString`
-
-**List view:**
-```
-DndContext (closestCenter, PointerSensor distance:5)
-  └── SortableContext (items = filtered task IDs, verticalListSortingStrategy)
-        └── SortableTaskRow × N (useSortable on task.id)
-              listeners → drag handle span only
-              attributes → outer row div
-```
 
 **Kanban board:**
 ```
@@ -426,8 +424,8 @@ DndContext (closestCorners, PointerSensor distance:5)
 **Why `useDroppable` on the column AND `SortableContext` inside?**
 `SortableContext` alone handles reordering within the same context. `useDroppable` is added at the column level so that dropping onto an empty column (or the column background) registers as a drop on that column rather than disappearing. The `over.id` will then be the column's status string, which `handleDragEnd` checks via `COLUMNS.includes(overId)`.
 
-**Why float `list_order` / `kanban_order` instead of integers?**
-Integer ordering requires renumbering all rows after every drag (O(n) writes). Float midpoint insertion requires only one write per drag, regardless of list length. The tradeoff is that after many insertions between the same two items, the float precision degrades — but in practice this is rare and can be corrected by a full renumber if needed.
+**Why float `kanban_order` instead of integers?**
+Integer ordering requires renumbering all rows after every drag (O(n) writes). Float midpoint insertion requires only one write per drag, regardless of column length. The tradeoff is that after many insertions between the same two items, the float precision degrades — but in practice this is rare and can be corrected by a full renumber if needed. (`list_order` uses the same float type for schema consistency, but since the list view no longer reorders by it, this tradeoff no longer applies there in practice.)
 
 ---
 
@@ -480,7 +478,8 @@ The due date string (`YYYY-MM-DD`) is always parsed with `T00:00:00` appended to
 - **No task-session link in sessions list**: `ProjectSessionsList` always shows "No task" — the sessions query does not join on `task_id` yet.
 - **No global task view**: Tasks can only be accessed through a project's detail page. There is no `/tasks` route.
 - **`actual_pomodoros` not incremented by client**: The field exists and is displayed, but the timer's `save_session()` RPC is responsible for incrementing it. The client never writes to this field directly.
-- **Float precision decay**: After many drag-and-drop operations inserting between the same two tasks, `list_order` / `kanban_order` values can become very close together (e.g. `3.000000001` and `3.000000002`). There is no renormalization mechanism in place yet.
+- **Float precision decay (Kanban only)**: After many drag-and-drop operations inserting between the same two cards, `kanban_order` values can become very close together (e.g. `3.000000001` and `3.000000002`). There is no renormalization mechanism in place yet. Doesn't apply to the list view, which no longer orders by `list_order`.
 - **No subtasks**: Tasks are flat — there is no parent/child task relationship in the schema.
 - **No bulk operations**: No select-all, bulk delete, or bulk status change in the UI.
 - **Filters reset on navigation**: Status and priority filter state lives in `TaskListView` component state, so navigating away and back resets filters to "All".
+- **Same-priority tie order can shift**: within a status group, tasks sharing both priority and due date (or both unset) have no further explicit tiebreaker, so their relative order isn't guaranteed stable across renders/refetches.

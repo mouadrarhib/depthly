@@ -1,20 +1,5 @@
 import { useState } from 'react'
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { Check, Clock, GripVertical, MoreHorizontal, Timer } from 'lucide-react'
+import { Check, Clock, MoreHorizontal, Timer } from 'lucide-react'
 
 import {
   DropdownMenu,
@@ -31,13 +16,12 @@ import {
   useUpdateTask,
   useDeleteTask,
   useDuplicateTask,
-  useReorderTasks,
 } from '@/hooks/useTasks'
 import {
   formatDueDate,
   isOverdue,
-  getListOrder,
   PRIORITY_CONFIG,
+  PRIORITY_ORDER,
   STATUS_CONFIG,
 } from '@/lib/utils/tasks'
 import { formatMinutesToHours } from '@/lib/utils/analytics'
@@ -45,8 +29,28 @@ import type { Task } from '@/lib/supabase/queries/tasks'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type StatusFilter   = 'all' | 'todo' | 'in_progress' | 'done'
-type PriorityFilter = 'all' | 'low' | 'medium' | 'high' | 'urgent'
+type Status         = 'todo' | 'in_progress' | 'done'
+type Priority       = 'low' | 'medium' | 'high' | 'urgent'
+type StatusFilter   = 'all' | Status
+type PriorityFilter = 'all' | Priority
+
+const STATUS_ORDER: Status[] = ['todo', 'in_progress', 'done']
+
+// Sorts within a status group: highest priority first, then soonest due date
+// (undated tasks last). Priority is what the user asked to order by; due
+// date is just a sensible tiebreaker so same-priority tasks don't jump
+// around unpredictably between renders.
+function sortByPriority(list: Task[]): Task[] {
+  return [...list].sort((a, b) => {
+    const rankA = PRIORITY_ORDER[(a.priority ?? 'medium') as Priority]
+    const rankB = PRIORITY_ORDER[(b.priority ?? 'medium') as Priority]
+    if (rankA !== rankB) return rankA - rankB
+    if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date)
+    if (a.due_date) return -1
+    if (b.due_date) return 1
+    return 0
+  })
+}
 
 // ─── Skeleton row ─────────────────────────────────────────────────────────────
 
@@ -95,11 +99,36 @@ function FilterPill({ label, active, onClick, color }: FilterPillProps) {
   )
 }
 
-// ─── Sortable task row ────────────────────────────────────────────────────────
+// ─── Status group header ──────────────────────────────────────────────────────
+
+function GroupHeader({ status, count }: { status: Status; count: number }) {
+  const cfg = STATUS_CONFIG[status]
+  return (
+    <div className="mb-1.5 flex items-center gap-2">
+      <span
+        className="inline-block h-2 w-2 shrink-0 rounded-full"
+        style={{ backgroundColor: cfg.color }}
+      />
+      <span
+        style={{
+          fontSize:      11,
+          fontWeight:    600,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color:         cfg.color,
+        }}
+      >
+        {cfg.label}
+      </span>
+      <span style={{ fontSize: 11, color: '#3D3B4E' }}>{count}</span>
+    </div>
+  )
+}
+
+// ─── Task row ─────────────────────────────────────────────────────────────────
 
 interface RowProps {
   task:            Task
-  projectId:       string
   sessionMins?:    number
   onOpen:          (task: Task) => void
   onEdit:          (task: Task) => void
@@ -108,9 +137,8 @@ interface RowProps {
   onDuplicate:     (id: string) => void
 }
 
-function SortableTaskRow({
+function TaskRow({
   task,
-  projectId: _projectId,
   sessionMins,
   onOpen,
   onEdit,
@@ -118,9 +146,6 @@ function SortableTaskRow({
   onToggle,
   onDuplicate,
 }: RowProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: task.id })
-
   const done    = task.status === 'done'
   const overdue = isOverdue(task.due_date, task.status ?? '')
   const dueText = formatDueDate(task.due_date)
@@ -131,28 +156,11 @@ function SortableTaskRow({
 
   return (
     <div
-      ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, cursor: 'pointer' }}
-      {...attributes}
       onClick={() => onOpen(task)}
-      className="group flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border
+      className="group flex flex-wrap cursor-pointer items-center gap-x-2.5 gap-y-1.5 rounded-lg border
                  border-depth-border bg-depth-surface px-3 py-2.5 transition-colors
                  hover:bg-depth-raised"
     >
-      {/* Drag handle — always visible at a low-key opacity (rows can be
-          reordered via drag-and-drop; hover-only visibility doesn't work
-          on touch devices, which have no hover state). touch-none stops
-          touch-drag gestures here from being hijacked by page scroll. */}
-      <span
-        {...listeners}
-        className="shrink-0 flex touch-none cursor-grab select-none items-center
-                   justify-center text-ink-muted opacity-40 transition-opacity
-                   hover:opacity-100 group-hover:opacity-100"
-        aria-label="Drag to reorder"
-      >
-        <GripVertical size={16} />
-      </span>
-
       {/* Checkbox + title — always its own flexible row so the title can
           never be squeezed to zero width by the metadata below/beside it
           (that's what happened when title shared one fixed-column grid
@@ -309,15 +317,10 @@ export function TaskListView({ projectId, onOpenTask, onEditTask, onCreateTask }
   const updateTask    = useUpdateTask()
   const deleteTask    = useDeleteTask()
   const duplicateTask = useDuplicateTask()
-  const reorderTasks  = useReorderTasks(projectId)
 
   const [statusFilter,   setStatusFilter]   = useState<StatusFilter>('all')
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all')
   const [deleteTarget,   setDeleteTarget]   = useState<string | null>(null)
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
-  )
 
   const filtered = tasks
     .filter(t => statusFilter   === 'all' || t.status   === statusFilter)
@@ -325,6 +328,15 @@ export function TaskListView({ projectId, onOpenTask, onEditTask, onCreateTask }
 
   const isEmpty  = tasks.length === 0
   const noMatch  = !isEmpty && filtered.length === 0
+
+  // Grouped by status (To Do → In Progress → Done), sorted by priority
+  // within each group — a specific filter collapses this to a single flat,
+  // priority-sorted list since the group header would just repeat the filter.
+  const groups = statusFilter === 'all'
+    ? STATUS_ORDER
+        .map(status => ({ status, items: sortByPriority(filtered.filter(t => t.status === status)) }))
+        .filter(g => g.items.length > 0)
+    : [{ status: statusFilter, items: sortByPriority(filtered) }]
 
   function handleToggle(task: Task) {
     const isDone = task.status === 'done'
@@ -336,21 +348,6 @@ export function TaskListView({ projectId, onOpenTask, onEditTask, onCreateTask }
         completed_at: isDone ? null   : new Date().toISOString(),
       },
     })
-  }
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-
-    const oldIndex = filtered.findIndex(t => t.id === active.id)
-    const newIndex = filtered.findIndex(t => t.id === over.id)
-    if (oldIndex === -1 || newIndex === -1) return
-
-    const reordered    = arrayMove(filtered, oldIndex, newIndex)
-    const withoutMoved = reordered.filter((_, i) => i !== newIndex)
-    const newOrder     = getListOrder(withoutMoved, newIndex)
-
-    reorderTasks.mutate([{ id: active.id as string, list_order: newOrder }])
   }
 
   if (isLoading) {
@@ -380,7 +377,7 @@ export function TaskListView({ projectId, onOpenTask, onEditTask, onCreateTask }
           </span>
           <div className="flex flex-wrap gap-1.5">
             <FilterPill label="All" active={statusFilter === 'all'} onClick={() => setStatusFilter('all')} />
-            {(['todo', 'in_progress', 'done'] as const).map(s => (
+            {STATUS_ORDER.map(s => (
               <FilterPill
                 key={s}
                 label={STATUS_CONFIG[s].label}
@@ -408,7 +405,7 @@ export function TaskListView({ projectId, onOpenTask, onEditTask, onCreateTask }
           </span>
           <div className="flex flex-wrap gap-1.5">
             <FilterPill label="All" active={priorityFilter === 'all'} onClick={() => setPriorityFilter('all')} />
-            {(['low', 'medium', 'high', 'urgent'] as const).map(p => (
+            {(['urgent', 'high', 'medium', 'low'] as const).map(p => (
               <FilterPill
                 key={p}
                 label={PRIORITY_CONFIG[p].label}
@@ -453,31 +450,29 @@ export function TaskListView({ projectId, onOpenTask, onEditTask, onCreateTask }
         </div>
       )}
 
-      {/* Task list */}
+      {/* Task list — grouped by status, sorted by priority within each group */}
       {filtered.length > 0 && (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext items={filtered.map(t => t.id)} strategy={verticalListSortingStrategy}>
-            <div className="flex flex-col gap-1.5">
-              {filtered.map(task => (
-                <SortableTaskRow
-                  key={task.id}
-                  task={task}
-                  projectId={projectId}
-                  sessionMins={sessionMinsMap?.[task.id]}
-                  onOpen={onOpenTask}
-                  onEdit={onEditTask}
-                  onDeleteRequest={setDeleteTarget}
-                  onToggle={handleToggle}
-                  onDuplicate={id => duplicateTask.mutate(id)}
-                />
-              ))}
+        <div className="flex flex-col gap-5">
+          {groups.map(({ status, items }) => (
+            <div key={status}>
+              {statusFilter === 'all' && <GroupHeader status={status} count={items.length} />}
+              <div className="flex flex-col gap-1.5">
+                {items.map(task => (
+                  <TaskRow
+                    key={task.id}
+                    task={task}
+                    sessionMins={sessionMinsMap?.[task.id]}
+                    onOpen={onOpenTask}
+                    onEdit={onEditTask}
+                    onDeleteRequest={setDeleteTarget}
+                    onToggle={handleToggle}
+                    onDuplicate={id => duplicateTask.mutate(id)}
+                  />
+                ))}
+              </div>
             </div>
-          </SortableContext>
-        </DndContext>
+          ))}
+        </div>
       )}
 
       {/* Delete confirmation */}

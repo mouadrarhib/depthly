@@ -70,35 +70,6 @@ export function useDuplicateTask() {
   })
 }
 
-type ReorderItem = { id: string; list_order: number }
-
-export function useReorderTasks(projectId: string) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (updates: ReorderItem[]) =>
-      Promise.all(updates.map(({ id, list_order }) => updateTask(id, { list_order }))),
-    onMutate: async (updates) => {
-      await qc.cancelQueries({ queryKey: taskKeys.byProject(projectId) })
-      const previous = qc.getQueryData<Task[]>(taskKeys.byProject(projectId))
-      qc.setQueryData<Task[]>(taskKeys.byProject(projectId), (old = []) =>
-        old.map(task => {
-          const hit = updates.find(u => u.id === task.id)
-          return hit ? { ...task, list_order: hit.list_order } : task
-        })
-      )
-      return { previous }
-    },
-    onError: (_err, _updates, context) => {
-      if (context?.previous) {
-        qc.setQueryData(taskKeys.byProject(projectId), context.previous)
-      }
-    },
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: taskKeys.byProject(projectId) })
-    },
-  })
-}
-
 type KanbanReorderItem = { id: string; kanban_order: number; status?: string }
 
 export function useReorderKanban(projectId: string) {
