@@ -17,11 +17,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/authStore'
 import { useProjects } from '@/hooks/useProjects'
 import { useTasks } from '@/hooks/useTasks'
 import { useUpdateSession, useCreateManualSession } from '@/hooks/useSessions'
+import { STATUS_CONFIG } from '@/lib/utils/tasks'
 import type { SessionWithRelations } from '@/lib/supabase/queries/sessions'
+
+// No "Done" filter — logging a new session against a task that's already
+// complete isn't a workflow worth a dedicated shortcut. Done tasks are still
+// shown (and selectable) under "All" for the rare case of logging forgotten
+// time; see the strikethrough styling below.
+type TaskStatusFilter = 'all' | 'todo' | 'in_progress'
+
+const TASK_STATUS_FILTERS: { value: TaskStatusFilter; label: string }[] = [
+  { value: 'all',         label: 'All'         },
+  { value: 'todo',        label: 'To Do'       },
+  { value: 'in_progress', label: 'In Progress' },
+]
 
 interface SessionModalProps {
   open:     boolean
@@ -83,9 +97,21 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
   const [taskId,       setTaskId]       = useState('')
   const [notes,        setNotes]        = useState('')
   const [dateError,    setDateError]    = useState('')
+  // Task lists can run long once a project accumulates finished work —
+  // without this, finding one specific task (especially an already-done one
+  // buried among active tasks) meant scrolling a long undifferentiated list.
+  const [taskStatusFilter, setTaskStatusFilter] = useState<TaskStatusFilter>('all')
 
   const { data: projects = [] } = useProjects()
   const { data: tasks = [] }    = useTasks(projectId)
+  const filteredTasks = taskStatusFilter === 'all'
+    ? tasks
+    : tasks.filter(t => t.status === taskStatusFilter)
+  // Looked up from the full list, not filteredTasks — the selected task must
+  // still resolve and display correctly even if the user picks a status
+  // filter that would otherwise hide it from the open dropdown.
+  const selectedProject = projects.find(p => p.id === projectId)
+  const selectedTask    = tasks.find(t => t.id === taskId)
 
   const updateSession       = useUpdateSession()
   const createManualSession = useCreateManualSession()
@@ -118,6 +144,7 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
       setNotes('')
     }
     setDateError('')
+    setTaskStatusFilter('all')
     updateSession.reset()
     createManualSession.reset()
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -318,21 +345,36 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
                   onValueChange={v => {
                     setProjectId(v === '__none__' ? '' : v)
                     setTaskId('')
+                    setTaskStatusFilter('all')
                   }}
                 >
-                  <SelectTrigger className={selectTriggerCls}>
-                    <SelectValue placeholder="No project" />
+                  <SelectTrigger className={cn(selectTriggerCls, '[&>span]:min-w-0 [&>span]:flex-1')}>
+                    {/* Explicit children instead of letting SelectValue mirror
+                        the full SelectItem content — that has no truncation,
+                        so a long name would grow the closed trigger instead of
+                        clipping. */}
+                    <SelectValue placeholder="No project">
+                      {selectedProject && (
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span
+                            className="inline-block h-2 w-2 shrink-0 rounded-full"
+                            style={{ backgroundColor: selectedProject.color }}
+                          />
+                          <span className="truncate">{selectedProject.name}</span>
+                        </span>
+                      )}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">No project</SelectItem>
                     {projects.map(p => (
                       <SelectItem key={p.id} value={p.id}>
-                        <span className="flex items-center gap-2">
+                        <span className="flex max-w-[240px] items-center gap-2">
                           <span
                             className="inline-block h-2 w-2 shrink-0 rounded-full"
                             style={{ backgroundColor: p.color }}
                           />
-                          {p.name}
+                          <span className="truncate">{p.name}</span>
                         </span>
                       </SelectItem>
                     ))}
@@ -344,21 +386,89 @@ export function SessionModal({ open, onClose, session }: SessionModalProps) {
                 <label className="flex items-center gap-1 text-xs text-ink-secondary">
                   <CheckSquare size={12} /> Task
                 </label>
+
+                {/* Status filter — only worth showing once there's actually
+                    a list long enough to need narrowing down. */}
+                {projectId && tasks.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {TASK_STATUS_FILTERS.map(f => (
+                      <button
+                        key={f.value}
+                        type="button"
+                        onClick={() => setTaskStatusFilter(f.value)}
+                        className="transition-colors"
+                        style={{
+                          padding:      '2px 8px',
+                          fontSize:     11,
+                          fontWeight:   500,
+                          borderRadius: 999,
+                          border:       '1px solid',
+                          borderColor:  taskStatusFilter === f.value ? 'rgba(75,158,255,0.4)' : '#2E2E38',
+                          background:   taskStatusFilter === f.value ? 'rgba(75,158,255,0.12)' : 'transparent',
+                          color:        taskStatusFilter === f.value ? '#4B9EFF' : '#7A7890',
+                        }}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <Select
                   value={taskId}
                   onValueChange={v => setTaskId(v === '__none__' ? '' : v)}
                   disabled={!projectId}
                 >
-                  <SelectTrigger className={selectTriggerCls}>
-                    <SelectValue placeholder="No task" />
+                  <SelectTrigger className={cn(selectTriggerCls, '[&>span]:min-w-0 [&>span]:flex-1')}>
+                    {/* Same reasoning as the Project trigger above — explicit,
+                        truncated children instead of SelectValue's default
+                        full-content mirroring. A long task title was the
+                        original bug report: the closed trigger would grow to
+                        6 lines tall and blow out the rest of the form. */}
+                    <SelectValue placeholder="No task">
+                      {selectedTask && (
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span
+                            className="inline-block h-2 w-2 shrink-0 rounded-full"
+                            style={{ backgroundColor: STATUS_CONFIG[(selectedTask.status ?? 'todo') as 'todo' | 'in_progress' | 'done'].color }}
+                          />
+                          <span
+                            className="truncate"
+                            style={{
+                              textDecoration: selectedTask.status === 'done' ? 'line-through' : 'none',
+                              opacity:        selectedTask.status === 'done' ? 0.7 : 1,
+                            }}
+                          >
+                            {selectedTask.title}
+                          </span>
+                        </span>
+                      )}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">No task</SelectItem>
-                    {tasks.map(t => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.title}
-                      </SelectItem>
-                    ))}
+                    {filteredTasks.map(t => {
+                      const statusCfg = STATUS_CONFIG[(t.status ?? 'todo') as 'todo' | 'in_progress' | 'done']
+                      const done = t.status === 'done'
+                      return (
+                        <SelectItem key={t.id} value={t.id}>
+                          <span className="flex max-w-[240px] items-center gap-2">
+                            <span
+                              className="inline-block h-2 w-2 shrink-0 rounded-full"
+                              style={{ backgroundColor: statusCfg.color }}
+                            />
+                            <span className="truncate" style={{ textDecoration: done ? 'line-through' : 'none', opacity: done ? 0.7 : 1 }}>
+                              {t.title}
+                            </span>
+                          </span>
+                        </SelectItem>
+                      )
+                    })}
+                    {filteredTasks.length === 0 && (
+                      <p className="px-2 py-4 text-center text-xs text-ink-muted">
+                        No {taskStatusFilter === 'all' ? '' : STATUS_CONFIG[taskStatusFilter].label.toLowerCase() + ' '}tasks
+                      </p>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
