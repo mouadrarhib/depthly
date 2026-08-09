@@ -7,6 +7,8 @@ import type { Task } from '@/lib/supabase/queries/tasks'
 
 type Status = 'todo' | 'in_progress' | 'done'
 
+const COLUMN_MAX_HEIGHT = 640
+
 const COLUMN_CONFIG: Record<Status, { bg: string; color: string; label: string }> = {
   todo:        { bg: 'rgba(122, 120, 144, 0.06)', color: '#7A7890', label: 'To Do' },
   in_progress: { bg: 'rgba(75, 158, 255, 0.06)',  color: '#4B9EFF', label: 'In Progress' },
@@ -42,6 +44,7 @@ export function KanbanColumn({
     <div
       style={{
         width:           300,
+        maxHeight:       COLUMN_MAX_HEIGHT,
         borderRadius:    14,
         padding:         16,
         border:          '1px solid rgba(46, 46, 56, 0.8)',
@@ -51,7 +54,7 @@ export function KanbanColumn({
       }}
     >
       {/* Column header */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between" style={{ flexShrink: 0 }}>
         <div className="flex items-center gap-2">
           {/* Status dot */}
           <span
@@ -102,7 +105,9 @@ export function KanbanColumn({
         ref={setNodeRef}
         className="flex flex-col gap-2 transition-colors"
         style={{
-          minHeight:       120,
+          flex:            1,
+          minHeight:       0,
+          overflowY:       'auto',
           borderRadius:    8,
           padding:         4,
           backgroundColor: isOver ? 'rgba(46, 46, 56, 0.35)' : 'transparent',

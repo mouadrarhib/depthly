@@ -75,7 +75,7 @@ interface FilterPillProps {
   color?:  string
 }
 
-function FilterPill({ label, active, onClick, color }: FilterPillProps) {
+export function FilterPill({ label, active, onClick, color }: FilterPillProps) {
   return (
     <button
       type="button"

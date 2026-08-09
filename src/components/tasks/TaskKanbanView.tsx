@@ -11,6 +11,7 @@ import {
 } from '@dnd-kit/core'
 
 import { KanbanColumn } from '@/components/tasks/KanbanColumn'
+import { FilterPill } from '@/components/tasks/TaskListView'
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
 import {
   useTasks,
@@ -19,10 +20,12 @@ import {
   useDuplicateTask,
   useReorderKanban,
 } from '@/hooks/useTasks'
-import { formatDueDate, isOverdue, getKanbanOrder } from '@/lib/utils/tasks'
+import { formatDueDate, isOverdue, getKanbanOrder, PRIORITY_CONFIG } from '@/lib/utils/tasks'
 import type { Task } from '@/lib/supabase/queries/tasks'
 
-type Status = 'todo' | 'in_progress' | 'done'
+type Status         = 'todo' | 'in_progress' | 'done'
+type Priority       = 'low' | 'medium' | 'high' | 'urgent'
+type PriorityFilter = 'all' | Priority
 
 const COLUMNS: Status[] = ['todo', 'in_progress', 'done']
 
@@ -41,14 +44,19 @@ export function TaskKanbanView({ projectId, onOpenTask, onEditTask, onAddTask }:
   const duplicateTask = useDuplicateTask()
   const reorderKanban = useReorderKanban(projectId)
 
-  const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const [activeTask, setActiveTask]         = useState<Task | null>(null)
+  const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all')
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   )
 
+  const filteredTasks = tasks.filter(
+    t => priorityFilter === 'all' || t.priority === priorityFilter
+  )
+
   function getColumnTasks(status: Status): Task[] {
-    return tasks
+    return filteredTasks
       .filter(t => t.status === status)
       .sort((a, b) => a.kanban_order - b.kanban_order)
   }
@@ -114,68 +122,85 @@ export function TaskKanbanView({ projectId, onOpenTask, onEditTask, onAddTask }:
   // ─── Board ────────────────────────────────────────────────────────────────
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={() => setActiveTask(null)}
-    >
-      <div className="flex items-start gap-4 overflow-x-auto pb-4">
-        {COLUMNS.map(status => (
-          <KanbanColumn
-            key={status}
-            status={status}
-            tasks={getColumnTasks(status)}
-            sessionMinsMap={sessionMinsMap}
-            onOpenTask={onOpenTask}
-            onEditTask={onEditTask}
-            onDeleteTask={task => deleteTask.mutate({ id: task.id, projectId })}
-            onDuplicateTask={task => duplicateTask.mutate(task.id)}
-            onAddTask={onAddTask ?? (() => {})}
+    <div className="flex flex-col gap-4">
+
+      {/* Priority filter */}
+      <div className="flex flex-wrap gap-1.5">
+        <FilterPill label="All" active={priorityFilter === 'all'} onClick={() => setPriorityFilter('all')} />
+        {(['urgent', 'high', 'medium', 'low'] as const).map(p => (
+          <FilterPill
+            key={p}
+            label={PRIORITY_CONFIG[p].label}
+            color={PRIORITY_CONFIG[p].color}
+            active={priorityFilter === p}
+            onClick={() => setPriorityFilter(p)}
           />
         ))}
       </div>
 
-      {/* Drag overlay — inline card to avoid useSortable re-entrant isDragging */}
-      <DragOverlay>
-        {activeTask && (
-          <div
-            className="flex flex-col gap-2.5 border border-depth-border bg-depth-surface p-3"
-            style={{ width: 300, opacity: 0.9, borderRadius: 10, cursor: 'grabbing' }}
-          >
-            <div className="flex items-center gap-2">
-              {activeTask.priority && (
-                <PriorityBadge
-                  priority={activeTask.priority as 'low' | 'medium' | 'high' | 'urgent'}
-                />
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={() => setActiveTask(null)}
+      >
+        <div className="flex items-stretch gap-4 overflow-x-auto pb-4">
+          {COLUMNS.map(status => (
+            <KanbanColumn
+              key={status}
+              status={status}
+              tasks={getColumnTasks(status)}
+              sessionMinsMap={sessionMinsMap}
+              onOpenTask={onOpenTask}
+              onEditTask={onEditTask}
+              onDeleteTask={task => deleteTask.mutate({ id: task.id, projectId })}
+              onDuplicateTask={task => duplicateTask.mutate(task.id)}
+              onAddTask={onAddTask ?? (() => {})}
+            />
+          ))}
+        </div>
+
+        {/* Drag overlay — inline card to avoid useSortable re-entrant isDragging */}
+        <DragOverlay>
+          {activeTask && (
+            <div
+              className="flex flex-col gap-2.5 border border-depth-border bg-depth-surface p-3"
+              style={{ width: 300, opacity: 0.9, borderRadius: 10, cursor: 'grabbing' }}
+            >
+              <div className="flex items-center gap-2">
+                {activeTask.priority && (
+                  <PriorityBadge
+                    priority={activeTask.priority as 'low' | 'medium' | 'high' | 'urgent'}
+                  />
+                )}
+              </div>
+
+              <p
+                className="line-clamp-2 font-medium leading-snug"
+                style={{ fontSize: 13, color: '#E8E6F0' }}
+              >
+                {activeTask.title}
+              </p>
+
+              {formatDueDate(activeTask.due_date) && (
+                <div className="flex items-center gap-3">
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: isOverdue(activeTask.due_date, activeTask.status ?? '')
+                        ? '#F25C5C'
+                        : '#7A7890',
+                    }}
+                  >
+                    {formatDueDate(activeTask.due_date)}
+                  </span>
+                </div>
               )}
             </div>
-
-            <p
-              className="line-clamp-2 font-medium leading-snug"
-              style={{ fontSize: 13, color: '#E8E6F0' }}
-            >
-              {activeTask.title}
-            </p>
-
-            {formatDueDate(activeTask.due_date) && (
-              <div className="flex items-center gap-3">
-                <span
-                  style={{
-                    fontSize: 11,
-                    color: isOverdue(activeTask.due_date, activeTask.status ?? '')
-                      ? '#F25C5C'
-                      : '#7A7890',
-                  }}
-                >
-                  {formatDueDate(activeTask.due_date)}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-      </DragOverlay>
-    </DndContext>
+          )}
+        </DragOverlay>
+      </DndContext>
+    </div>
   )
 }
