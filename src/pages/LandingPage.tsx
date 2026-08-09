@@ -127,7 +127,7 @@ export function LandingPage() {
 
         {/* Section D — Leaderboard & Streaks (mockup right) */}
         <FeatureSection
-          heading="Nobody's watching you focus at 2am. This is."
+          heading="Nobody's watching you work. This is."
           body="See where you rank against everyone else on Depthly, or narrow it down to people you actually know."
           mockupSide="right"
           mockup={<LeaderboardMockup />}

@@ -61,7 +61,7 @@ export function HeroSection() {
             maxWidth: 560,
           }}
         >
-          A focus session tracker for students, freelancers, and remote developers.
+          A focus session tracker for students, freelancers, and independent learners.
           Run your sessions, see where the hours actually went, and build a streak
           you don&apos;t want to break.
         </p>

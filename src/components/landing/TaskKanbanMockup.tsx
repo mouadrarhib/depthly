@@ -20,22 +20,22 @@ const COLUMNS: { status: Status; cards: FakeCard[] }[] = [
   {
     status: 'todo',
     cards: [
-      { title: 'Design audit', priority: 'high' },
-      { title: 'Onboarding copy', priority: 'low' },
+      { title: 'Portfolio update', priority: 'high' },
+      { title: 'Book chapter', priority: 'low' },
     ],
   },
   {
     status: 'in_progress',
     cards: [
-      { title: 'Landing redesign', priority: 'urgent', due: { label: 'Yesterday', overdue: true } },
-      { title: 'Rate limiting', priority: 'medium' },
+      { title: 'Client proposal', priority: 'urgent', due: { label: 'Yesterday', overdue: true } },
+      { title: 'Essay outline', priority: 'medium' },
     ],
   },
   {
     status: 'done',
     cards: [
-      { title: 'CI pipeline', priority: 'medium' },
-      { title: 'Fix auth bug', priority: 'low' },
+      { title: 'Invoice sent', priority: 'medium' },
+      { title: 'Study notes', priority: 'low' },
     ],
   },
 ]
