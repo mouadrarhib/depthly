@@ -90,8 +90,8 @@ export function PricingSection() {
       <div className="mx-auto" style={{ maxWidth: 1100 }}>
         <SectionHeader
           eyebrow="Pricing"
-          title="Simple pricing, no surprises"
-          subtext="Start free, upgrade when you need more. Cancel anytime."
+          title="Start free. Upgrade if you need to."
+          subtext="Free covers most people. Pro is for when you outgrow it."
         />
 
         {/* Monthly / Yearly toggle — same segmented style as the timer mode selector */}

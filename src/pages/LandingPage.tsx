@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { Clock, Flame, Globe, SlidersHorizontal, TimerReset, TrendingUp, Users } from 'lucide-react'
+import { Clock, Flag, Flame, Globe, Kanban, Link2, SlidersHorizontal, TimerReset, TrendingUp, Users } from 'lucide-react'
 
 import { AnalyticsMockup } from '@/components/landing/AnalyticsMockup'
 import { ClosingCtaSection } from '@/components/landing/ClosingCtaSection'
@@ -12,6 +12,7 @@ import { LandingNav } from '@/components/landing/LandingNav'
 import { LeaderboardMockup } from '@/components/landing/LeaderboardMockup'
 import { OverviewSection } from '@/components/landing/OverviewSection'
 import { PricingSection } from '@/components/landing/PricingSection'
+import { TaskKanbanMockup } from '@/components/landing/TaskKanbanMockup'
 import { TimerMockup } from '@/components/landing/TimerMockup'
 import { FeatureBlock } from '@/components/landing/primitives'
 import { useLandingAnimations } from '@/components/landing/useLandingAnimations'
@@ -59,71 +60,87 @@ export function LandingPage() {
         {/* Section A — Focus Timer (mockup left) */}
         <FeatureSection
           eyebrow="Focus sessions"
-          title="Your focus, your way"
-          subtext="Choose structured timer sessions or a flexible stopwatch. Customize work intervals, break lengths, and session goals."
+          title="Pick your rhythm"
+          subtext="Run structured Pomodoro intervals or a plain stopwatch for open-ended work. Set your own durations and goals, and let Depthly remember the rest."
           mockupSide="left"
           mockup={<TimerMockup />}
         >
           <FeatureBlock
             Icon={TimerReset}
             title="Timer or stopwatch"
-            description="Run structured intervals like Pomodoro, or switch to stopwatch mode for open-ended deep work that matches your flow."
+            description="Some days need 25 minutes. Some days need three hours with no clock in sight. Switch modes without losing your session."
           />
           <FeatureBlock
             Icon={SlidersHorizontal}
             title="Fully customizable"
-            description="Set your ideal work duration, break length, and daily goal. Adjust anytime to match your energy levels."
+            description="Set your own focus length, break length, and daily goal. Change it whenever your energy does."
           />
           <FeatureBlock
             Icon={Flame}
             title="Session tracking with streaks"
-            description="Every session is saved automatically. Stack focused days into a streak you won't want to break."
+            description="Every session saves itself. Miss a day and the streak resets, so there's a small reason to show up tomorrow."
           />
         </FeatureSection>
 
-        {/* Section B — Analytics (mockup right) */}
+        {/* Section B — Projects & Tasks (mockup right) */}
         <FeatureSection
-          eyebrow="Analytics"
-          title="Understand your focus habits"
-          subtext="Track progress, spot patterns, and build better habits with clear, visual insights into how you work."
+          heading="Turn hours into actual progress"
+          body="Every session ties back to a real task. Track it in a flat list or drag it across a kanban board — your call, switch anytime."
           mockupSide="right"
+          mockup={<TaskKanbanMockup />}
+        >
+          <FeatureBlock
+            Icon={Kanban}
+            title="List or kanban"
+            description="See everything in one ordered list, or move cards through To Do, In Progress, and Done. Same tasks, two views."
+          />
+          <FeatureBlock
+            Icon={Flag}
+            title="Priority and due dates"
+            description="Flag what's urgent, set a due date, and overdue tasks tell you before you have to ask."
+          />
+          <FeatureBlock
+            Icon={Link2}
+            title="Tied to your sessions"
+            description="Pick a task when you start the timer. Your pomodoro count builds up on the task itself, not just in the void."
+          />
+        </FeatureSection>
+
+        {/* Section C — Analytics (mockup left) */}
+        <FeatureSection
+          heading="Where did today actually go?"
+          body="Track progress, spot patterns, and see it laid out day by day, week by week, without doing the math yourself."
+          mockupSide="left"
           mockup={<AnalyticsMockup />}
         >
           <FeatureBlock
             Icon={Clock}
             title="Daily focus tracking"
-            description="See today's focus time and sessions at a glance, with detailed breakdowns of how your hours were spent."
+            description="Today's total, right when you open the app. No digging."
           />
           <FeatureBlock
             Icon={TrendingUp}
             title="Visualize your progress"
-            description="Calendar heatmaps and trend charts show your consistency across weeks, months, and years."
+            description="Heatmaps and trend lines across weeks, months, and years."
           />
         </FeatureSection>
 
-        {/* Section C — Leaderboard & Streaks (mockup left) */}
+        {/* Section D — Leaderboard & Streaks (mockup right) */}
         <FeatureSection
-          eyebrow="Leaderboard"
-          title="Stay accountable, stay motivated"
-          subtext="Focus is easier when you're not doing it alone. See where you rank and keep your momentum going."
-          mockupSide="left"
+          heading="Nobody's watching you focus at 2am. This is."
+          body="See where you rank against everyone else on Depthly, or narrow it down to people you actually know."
+          mockupSide="right"
           mockup={<LeaderboardMockup />}
         >
           <FeatureBlock
             Icon={Globe}
             title="Global rankings"
-            description="Compete on weekly focus hours with everyone on Depthly. The board resets weekly — a fresh shot at the top."
+            description="Weekly focus hours, ranked. Resets every week for a fresh shot at the top."
           />
           <FeatureBlock
             Icon={Users}
             title="Follow friends"
-            description="Keep an eye on your friends' hours and streaks — a little friendly pressure goes a long way."
-          />
-          <FeatureBlock
-            Icon={Flame}
-            title="Streak momentum"
-            description="Your streak grows every day you focus. Protect it, and watch your consistency compound."
-            iconColor="#C8FF64"
+            description="Follow people you know. A little friendly pressure goes a long way."
           />
         </FeatureSection>
 

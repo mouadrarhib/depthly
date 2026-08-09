@@ -13,26 +13,22 @@ const ITEMS: OverviewItem[] = [
   {
     Icon: Timer,
     title: 'Focus timer',
-    description:
-      'Pomodoro or stopwatch sessions with breaks that keep you fresh. Start a session in one click.',
+    description: 'Pomodoro or stopwatch. Start in one click.',
   },
   {
     Icon: FolderKanban,
     title: 'Projects & tasks',
-    description:
-      'Organize work into projects, plan in list or kanban view, and tie every session to what mattered.',
+    description: 'Organize work into projects. List or kanban, your call.',
   },
   {
     Icon: BarChart2,
     title: 'Analytics',
-    description:
-      'Daily, weekly, monthly, and yearly views of your focus time — with heatmaps, trends, and totals.',
+    description: 'Daily to yearly views, with heatmaps and trends.',
   },
   {
     Icon: Trophy,
     title: 'Leaderboard',
-    description:
-      'Compete on weekly focus hours, follow friends, and let a little accountability keep you going.',
+    description: 'Compete on weekly hours. A little pressure helps.',
   },
 ]
 
@@ -42,8 +38,8 @@ export function OverviewSection() {
       <div className="mx-auto" style={{ maxWidth: 1100 }}>
         <SectionHeader
           eyebrow="How it works"
-          title="Everything you need to focus"
-          subtext="Depthly is more than a timer — it's a lightweight system for building a deep work habit and understanding where your time goes."
+          title="Four things, nothing else"
+          subtext="No teams, no chat, no notification spam. Just a timer, your projects, and a record of where the time went."
         />
 
         <div

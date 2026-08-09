@@ -38,9 +38,9 @@ export function HeroSection() {
             maxWidth: 560,
           }}
         >
-          Depthly is a focus session tracker for students, freelancers, and remote
-          developers — run deep work sessions, see where your hours go, and build
-          a streak you won&apos;t want to break.
+          A focus session tracker for students, freelancers, and remote developers.
+          Run your sessions, see where the hours actually went, and build a streak
+          you don&apos;t want to break.
         </p>
 
         <div

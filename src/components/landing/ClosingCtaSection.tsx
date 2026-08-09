@@ -42,7 +42,7 @@ export function ClosingCtaSection() {
             lineHeight: 1.15,
           }}
         >
-          Ready to work at depth?
+          Start your first session
         </h2>
 
         <p
@@ -55,7 +55,7 @@ export function ClosingCtaSection() {
             maxWidth: 480,
           }}
         >
-          Join students, freelancers, and developers building better focus habits.
+          Free forever, no credit card, no team invites you didn&apos;t ask for.
         </p>
 
         <div
