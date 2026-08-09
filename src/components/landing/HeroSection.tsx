@@ -11,10 +11,33 @@ import { PATHS } from '@/routes/paths'
 export function HeroSection() {
   return (
     <section
-      className="flex flex-col items-center px-5 text-center"
+      className="relative flex flex-col items-center overflow-hidden px-5 text-center"
       style={{ paddingTop: '6.5rem', paddingBottom: '6rem' }}
     >
-      <div className="flex flex-col items-center" style={{ maxWidth: 700 }}>
+      {/* Background dot grid — absolutely positioned to cover the full
+          section, sits behind the text content (below, in the relative
+          content wrapper's stacking order). Dot color uses the app's
+          ink-secondary token directly (#7A7890) for real contrast against
+          the dark background; overall opacity is the only fade knob. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: 'none',
+          backgroundImage: 'radial-gradient(circle, #7A7890 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+          opacity: 0.15,
+        }}
+      />
+
+      <div
+        className="relative flex flex-col items-center"
+        style={{ maxWidth: 700, zIndex: 1 }}
+      >
         <h1
           data-hero
           style={{

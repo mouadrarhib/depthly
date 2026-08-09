@@ -135,12 +135,12 @@ export function LandingPage() {
           <FeatureBlock
             Icon={Globe}
             title="Global rankings"
-            description="Weekly focus hours, ranked. Resets every week for a fresh shot at the top."
+            description="Ranked by day, week, month, year, or all time. Pick your window."
           />
           <FeatureBlock
             Icon={Users}
-            title="Follow friends"
-            description="Follow people you know. A little friendly pressure goes a long way."
+            title="Friends, not followers"
+            description="Send a request, they accept, and you're both on each other's board. No one-way following."
           />
         </FeatureSection>
 
