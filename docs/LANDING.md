@@ -13,6 +13,8 @@ UI (fake numbers), rendered as real React components — not screenshots.
 
 **Dependency:** `gsap` `^3.15.0` (added for this page; used only by
 `useLandingAnimations.ts` — no other part of the app depends on it).
+`recharts` (already an app dependency) is reused by `AnalyticsMockup`'s
+donut, same as the real `ProjectBreakdownCard`.
 
 ---
 
@@ -48,12 +50,17 @@ src/components/landing/
                                      logged-in account dropdown (avatar
                                      photo via useProfile, plan badge,
                                      Home/Settings/Sign out)
-  HeroSection.tsx                    H1 + subtext + primary CTA
+  HeroSection.tsx                    H1 + subtext + primary CTA, with a
+                                     static ambient dot-grid background
   OverviewSection.tsx                "How it works" 2×2 grid (#features)
   FeatureSection.tsx                 Generic alternating mockup/text layout
+                                     (two header modes; see below)
   TimerMockup.tsx                    Static timer (reuses ProgressRing)
-  AnalyticsMockup.tsx                Stat cards + mini calendar heatmap
-  LeaderboardMockup.tsx              4 fake rows (reuses StreakBadge)
+  TaskKanbanMockup.tsx               Static 3-column kanban board
+  AnalyticsMockup.tsx                Stat cards + mini calendar heatmap +
+                                     per-project donut
+  LeaderboardMockup.tsx              4 fake rows (reuses StreakBadge) +
+                                     static Everyone/Friends toggle pill
   PricingSection.tsx                 Free / Pro / Lifetime cards (#pricing)
   ClosingCtaSection.tsx              Full-width lifted banner
   LandingFooter.tsx                  Lockup + 3 link columns + copyright
@@ -64,8 +71,10 @@ src/components/landing/
 
 Reused from the app: `Logo`, `Button` (asChild + Link), `ProgressRing`,
 `StreakBadge`, the `DropdownMenu` primitives (`@/components/ui/dropdown-menu`),
-`Tabs`/`TabsList`/`TabsTrigger`, `useProfile()` and `usePlan()` (both from
-the app's analytics/billing hooks), lucide icons.
+`Tabs`/`TabsList`/`TabsTrigger`, `PRIORITY_CONFIG` (`@/lib/utils/tasks`),
+`formatMinutesToHours` (`@/lib/utils/analytics`), `recharts`'
+`PieChart`/`Pie`/`Cell`, `useProfile()` and `usePlan()` (both from the
+app's analytics/billing hooks), lucide icons.
 
 ---
 
@@ -104,23 +113,43 @@ the app's analytics/billing hooks), lucide icons.
        `z-50` so it always sits above page content.
 
    Sticky header itself, `rgba(13,13,16,0.88)` + blur, 0.5px bottom border.
-2. **Hero** — "Work at depth." (alternates considered: "Deep work, made
-   measurable." / "Focus deeper. Ship more."), one subtext line, "Get
-   started free" → `/signup` + "Free forever • No credit card required".
-3. **Overview grid** (`#features`) — 4 items: Focus timer, Projects & tasks,
-   Analytics, Leaderboard. Lucide outline icons in `#222228` rounded squares.
-4. **Feature sections** (alternating, all via `<FeatureSection>`):
-   - **A — Focus sessions** (mockup left): TimerMockup + 3 blocks
-   - **B — Analytics** (mockup right): AnalyticsMockup + 2 blocks
-   - **C — Leaderboard** (mockup left): LeaderboardMockup + 3 blocks;
-     "Streak momentum" block uses the streak green icon (explicit streak
-     reference — the allowed exception)
-5. **Pricing** (`#pricing`, `PricingSection.tsx`) — Monthly/Yearly
-   segmented toggle (same Radix Tabs styling as `TimerModeSelector`, local
-   `useState<PlanInterval>` where `PlanInterval = 'monthly' | 'annual'`,
-   exported from the file for reuse when checkout is wired up) above three
-   cards, each with a `price(interval) => { amount, note, sub?, savings? }`
-   function so only Pro's row actually varies:
+2. **Hero** — "Work at depth." + subtext ("A focus session tracker for
+   students, freelancers, and remote developers. Run your sessions, see
+   where the hours actually went, and build a streak you don't want to
+   break."), "Get started free" → `/signup` + "Free forever • No credit
+   card required". A static ambient dot-grid sits behind the text — see
+   **Hero background** below; there is no other decorative background
+   element on this page (an earlier concentric-ring motif was tried and
+   scrapped, see Changelog).
+3. **Overview grid** (`#features`) — "Four things, nothing else" / "No
+   teams, no chat, no notification spam. Just a timer, your projects, and
+   a record of where the time went." 4 items (Focus timer, Projects &
+   tasks, Analytics, Leaderboard), each a single-line blurb now (shortened
+   from the original 2-line copy). Lucide outline icons in `#222228`
+   rounded squares.
+4. **Feature sections** (alternating, all via `<FeatureSection>`; mockup
+   side now alternates left/right/left/right across all four):
+   - **A — Focus sessions** (mockup left, centered `eyebrow`/`title`/
+     `subtext` header — the one instance still using that mode): TimerMockup
+     + 3 blocks (Timer or stopwatch, Fully customizable, Session tracking
+     with streaks)
+   - **B — Projects & Tasks** (mockup right, `heading`/`body` mode, *no*
+     eyebrow): TaskKanbanMockup + 3 blocks (List or kanban, Priority and
+     due dates, Tied to your sessions)
+   - **C — Analytics** (mockup left, `heading`/`body` mode): AnalyticsMockup
+     + 2 blocks (Daily focus tracking, Visualize your progress)
+   - **D — Leaderboard** (mockup right, `heading`/`body` mode):
+     LeaderboardMockup + 2 blocks (Global rankings, Friends, not
+     followers) — the earlier third "Streak momentum" block (streak-green
+     icon exception) was removed
+5. **Pricing** (`#pricing`, `PricingSection.tsx`) — "Start free. Upgrade if
+   you need to." / "Free covers most people. Pro is for when you outgrow
+   it." Monthly/Yearly segmented toggle (same Radix Tabs styling as
+   `TimerModeSelector`, local `useState<PlanInterval>` where
+   `PlanInterval = 'monthly' | 'annual'`, exported from the file for reuse
+   when checkout is wired up) above three cards, each with a
+   `price(interval) => { amount, note, sub?, savings? }` function so only
+   Pro's row actually varies:
 
    | Tier | Monthly | Yearly | Badge | CTA | Link |
    |------|---------|--------|-------|-----|------|
@@ -136,14 +165,88 @@ the app's analytics/billing hooks), lucide icons.
    `minHeight` so cards don't jump when Pro's yearly sub-line appears.
 6. **Closing CTA** — `#141417` band bounded by top/bottom 0.5px borders,
    6rem vertical padding (matches the hero). Muted ring-mark icon (bare
-   `<Logo>`, no wordmark) → "Ready to work at depth?" → one-line subtext →
-   primary "Get started free" + ghost "View pricing" (anchor-scrolls to
-   `#pricing`) → the hero's trust line ("Free forever • No credit card
-   required").
+   `<Logo>`, no wordmark) → "Start your first session" → "Free forever, no
+   credit card, no team invites you didn't ask for." → primary "Get
+   started free" + ghost "View pricing" (anchor-scrolls to `#pricing`) →
+   the hero's trust line ("Free forever • No credit card required").
 7. **Footer** — Product (`#features`, `#pricing`), Company (Contact
    mailto), Legal (Terms/Privacy — real routes), copyright line. See
    `docs/LEGAL_PAGES.md` for the full implementation (Changelog/About were
    removed rather than left as placeholders).
+
+---
+
+## `FeatureSection` — two header modes, one mockup-alignment mechanism
+
+`FeatureSection` renders a ~55/45 mockup/text row and supports **either**
+of two header styles, chosen by which props are passed (never both at
+once in practice):
+
+- **Centered header** — pass `eyebrow` + `title` + `subtext` together
+  (`hasCenteredHeader` in the component). Renders `SectionHeader` (from
+  `primitives.tsx`) full-width above the row, with `marginTop: 56` pushing
+  the row down. Only **Focus sessions** uses this mode.
+- **Inline heading/body** — pass `heading` + `body` instead. Renders an
+  `h2` + `p`, left-aligned, as the *first* item inside the text column
+  (above the `FeatureBlock` children), no separate header block above the
+  row (`marginTop: 0`). **Projects & Tasks, Analytics, and Leaderboard**
+  all use this mode.
+
+**Mockup slot (`md:self-stretch` + inner `flex items-center
+justify-center`):** the mockup wrapper always stretches to the row's full
+(content-driven) cross-axis height at `md:` and up, and centers whatever
+mockup is inside it. This means the *shorter* side of the row — whichever
+one that is for a given section — always centers against the *taller*
+one's real content height, the same way for every instance, with no
+per-instance override needed if a mockup's content changes size later
+(this replaced an earlier one-off `stretchMockup` prop that only existed
+for one section — see Changelog).
+
+**Animation:** each `FeatureSection` is exactly one `data-reveal-group`
+(the `<section>` itself) with `data-reveal` on the mockup wrapper, the
+inline heading/body block (when present), and each `FeatureBlock`. Nothing
+inside a mockup component should carry its own nested `data-reveal-group`
+— an earlier version of `TaskKanbanMockup` did this to stagger its cards
+individually, which caused two independent GSAP tweens to target the same
+DOM nodes (see Changelog); its cards now use plain `data-reveal` and are
+picked up by the section's one group like everything else.
+
+Section-to-section spacing is `sectionPad` (fixed `5.5rem` top/bottom,
+identical on every section) plus this row's content-driven height — there
+is no explicit or min-height anywhere in the chain, so the gap before the
+next section is always `sectionPad.bottom + sectionPad.top` regardless of
+how tall any one mockup gets.
+
+---
+
+## Hero background
+
+`HeroSection.tsx` renders a single static `<div>` behind the text
+(`position: absolute; inset: 0`, `pointer-events: none`, `zIndex: -1`
+relative to the `relative`, higher-`zIndex` text wrapper):
+
+```css
+background-image: radial-gradient(circle, #7A7890 1px, transparent 1px);
+background-size: 24px 24px;
+opacity: 0.15;
+```
+
+A repeating 24px dot grid (GitHub-contributions-style texture), 1px dots
+in the app's `ink-secondary` token, no JS, no animation, contained by the
+hero `<section>`'s own `overflow-hidden`. The `radial-gradient` here is a
+dot-drawing technique (two color stops at the same offset, hard edge), not
+a decorative gradient fill — the "no gradients" design constraint below is
+about visual gradient fills, not this.
+
+This replaced an earlier, more elaborate attempt: three concentric rings
+(the `Logo` mark's construction, scaled up ~15–40x) with a GSAP
+`ring-breathe` pulse. That version went through four broken iterations —
+wrong containing block, `ring-breathe`'s keyframe `transform` silently
+overriding the inline `translate(-50%, -50%)` used for centering (CSS
+animations outrank inline styles), etc. — before being scrapped entirely
+in favor of this simpler, fully static approach per explicit instruction.
+`tailwind.config.ts`'s `ring-breathe` keyframe/animation definitions are
+still there, intentionally unused — nothing currently references them.
 
 ---
 
@@ -153,13 +256,41 @@ the app's analytics/billing hooks), lucide icons.
   25:00, mode pills, static Start/Reset buttons. Ring "draws" to 30% when
   scrolled into view (a local ScrollTrigger flips the `progress` prop;
   ProgressRing's own CSS transition animates the dashoffset).
+- **TaskKanbanMockup** — three columns (To Do / In Progress / Done) using
+  the real `KanbanColumn`'s tint+accent construction (`rgba(122,120,144,
+  0.06)` / `#7A7890`, `rgba(75,158,255,0.06)` / `#4B9EFF`,
+  `rgba(61,214,140,0.06)` / `#3DD68C` — duplicated locally as
+  `STATUS_CONFIG` since the real `KanbanColumn.tsx`'s `COLUMN_CONFIG` isn't
+  exported), 2 fake cards per column, priority chips built from the real,
+  imported `PRIORITY_CONFIG` (`@/lib/utils/tasks`), one due-date chip
+  total on the whole board (normal + overdue-red variants both exist in
+  the codebase, only the overdue one is used here to stay uncluttered).
+  Columns are `flex-1` (no fixed px width) inside a `maxWidth: 440`
+  card so 3 columns always fit with zero horizontal overflow at any
+  viewport, including the narrowest mobile widths. Column headers use
+  `items-start` + a wrapping label (`flex-1 break-words`, no `truncate`)
+  so "In Progress" stays fully readable instead of truncating at ~375px —
+  it naturally stays on one line at desktop widths where it already fits.
+  No `dnd-kit`, no drag-and-drop — purely decorative.
 - **AnalyticsMockup** — Today's focus (2h 30m) + Sessions (4, count-up)
-  cards above a 28-day heatmap. Uses the app's **real blue intensity
-  scale** (copied from `MonthlyView.getCellColor`) — the app's heatmap is
-  blue, not green.
-- **LeaderboardMockup** — rank medals (`Trophy` in gold/silver/bronze),
-  avatar initials, "You" pill on row 2, `font-data` hours, `StreakBadge`
-  per row (hidden < sm to fit 320–375px).
+  cards, a 28-day heatmap using the app's **real blue intensity scale**
+  (copied from `MonthlyView.getCellColor` — the app's heatmap is blue, not
+  green), and a third card, "By project": a 100px `recharts`
+  `PieChart`/`Pie`/`Cell` donut (same construction as the real
+  `ProjectBreakdownCard`, just smaller and without the hover tooltip) with
+  a name/`font-data` time legend, 4 fake projects colored from the real
+  project-color picker's `PRESET_COLORS` (`ProjectModal.tsx`) —
+  deliberately skipping `#C8FF64` even though it's a valid pickable
+  project color in the real app, since that hex is reserved for
+  `StreakBadge` elsewhere on this page.
+- **LeaderboardMockup** — a static, non-functional "Everyone" / "Friends"
+  segmented pill (same visual construction as `PricingSection`'s
+  Monthly/Yearly toggle: `#222228` track, active pill `#141417` bg +
+  `#4B9EFF` text + `rgba(75,158,255,0.3)` border, "Everyone" always shown
+  active) sits above the ranked list purely to hint both views exist — no
+  `onClick`, no state. Below it: rank medals (`Trophy` in gold/silver/
+  bronze), avatar initials, "You" pill on row 2, `font-data` hours,
+  `StreakBadge` per row (hidden < sm to fit 320–375px).
 
 ---
 
@@ -185,6 +316,11 @@ Reveal groups are partitioned at mount:
   scroll.
 - **Below the fold** — ScrollTrigger at `top 80%`, `once: true`.
 
+Exactly one `data-reveal-group` per top-level section (see the
+`FeatureSection` note above for why nesting a second group inside one
+broke things) — this is the invariant to preserve when adding new
+sections or mockups.
+
 The load sequence waits for the `LogoIntro` splash (~3.7s overlay in
 App.tsx) to unmount (via MutationObserver on `.logo-intro`) — otherwise
 the entrance would play hidden underneath it. Load-sequence elements are
@@ -192,7 +328,9 @@ the entrance would play hidden underneath it. Load-sequence elements are
 
 Everything is wrapped in
 `gsap.matchMedia('(prefers-reduced-motion: no-preference)')` — reduced-motion
-users get a fully visible, motionless page.
+users get a fully visible, motionless page. The hero dot-grid background
+is plain CSS with no animation at all, so it's identical for both
+motion-preference states.
 
 ---
 
@@ -201,11 +339,17 @@ users get a fully visible, motionless page.
 - Tokens only: `#0D0D10` bg, `#141417` surfaces, `#2E2E38` borders,
   `#4B9EFF` brand, `#7A7890` / `#3D3B4E` muted inks
 - Streak green `#C8FF64` appears **only** for explicit streak/founder
-  references (StreakBadge rows, "Streak momentum" icon, "Founding member"
-  badge)
-- `font-data` (JetBrains Mono) on every number: timer, hours, prices, stats
-- Sentence case; small uppercase eyebrows only
-- No gradients / shadows / glows; dynamic colors via inline `style`
+  references (StreakBadge rows, "Founding member" badge) — the one former
+  exception on this page, the Leaderboard's "Streak momentum" block, was
+  removed along with its icon
+- `font-data` (JetBrains Mono) on every number: timer, hours, prices,
+  stats, and now the Analytics donut legend's per-project times
+- Sentence case; small uppercase eyebrows only (only used by Focus
+  sessions, Overview, and Pricing now — the other three `FeatureSection`
+  instances use the inline `heading`/`body` mode instead, no eyebrow)
+- No gradients / shadows / glows as decorative fills; dynamic colors via
+  inline `style` (the hero dot-grid's `radial-gradient` is a dot-drawing
+  technique, not a decorative fill — see Hero background above)
 - Responsive: two-column sections collapse below `md` (768px) with the
   mockup **always above** its text (mockup is first in DOM; desktop side
   is `md:flex-row` vs `md:flex-row-reverse`)
@@ -221,6 +365,8 @@ users get a fully visible, motionless page.
 | `f3f387b` | Fixed above-the-fold `data-reveal-group`s firing their ScrollTrigger invisibly on mount (no visible transition) by routing them through a load-sequence timeline instead; added the Pricing Monthly/Yearly toggle. |
 | `ff44d2b` | Closing CTA polish: 6rem padding, ring-mark icon, subtext, ghost "View pricing" link, trust line, top+bottom borders. |
 | `55f5f04` | Wired the nav avatar into a working account dropdown (Radix `DropdownMenu`, keyboard-operable) and added the Features/Pricing anchor links + hover affordance. |
+| `829b615` | Full copy rewrite (Hero, Overview blurbs, Focus sessions, Pricing, Closing CTA); added the **Projects & Tasks** `FeatureSection` + `TaskKanbanMockup`, reordering the four feature sections to Focus → Projects & Tasks → Analytics → Leaderboard with a consistent left/right alternation; added the Analytics "By project" donut; introduced `FeatureSection`'s `heading`/`body` inline-header mode and the always-on mockup stretch+center mechanism (superseding an interim `stretchMockup` opt-in prop that only existed for one section, since removed); removed Leaderboard's third "Streak momentum" block. |
+| `2dd2d7f` | Replaced a scrapped concentric-ring hero background (four broken iterations — see Hero background above) with the static dot-grid; added Leaderboard's static Everyone/Friends toggle pill; updated Leaderboard's "Global rankings" and "Follow friends" → "Friends, not followers" copy. |
 | *(uncommitted at time of writing)* | Fixed the nav avatar to render the user's real `profiles.avatar_url` via `useProfile()` — previously it only read auth `user_metadata` and always showed the colored-initial fallback, even for users with a profile photo. **Not yet verified or committed** — see below. |
 
 ## Verification
@@ -255,6 +401,30 @@ timing; with any human-plausible delay (150ms+) it consistently selects
 the correct item. This is Radix's own keyboard handling (identical to
 `Topbar.tsx`'s), not custom code added here.
 
+**2026-08-09** (commit `2dd2d7f`, hero dot-grid + Leaderboard toggle): a
+Chrome-in-browser extension wasn't available this session, so verification
+used the system's installed Edge browser directly in headless mode
+(`msedge --headless --disable-gpu --screenshot=... http://localhost:5173`)
+against the running dev server, plus `--dump-dom` to read the actual
+rendered `style` attribute rather than trust source. Confirmed at
+1280×900, 1280×1400 (taller than the hero, to check for bleed into
+"How it works" below), and 375×812: the dot grid renders with computed
+`background-image: radial-gradient(circle, rgb(122, 120, 144) 1px,
+transparent 1px); background-size: 24px 24px; opacity: 0.15` (matching
+source exactly, `rgb(122, 120, 144)` being the browser-normalized form of
+`#7A7890`), stays fully inside the hero section's `overflow-hidden`
+bounds with no bleed, and introduces no new horizontal scroll at any
+tested width. Fixing the dot-grid centering context along the way (a
+`mx-auto` experiment briefly replaced the section's proven
+`flex items-center` centering and was reverted after a mobile screenshot
+showed the headline shifted right) surfaced a **pre-existing, unrelated**
+bug: at 375px the hero headline/subtext are shifted right with subtext
+clipped past the viewport edge. Isolated via `git stash` back to the
+immediately prior commit (`829b615`, before any hero-background work) —
+the same shift reproduces there with zero relevant code present, so it
+predates this work and was left unfixed (out of scope) — see Known
+limitations.
+
 **Avatar-photo fix (`useProfile()` wiring): not yet verified.** Implemented
 per explicit instruction to skip verification/commit/push for that change
 — re-run the same fake-session Playwright approach with a session whose
@@ -271,3 +441,8 @@ per explicit instruction to skip verification/commit/push for that change
   yet — wire this up once Lemon Squeezy checkout exists.
 - The avatar-photo fix (see Changelog) has not been verified end-to-end
   with a real Supabase profile that has an `avatar_url` set.
+- **Pre-existing, unverified-until-now:** at ≤375px viewport widths, the
+  hero headline and subtext are shifted right of true center, with the
+  subtext clipping past the viewport edge instead of wrapping within it.
+  Confirmed present as far back as commit `829b615` (predates the hero
+  dot-grid/ring work); not yet root-caused or fixed.
