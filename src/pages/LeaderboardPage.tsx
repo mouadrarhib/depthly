@@ -500,6 +500,10 @@ export function LeaderboardPage() {
               {label}
             </button>
           ))}
+          <span style={{ width: 1, height: 20, background: '#2E2E38', flexShrink: 0, margin: '0 6px', alignSelf: 'center' }} />
+          <Link to={PATHS.groupLeaderboards} className="rounded-full px-3 py-[5px] text-[13px] text-ink-secondary hover:bg-depth-raised hover:text-ink-primary">
+            Groups
+          </Link>
         </div>
       </div>
 
@@ -525,6 +529,12 @@ export function LeaderboardPage() {
           active={activeNav}
           onSelect={handleNavSelect}
         />
+        <div className="mt-6 border-t border-depth-border pt-4">
+          <p className="mb-2 px-3 text-[10px] font-medium uppercase tracking-[0.08em] text-ink-secondary">Private</p>
+          <Link to={PATHS.groupLeaderboards} className="flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-ink-secondary hover:bg-depth-raised hover:text-ink-primary">
+            <Users className="h-4 w-4" /> Groups
+          </Link>
+        </div>
       </div>
 
       {/* ── Right content ── */}

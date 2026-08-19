@@ -12,6 +12,8 @@ export const FREE_LIMITS = {
   analyticsWindowDays:  7,
   csvExport:            false,
   leaderboard:          false,
+  maxActiveGroupLeaderboards: 1,
+  maxGroupLeaderboardMembers: 15,
 } as const
 
 async function fetchPlan(userId: string): Promise<PlanType> {
@@ -45,5 +47,9 @@ export function usePlan() {
     return true
   }
 
-  return { plan, isPro, isLoading, checkLimit, FREE_LIMITS }
+  const groupLeaderboardLimits = isPro
+    ? { maxActive: 10, maxMembers: 100 }
+    : { maxActive: FREE_LIMITS.maxActiveGroupLeaderboards, maxMembers: FREE_LIMITS.maxGroupLeaderboardMembers }
+
+  return { plan, isPro, isLoading, checkLimit, groupLeaderboardLimits, FREE_LIMITS }
 }

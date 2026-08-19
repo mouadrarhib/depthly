@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useProjects } from '@/hooks/useProjects'
 import { usePlan, FREE_LIMITS } from '@/hooks/usePlan'
 import { fetchSessionsThisMonth } from '@/lib/supabase/queries/sessions'
+import { useMyGroupLeaderboards } from '@/hooks/useGroupLeaderboards'
 
 export function useProjectLimit() {
   const { plan, isPro }    = usePlan()
@@ -51,4 +52,18 @@ export function useCanExportCSV() {
 export function useCanAppearOnLeaderboard() {
   const { isPro } = usePlan()
   return { canAppear: isPro, isPro }
+}
+
+export function useGroupLeaderboardCreationLimit() {
+  const { groupLeaderboardLimits, isPro } = usePlan()
+  const { data: groups, isLoading } = useMyGroupLeaderboards()
+  const activeOwned = (groups ?? []).filter((group) => group.role === 'creator' && group.status === 'active').length
+  return {
+    count: activeOwned,
+    max: groupLeaderboardLimits.maxActive,
+    maxMembers: groupLeaderboardLimits.maxMembers,
+    isAtLimit: activeOwned >= groupLeaderboardLimits.maxActive,
+    isLoading,
+    isPro,
+  }
 }

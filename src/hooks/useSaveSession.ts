@@ -19,7 +19,7 @@ export function useSaveSession() {
   useEffect(() => { if (activeQuery.data) useTimerStore.getState().restoreRun(activeQuery.data) }, [activeQuery.data])
 
   const refreshAfterFinish = useCallback(() => {
-    for (const key of [['sessions'], ['analytics'], ['profile'], ['goals'], ['projects'], ['tasks'], ['leaderboard']]) qc.invalidateQueries({ queryKey: key })
+    for (const key of [['sessions'], ['analytics'], ['profile'], ['goals'], ['projects'], ['tasks'], ['leaderboard'], ['group-leaderboards']]) qc.invalidateQueries({ queryKey: key })
     qc.invalidateQueries({ queryKey: TIMER_QUERY_KEY })
   }, [qc])
 

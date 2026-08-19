@@ -17,18 +17,19 @@ const GoogleIcon = () => (
 
 interface GoogleButtonProps {
   label?: string
+  redirectPath?: string
 }
 
-export function GoogleButton({ label = 'Continue with Google' }: GoogleButtonProps) {
+export function GoogleButton({ label = 'Continue with Google', redirectPath = PATHS.dashboard }: GoogleButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
 
   const handleClick = async () => {
     setIsLoading(true)
-    markOAuthPending()
+    markOAuthPending(redirectPath)
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}${PATHS.dashboard}`,
+        redirectTo: `${window.location.origin}${redirectPath}`,
       },
     })
     // Page navigates away — no need to setIsLoading(false)

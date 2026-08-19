@@ -24,6 +24,7 @@ const FEATURES = [
   'Full analytics history',
   '52-week heatmap',
   'Global leaderboard',
+  '10 private group leaderboards',
   'CSV export',
   'Priority new features',
 ]

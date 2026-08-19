@@ -14,6 +14,10 @@ surfaces:
 The `follows` table powers the Friends tab, which limits the ranked list to the current
 user plus their accepted friends.
 
+Private custom groups are documented separately in `docs/GROUP_LEADERBOARDS.md`. They
+use invite membership and trusted post-join session scoring rather than the global
+public-profile rules described below.
+
 ---
 
 ## Pages & Routes

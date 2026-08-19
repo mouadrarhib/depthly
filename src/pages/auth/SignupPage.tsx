@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { supabase } from '@/lib/supabase/client'
 import { PATHS } from '@/routes/paths'
 import { Button, GoogleButton, Input } from '@/components/ui'
+import { authPath, safeAuthNext } from '@/lib/authRedirect'
 
 export function SignupPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const next = safeAuthNext(searchParams.get('next'))
 
   const [email,     setEmail]     = useState('')
   const [password,  setPassword]  = useState('')
@@ -27,7 +30,7 @@ export function SignupPage() {
       return
     }
 
-    navigate(PATHS.dashboard, { replace: true, state: { fromAuth: true } })
+    navigate(next, { replace: true, state: { fromAuth: next === PATHS.dashboard } })
   }
 
   return (
@@ -36,7 +39,7 @@ export function SignupPage() {
         <h1 className="text-2xl text-text">Create account</h1>
         <p className="text-sm text-text-muted">
           Already have an account?{' '}
-          <Link to={PATHS.login} className="text-brand hover:underline">
+          <Link to={authPath(PATHS.login, next)} className="text-brand hover:underline">
             Sign in
           </Link>
         </p>
@@ -77,7 +80,7 @@ export function SignupPage() {
         <hr className="flex-1 border-border" />
       </div>
 
-      <GoogleButton label="Sign up with Google" />
+      <GoogleButton label="Sign up with Google" redirectPath={next} />
     </div>
   )
 }

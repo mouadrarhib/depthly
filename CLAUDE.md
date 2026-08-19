@@ -184,6 +184,7 @@ Read the relevant doc before touching a feature:
 - Friends:     docs/FRIENDS.md
 - Security:    docs/SECURITY.md
 - Sessions:    docs/TRUSTED_SESSIONS.md
+- Groups:      docs/GROUP_LEADERBOARDS.md
 
 These docs reflect what is actually built.
 They are the source of truth for implementation

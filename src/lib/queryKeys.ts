@@ -44,6 +44,14 @@ export const leaderboardKeys = {
                 ['leaderboard', 'pending-requests-count', userId] as const,
 }
 
+export const groupLeaderboardKeys = {
+  all:     ['group-leaderboards'] as const,
+  list:    () => ['group-leaderboards', 'list'] as const,
+  detail:  (id: string) => ['group-leaderboards', 'detail', id] as const,
+  ranking: (id: string) => ['group-leaderboards', 'ranking', id] as const,
+  invite:  (code: string) => ['group-leaderboards', 'invite', code] as const,
+}
+
 export const billingKeys = {
   subscriptions: (userId: string) => ['billing', 'subscriptions', userId] as const,
 }

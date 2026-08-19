@@ -29,6 +29,7 @@ export const PATHS = {
   sessions:  '/sessions',
   analytics:   '/analytics',
   leaderboard: '/leaderboard',
+  groupLeaderboards: '/leaderboard/groups',
   billing:     '/billing',
   // tasks: '/tasks',
   // goals: '/goals',
@@ -36,4 +37,6 @@ export const PATHS = {
   // Dynamic routes — functions to avoid string concatenation at call site
   project:  (id: string) => `/projects/${id}`,
   task:     (id: string) => `/tasks/${id}`,
+  groupLeaderboard: (id: string) => `/leaderboard/groups/${id}`,
+  joinGroup: (code: string) => `/join/${code}`,
 } as const

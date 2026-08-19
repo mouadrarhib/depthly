@@ -62,6 +62,7 @@ export function useSetSessionExcluded() {
       qc.invalidateQueries({ queryKey: ['projects'] })
       qc.invalidateQueries({ queryKey: ['tasks'] })
       qc.invalidateQueries({ queryKey: ['leaderboard'] })
+      qc.invalidateQueries({ queryKey: ['group-leaderboards'] })
     },
   })
 }

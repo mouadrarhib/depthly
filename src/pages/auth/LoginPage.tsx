@@ -1,13 +1,16 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { supabase } from '@/lib/supabase/client'
 import { PATHS } from '@/routes/paths'
 import { useAuthStore } from '@/store'
 import { Button, GoogleButton, Input } from '@/components/ui'
+import { authPath, safeAuthNext } from '@/lib/authRedirect'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const next = safeAuthNext(searchParams.get('next'))
 
   const [email,              setEmail]              = useState('')
   const [password,           setPassword]           = useState('')
@@ -32,7 +35,7 @@ export function LoginPage() {
     // causing a bounce back to /login before the store had caught up).
     useAuthStore.getState().setUser(data.user)
 
-    navigate(PATHS.dashboard, { replace: true, state: { fromAuth: true } })
+    navigate(next, { replace: true, state: { fromAuth: next === PATHS.dashboard } })
   }
 
   return (
@@ -41,7 +44,7 @@ export function LoginPage() {
         <h1 className="text-2xl text-text">Sign in</h1>
         <p className="text-sm text-text-muted">
           Don&apos;t have an account?{' '}
-          <Link to={PATHS.signup} className="text-brand hover:underline">
+          <Link to={authPath(PATHS.signup, next)} className="text-brand hover:underline">
             Sign up
           </Link>
         </p>
@@ -82,7 +85,7 @@ export function LoginPage() {
         <hr className="flex-1 border-border" />
       </div>
 
-      <GoogleButton label="Sign in with Google" />
+      <GoogleButton label="Sign in with Google" redirectPath={next} />
     </div>
   )
 }

@@ -126,6 +126,23 @@ export type Database = {
           },
         ]
       }
+      group_leaderboard_members: {
+        Row: { created_at: string; ended_at: string | null; frozen_focus_minutes: number | null; frozen_session_count: number | null; id: string; joined_at: string; leaderboard_id: string; role: string; status: string; updated_at: string; user_id: string }
+        Insert: { created_at?: string; ended_at?: string | null; frozen_focus_minutes?: number | null; frozen_session_count?: number | null; id?: string; joined_at?: string; leaderboard_id: string; role?: string; status?: string; updated_at?: string; user_id: string }
+        Update: { created_at?: string; ended_at?: string | null; frozen_focus_minutes?: number | null; frozen_session_count?: number | null; id?: string; joined_at?: string; leaderboard_id?: string; role?: string; status?: string; updated_at?: string; user_id?: string }
+        Relationships: [
+          { foreignKeyName: "group_leaderboard_members_leaderboard_id_fkey"; columns: ["leaderboard_id"]; isOneToOne: false; referencedRelation: "group_leaderboards"; referencedColumns: ["id"] },
+          { foreignKeyName: "group_leaderboard_members_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+        ]
+      }
+      group_leaderboards: {
+        Row: { closed_at: string | null; closed_period_key: string | null; created_at: string; goal_minutes: number | null; id: string; invite_code: string; name: string; owner_id: string; period_type: Database["public"]["Enums"]["period_type"]; status: string; timezone: string; updated_at: string }
+        Insert: { closed_at?: string | null; closed_period_key?: string | null; created_at?: string; goal_minutes?: number | null; id?: string; invite_code: string; name: string; owner_id: string; period_type: Database["public"]["Enums"]["period_type"]; status?: string; timezone: string; updated_at?: string }
+        Update: { closed_at?: string | null; closed_period_key?: string | null; created_at?: string; goal_minutes?: number | null; id?: string; invite_code?: string; name?: string; owner_id?: string; period_type?: Database["public"]["Enums"]["period_type"]; status?: string; timezone?: string; updated_at?: string }
+        Relationships: [
+          { foreignKeyName: "group_leaderboards_owner_id_fkey"; columns: ["owner_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+        ]
+      }
       goals: {
         Row: {
           created_at: string
@@ -658,6 +675,27 @@ export type Database = {
       }
     }
     Functions: {
+      close_group_leaderboard: { Args: { p_leaderboard_id: string }; Returns: undefined }
+      create_group_leaderboard: { Args: { p_goal_minutes: number | null; p_name: string; p_period_type: Database["public"]["Enums"]["period_type"]; p_timezone: string }; Returns: string }
+      get_group_leaderboard: {
+        Args: { p_leaderboard_id: string }
+        Returns: Array<{ closed_at: string | null; closed_period_key: string | null; created_at: string; current_period_key: string; goal_minutes: number | null; id: string; invite_code: string; member_count: number; name: string; owner_id: string; period_ends_at: string | null; period_type: Database["public"]["Enums"]["period_type"]; role: string; status: string; timezone: string }>
+      }
+      get_group_leaderboard_ranking: {
+        Args: { p_leaderboard_id: string }
+        Returns: Array<{ avatar_url: string | null; display_name: string; focus_minutes: number; joined_at: string; rank: number; role: string; session_count: number; user_id: string }>
+      }
+      join_group_leaderboard: { Args: { p_invite_code: string }; Returns: string }
+      leave_group_leaderboard: { Args: { p_leaderboard_id: string }; Returns: undefined }
+      list_my_group_leaderboards: {
+        Args: Record<PropertyKey, never>
+        Returns: Array<{ closed_at: string | null; closed_period_key: string | null; created_at: string; current_period_key: string; goal_minutes: number | null; id: string; invite_code: string; member_count: number; name: string; owner_id: string; period_ends_at: string | null; period_type: Database["public"]["Enums"]["period_type"]; role: string; status: string; timezone: string }>
+      }
+      preview_group_leaderboard_invite: {
+        Args: { p_invite_code: string }
+        Returns: Array<{ creator_name: string; goal_minutes: number | null; leaderboard_id: string; member_count: number; member_limit: number; name: string; period_type: Database["public"]["Enums"]["period_type"]; status: string }>
+      }
+      remove_group_leaderboard_member: { Args: { p_leaderboard_id: string; p_user_id: string }; Returns: undefined }
       save_session: {
         Args: {
           p_duration_mins: number

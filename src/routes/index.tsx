@@ -14,6 +14,9 @@ import { TimerPage } from '@/pages/TimerPage'
 import { BillingPage } from '@/pages/BillingPage'
 import { HomePage } from '@/pages/HomePage'
 import { LeaderboardPage } from '@/pages/LeaderboardPage'
+import { GroupLeaderboardsPage } from '@/pages/GroupLeaderboardsPage'
+import { GroupLeaderboardDetailPage } from '@/pages/GroupLeaderboardDetailPage'
+import { JoinGroupLeaderboardPage } from '@/pages/JoinGroupLeaderboardPage'
 import { PublicProfilePage } from '@/pages/PublicProfilePage'
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
@@ -54,6 +57,8 @@ export const router = createBrowserRouter(
             { path: '/sessions',     element: <ErrorBoundary><SessionsPage /></ErrorBoundary> },
             { path: '/analytics',    element: <ErrorBoundary><AnalyticsPage /></ErrorBoundary> },
             { path: '/leaderboard',  element: <ErrorBoundary><LeaderboardPage /></ErrorBoundary> },
+            { path: '/leaderboard/groups', element: <ErrorBoundary><GroupLeaderboardsPage /></ErrorBoundary> },
+            { path: '/leaderboard/groups/:id', element: <ErrorBoundary><GroupLeaderboardDetailPage /></ErrorBoundary> },
             { path: '/billing',      element: <BillingPage /> },
           ],
         },
@@ -62,6 +67,7 @@ export const router = createBrowserRouter(
 
     // ── Public profile ────────────────────────────────────────────────────
     { path: '/u/:slug', element: <PublicProfilePage /> },
+    { path: '/join/:code', element: <JoinGroupLeaderboardPage /> },
 
     // ── 404 ───────────────────────────────────────────────────────────────
     { path: '*', element: <NotFoundPage /> },

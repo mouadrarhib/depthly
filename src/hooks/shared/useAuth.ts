@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { clearOAuthPending, isOAuthPending } from '@/lib/oauthPending'
+import { clearOAuthPending, getOAuthDestination, isOAuthPending } from '@/lib/oauthPending'
 import { supabase } from '@/lib/supabase/client'
 import { PATHS } from '@/routes/paths'
 import { useAuthStore } from '@/store'
@@ -26,6 +26,14 @@ export function useAuth() {
       setUser(session?.user ?? null)
       setIsLoading(false)
 
+      if (session && isOAuthPending()) {
+        const destination = getOAuthDestination()
+        clearOAuthPending()
+        if (`${window.location.pathname}${window.location.search}` !== destination) {
+          navigate(destination, { replace: true, state: { fromAuth: destination === PATHS.dashboard } })
+        }
+      }
+
       // A pending flag with no resulting session means the OAuth attempt
       // was abandoned/denied — clear it so it can't misfire on some later,
       // unrelated visit to /dashboard in this tab.
@@ -45,7 +53,9 @@ export function useAuth() {
       // — App.tsx's own isOAuthPending() check handles the direct-landing
       // case synchronously, before this async listener even runs.
       if (event === 'SIGNED_IN' && session && isOAuthPending()) {
-        navigate(PATHS.dashboard, { replace: true, state: { fromAuth: true } })
+        const destination = getOAuthDestination()
+        clearOAuthPending()
+        navigate(destination, { replace: true, state: { fromAuth: destination === PATHS.dashboard } })
       }
     })
 
