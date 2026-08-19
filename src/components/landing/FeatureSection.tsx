@@ -17,6 +17,10 @@ interface FeatureSectionProps {
   children: ReactNode
   /** Fit this row into the desktop viewport below the 64px landing nav. */
   viewportFit?: boolean
+  /** Tighten and rebalance the inline heading/body/feature rhythm. */
+  compactCopy?: boolean
+  /** Optional body color override for a single section. */
+  bodyColor?: string
 }
 
 /**
@@ -40,6 +44,8 @@ export function FeatureSection({
   mockup,
   children,
   viewportFit = false,
+  compactCopy = false,
+  bodyColor = '#7A7890',
 }: FeatureSectionProps) {
   const rowClass = mockupSide === 'left' ? 'md:flex-row' : 'md:flex-row-reverse'
   const hasCenteredHeader = Boolean(eyebrow && title && subtext)
@@ -81,9 +87,15 @@ export function FeatureSection({
             {mockup}
           </div>
 
-          <div className="flex w-full flex-col gap-8 md:w-[45%]">
+          <div
+            className={`flex w-full flex-col md:w-[45%] ${compactCopy ? 'gap-[30px]' : 'gap-8'}`}
+          >
             {heading && body ? (
-              <div data-reveal className="flex flex-col gap-3" style={{ textAlign: 'left' }}>
+              <div
+                data-reveal
+                className={`flex flex-col ${compactCopy ? 'gap-5' : 'gap-3'}`}
+                style={{ textAlign: 'left' }}
+              >
                 <h2
                   style={{
                     fontSize: 'clamp(26px, 4vw, 36px)',
@@ -95,7 +107,7 @@ export function FeatureSection({
                 >
                   {heading}
                 </h2>
-                <p style={{ fontSize: 15, color: '#7A7890', lineHeight: 1.6 }}>{body}</p>
+                <p style={{ fontSize: 15, color: bodyColor, lineHeight: 1.6 }}>{body}</p>
               </div>
             ) : null}
             {children}

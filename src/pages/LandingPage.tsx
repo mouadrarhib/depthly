@@ -20,6 +20,9 @@ import { useLandingAnimations } from '@/components/landing/useLandingAnimations'
 import { useAuth } from '@/hooks/shared/useAuth'
 import { PATHS } from '@/routes/paths'
 
+const READABLE_SECONDARY_TEXT =
+  'color-mix(in srgb, var(--color-text-muted) 76%, var(--color-text) 24%)'
+
 /**
  * Public marketing landing page, served at "/".
  * Static content only — auth state is read solely to swap the nav CTA.
@@ -90,16 +93,20 @@ export function LandingPage() {
           mockupSide="right"
           mockup={<AnalyticsMockup />}
           viewportFit
+          compactCopy
+          bodyColor={READABLE_SECONDARY_TEXT}
         >
           <FeatureBlock
             Icon={Target}
             title="A daily goal you can see"
             description="Compare today's focused time with your target at a glance, including the real total when you go beyond it."
+            descriptionColor={READABLE_SECONDARY_TEXT}
           />
           <FeatureBlock
             Icon={BarChart3}
             title="Patterns, not guesswork"
             description="See session totals, heatmaps, trends, streaks, and project breakdowns using the same trusted focus history."
+            descriptionColor={READABLE_SECONDARY_TEXT}
           />
         </FeatureSection>
 

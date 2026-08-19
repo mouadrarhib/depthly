@@ -66,10 +66,18 @@ interface FeatureBlockProps {
   description: string
   /** Icon color — defaults to muted; pass #C8FF64 only for explicit streak references. */
   iconColor?: string
+  /** Optional description color override for a single feature instance. */
+  descriptionColor?: string
 }
 
 /** Icon in a rounded square + bold title + 2-line muted description. */
-export function FeatureBlock({ Icon, title, description, iconColor = '#7A7890' }: FeatureBlockProps) {
+export function FeatureBlock({
+  Icon,
+  title,
+  description,
+  iconColor = '#7A7890',
+  descriptionColor = '#7A7890',
+}: FeatureBlockProps) {
   return (
     <div data-reveal className="flex items-start gap-4">
       <span
@@ -88,7 +96,7 @@ export function FeatureBlock({ Icon, title, description, iconColor = '#7A7890' }
         <h3 style={{ fontSize: 16, fontWeight: 500, color: '#E8E6F0', letterSpacing: '-0.01em' }}>
           {title}
         </h3>
-        <p style={{ fontSize: 14, color: '#7A7890', lineHeight: 1.6 }}>{description}</p>
+        <p style={{ fontSize: 14, color: descriptionColor, lineHeight: 1.6 }}>{description}</p>
       </div>
     </div>
   )
