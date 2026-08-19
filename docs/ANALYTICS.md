@@ -717,8 +717,14 @@ Aggregates `focus_minutes` by day-of-week across the summaries array, returns th
 
 ## 8. Known Limitations
 
-### Goal ring on DailyView — not implemented
-DailyView has no goal progress ring. The `goals` table (Phase 6) stores per-period minute targets. Once goals are wired up, the daily stat card could show a ring or progress bar comparing `focus_minutes` against the day's goal.
+### Daily goal on DailyView
+DailyView combines the selected day's `focus_minutes` with the existing
+`goals.daily_goal_minutes` value. The goal card shows a capped progress ring,
+the actual focused time versus the target, completion state, and a shortcut to
+the existing goal editor when no goal is configured. Past dates are compared
+with the user's current daily goal; Depthly does not store historical goal
+versions. Goal-completion confetti is limited to a live below-to-complete
+transition for today.
 
 ### `getBestHourOfDay` / `getBestDayOfWeek` — implemented, not displayed
 Both functions exist in `src/lib/utils/analytics.ts` with correct implementations. No view renders their output. Likely intended for a "Insights" section that was not yet built.

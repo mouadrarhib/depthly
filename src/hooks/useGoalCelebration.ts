@@ -4,19 +4,36 @@ import { getGoalProgress } from '@/lib/utils/analytics'
 
 export function useGoalCelebration(
   focusMinutes: number,
-  goalMinutes:  number | null
+  goalMinutes:  number | null,
+  enabled:      boolean,
 ): { shouldCelebrate: boolean } {
   const { isComplete } = getGoalProgress(focusMinutes, goalMinutes)
-  const prevRef = useRef<boolean | null>(null)
+  const previousRef = useRef<{ focusMinutes: number; goalMinutes: number | null } | null>(null)
   const [shouldCelebrate, setShouldCelebrate] = useState(false)
 
-  // Detect the false → true transition
+  // Celebrate only when focus increases across the configured goal. Initial
+  // loads, goal edits, and navigating back to an already-complete day must not
+  // look like a newly completed goal.
   useEffect(() => {
-    if (prevRef.current === false && isComplete) {
+    if (!enabled) {
+      previousRef.current = null
+      setShouldCelebrate(false)
+      return
+    }
+
+    const previous = previousRef.current
+    const crossedGoal = previous !== null
+      && goalMinutes !== null
+      && previous.goalMinutes === goalMinutes
+      && previous.focusMinutes < goalMinutes
+      && focusMinutes >= goalMinutes
+      && focusMinutes > previous.focusMinutes
+
+    if (crossedGoal && isComplete) {
       setShouldCelebrate(true)
     }
-    prevRef.current = isComplete
-  }, [isComplete])
+    previousRef.current = { focusMinutes, goalMinutes }
+  }, [enabled, focusMinutes, goalMinutes, isComplete])
 
   // Reset after one tick so ConfettiBurst only gets a pulse, not a stuck true
   useEffect(() => {

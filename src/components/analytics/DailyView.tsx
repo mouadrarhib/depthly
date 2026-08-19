@@ -136,7 +136,12 @@ export function DailyView({ date }: DailyViewProps) {
 
   const { data: summary,  isLoading: loadingSummary  } = useDailySummary(dateKey)
   const { data: sessions, isLoading: loadingSessions } = useSessionsForDay(dateKey)
-  const { data: goals } = useGoals()
+  const {
+    data: goals,
+    isLoading: loadingGoals,
+    isError: goalsError,
+    refetch: refetchGoals,
+  } = useGoals()
 
   const weekDays    = getDaysInWeek(date)
   const mondayKey   = formatPeriodKey(weekDays[0], 'daily')
@@ -156,8 +161,13 @@ export function DailyView({ date }: DailyViewProps) {
 
   const focusMinutes = summary?.focus_minutes ?? 0
   const sessionCount = summary?.session_count ?? 0
+  const isToday = dateKey === formatPeriodKey(new Date(), 'daily')
 
-  const { shouldCelebrate } = useGoalCelebration(focusMinutes, goals?.daily_goal_minutes ?? null)
+  const { shouldCelebrate } = useGoalCelebration(
+    focusMinutes,
+    goals?.daily_goal_minutes ?? null,
+    isToday,
+  )
 
   // Build project totals and hour slots from sessions
   const projectMap = new Map<string, Omit<ProjectEntry, 'pct'>>()
@@ -240,8 +250,29 @@ export function DailyView({ date }: DailyViewProps) {
           </div>
         )}
 
-        {isLoading ? <StatCardSkeleton /> : (
+        {isLoading || loadingGoals ? <StatCardSkeleton /> : (
           (() => {
+            if (goalsError) {
+              return (
+                <div style={{ ...card, flex: '1 1 auto' }}>
+                  <CardHeader
+                    icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+                    title="Daily Goal"
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', gap: 8 }}>
+                    <span style={{ fontSize: 13, color: '#7A7890' }}>Goal unavailable</span>
+                    <button
+                      type="button"
+                      onClick={() => { void refetchGoals() }}
+                      style={{ fontSize: 13, color: '#4B9EFF', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    >
+                      Try again →
+                    </button>
+                  </div>
+                </div>
+              )
+            }
+
             const dailyGoal = goals?.daily_goal_minutes ?? null
             if (dailyGoal === null) {
               return (
@@ -293,6 +324,14 @@ export function DailyView({ date }: DailyViewProps) {
                   ) : (
                     <span style={{ fontSize: 11, color: '#3D3B4E' }}>{goal.remaining} min to go</span>
                   )}
+                  <span className="font-data" style={{ fontSize: 12, color: '#7A7890', textAlign: 'center' }}>
+                    {formatMinutesToHours(focusMinutes)} / {formatMinutesToHours(dailyGoal)} goal — {goal.percentage}%
+                  </span>
+                  {!isToday ? (
+                    <span style={{ fontSize: 11, color: '#3D3B4E', textAlign: 'center' }}>
+                      Compared with your current daily goal
+                    </span>
+                  ) : null}
                 </div>
 
                 <div style={{ marginTop: 16 }}>
