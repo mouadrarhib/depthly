@@ -588,7 +588,23 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          current_streak: number
+          display_name: string
+          id: string
+          is_public: boolean
+          last_focus_date: string | null
+          longest_streak: number
+          member_since: string
+          profile_slug: string
+          show_heatmap_on_profile: boolean
+          total_focus_minutes: number
+          total_sessions: number
+        }
+        Relationships: []
+      }
     }
     Functions: {
       save_session: {

@@ -14,9 +14,8 @@ import {
   useUnfriend,
 } from '@/hooks/useLeaderboard'
 import { useAuthStore } from '@/store/authStore'
-import { supabase } from '@/lib/supabase/client'
+import { fetchProfileById } from '@/lib/supabase/queries/leaderboard'
 import { formatMinutesToHours } from '@/lib/utils/analytics'
-import { getEffectiveStreak } from '@/lib/utils/streak'
 
 const AVATAR_COLORS = ['#4B9EFF', '#7C3AED', '#059669', '#DC2626', '#D97706', '#DB2777']
 
@@ -125,19 +124,7 @@ interface UserProfileModalProps {
 export function UserProfileModal({ userId, onClose }: UserProfileModalProps) {
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile', 'by-id', userId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(
-          'id, display_name, avatar_url, profile_slug, current_streak, longest_streak, total_focus_minutes, total_sessions, last_focus_date',
-        )
-        .eq('id', userId)
-        .maybeSingle()
-      if (error) throw error
-      if (!data) return null
-
-      return { ...data, current_streak: getEffectiveStreak(data.current_streak, data.last_focus_date) }
-    },
+    queryFn: () => fetchProfileById(userId),
     enabled: !!userId,
   })
 

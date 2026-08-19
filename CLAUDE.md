@@ -175,11 +175,14 @@ Check limits via `usePlan().checkLimit(type)` — never inline the limit logic.
 Detailed implementation references live in docs/.
 Read the relevant doc before touching a feature:
 
-- Home:      docs/HOME.md
-- Timer:     docs/timer.md
-- Projects:  docs/PROJECTS.md
-- Tasks:     docs/TASKS.md
-- Landing:   docs/LANDING.md
+- Home:        docs/HOME.md
+- Timer:       docs/timer.md
+- Projects:    docs/PROJECTS.md
+- Tasks:       docs/TASKS.md
+- Landing:     docs/LANDING.md
+- Leaderboard: docs/LEADERBOARD.md
+- Friends:     docs/FRIENDS.md
+- Security:    docs/SECURITY.md
 
 These docs reflect what is actually built.
 They are the source of truth for implementation

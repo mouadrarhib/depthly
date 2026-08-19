@@ -18,20 +18,45 @@ export type PublicProfile = {
   show_heatmap_on_profile: boolean
 }
 
+// public_profiles is a view exposing only non-sensitive columns (no billing
+// fields) for rows that are public, the caller's own, or a follows
+// connection — see supabase/migrations/012_security_hardening.sql. This is
+// the only place client code should read another user's profile data from;
+// the base `profiles` table is owner-only (id = auth.uid()) now.
+const PUBLIC_PROFILE_COLUMNS =
+  'id, display_name, avatar_url, profile_slug, is_public, member_since, current_streak, longest_streak, total_focus_minutes, total_sessions, show_heatmap_on_profile, last_focus_date'
+
+function toPublicProfile(
+  data: { last_focus_date: string | null } & Omit<PublicProfile, never>,
+): PublicProfile {
+  const { last_focus_date, ...profile } = data
+  return { ...profile, current_streak: getEffectiveStreak(profile.current_streak, last_focus_date) }
+}
+
 export async function fetchProfileBySlug(slug: string): Promise<PublicProfile | null> {
   const { data, error } = await supabase
-    .from('profiles')
-    .select(
-      'id, display_name, avatar_url, profile_slug, is_public, member_since, current_streak, longest_streak, total_focus_minutes, total_sessions, show_heatmap_on_profile, last_focus_date',
-    )
+    .from('public_profiles')
+    .select(PUBLIC_PROFILE_COLUMNS)
     .eq('profile_slug', slug)
     .maybeSingle()
 
   if (error) throw error
   if (!data) return null
 
-  const { last_focus_date, ...profile } = data as PublicProfile & { last_focus_date: string | null }
-  return { ...profile, current_streak: getEffectiveStreak(profile.current_streak, last_focus_date) }
+  return toPublicProfile(data as PublicProfile & { last_focus_date: string | null })
+}
+
+export async function fetchProfileById(userId: string): Promise<PublicProfile | null> {
+  const { data, error } = await supabase
+    .from('public_profiles')
+    .select(PUBLIC_PROFILE_COLUMNS)
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (error) throw error
+  if (!data) return null
+
+  return toPublicProfile(data as PublicProfile & { last_focus_date: string | null })
 }
 
 export async function fetchPublicHeatmap(
@@ -63,32 +88,28 @@ export type LeaderboardEntry = {
   is_public: boolean
 }
 
-type RawPeriodRow = {
-  user_id: string
-  focus_minutes: number
-  session_count: number
-  profiles: {
-    display_name: string
-    avatar_url: string | null
-    profile_slug: string
-    current_streak: number
-    last_focus_date: string | null
-    is_public: boolean
-  }
+type PublicProfileCard = {
+  id: string
+  display_name: string
+  avatar_url: string | null
+  profile_slug: string
+  current_streak: number
+  last_focus_date: string | null
 }
 
-function toEntry(row: RawPeriodRow, rank: number): LeaderboardEntry {
-  return {
-    rank,
-    user_id: row.user_id,
-    display_name: row.profiles.display_name,
-    avatar_url: row.profiles.avatar_url,
-    profile_slug: row.profiles.profile_slug,
-    focus_minutes: row.focus_minutes,
-    session_count: row.session_count,
-    current_streak: getEffectiveStreak(row.profiles.current_streak, row.profiles.last_focus_date),
-    is_public: row.profiles.is_public,
-  }
+// Global/all-time leaderboards only ever rank public profiles, so a plain
+// `.eq('is_public', true)` against public_profiles (rather than the two
+// branches it also supports) is enough here.
+async function fetchAllPublicProfileCards(userIds: string[]): Promise<Map<string, PublicProfileCard>> {
+  if (userIds.length === 0) return new Map()
+
+  const { data, error } = await supabase
+    .from('public_profiles')
+    .select('id, display_name, avatar_url, profile_slug, current_streak, last_focus_date')
+    .in('id', userIds)
+
+  if (error) throw error
+  return new Map((data ?? []).map((p) => [p.id, p as PublicProfileCard]))
 }
 
 export async function fetchGlobalLeaderboard(
@@ -96,26 +117,48 @@ export async function fetchGlobalLeaderboard(
   periodKey: string,
   limit: number = 50,
 ): Promise<LeaderboardEntry[]> {
-  const { data, error } = await supabase
+  // Fetched as two queries (user_stats, then public_profiles) rather than an
+  // embedded profiles!inner(...) join — public_profiles is a view, and
+  // PostgREST can't auto-detect the FK relationship needed for embedding
+  // through a view the way it can for a real table. Same pattern already
+  // used by fetchFriendsLeaderboard below.
+  const { data: statsRows, error: statsError } = await supabase
     .from('user_stats')
-    .select(
-      'user_id, focus_minutes, session_count, profiles!inner(display_name, avatar_url, profile_slug, current_streak, last_focus_date, is_public)',
-    )
+    .select('user_id, focus_minutes, session_count')
     .eq('period_type', periodType)
     .eq('period_key', periodKey)
-    .eq('profiles.is_public', true)
     .order('focus_minutes', { ascending: false })
-    .limit(limit)
 
-  if (error) throw error
-  return (data as unknown as RawPeriodRow[]).map((row, i) => toEntry(row, i + 1))
+  if (statsError) throw statsError
+  if (!statsRows || statsRows.length === 0) return []
+
+  const profileById = await fetchAllPublicProfileCards(statsRows.map((s) => s.user_id))
+
+  const entries: LeaderboardEntry[] = []
+  for (const row of statsRows) {
+    const profile = profileById.get(row.user_id)
+    if (!profile) continue // not a public profile — excluded from the global board
+    entries.push({
+      rank: entries.length + 1,
+      user_id: row.user_id,
+      display_name: profile.display_name,
+      avatar_url: profile.avatar_url,
+      profile_slug: profile.profile_slug,
+      focus_minutes: row.focus_minutes,
+      session_count: row.session_count,
+      current_streak: getEffectiveStreak(profile.current_streak, profile.last_focus_date),
+      is_public: true,
+    })
+    if (entries.length >= limit) break
+  }
+  return entries
 }
 
 export async function fetchAllTimeLeaderboard(limit: number = 50): Promise<LeaderboardEntry[]> {
   const { data, error } = await supabase
-    .from('profiles')
+    .from('public_profiles')
     .select(
-      'id, display_name, avatar_url, profile_slug, total_focus_minutes, total_sessions, current_streak, last_focus_date, is_public',
+      'id, display_name, avatar_url, profile_slug, total_focus_minutes, total_sessions, current_streak, last_focus_date',
     )
     .eq('is_public', true)
     .order('total_focus_minutes', { ascending: false })
@@ -131,7 +174,7 @@ export async function fetchAllTimeLeaderboard(limit: number = 50): Promise<Leade
     focus_minutes: row.total_focus_minutes,
     session_count: row.total_sessions,
     current_streak: getEffectiveStreak(row.current_streak, row.last_focus_date),
-    is_public: row.is_public,
+    is_public: true,
   }))
 }
 
@@ -151,12 +194,24 @@ export async function fetchUserRank(
   if (statsError) throw statsError
   if (!statsData) return null
 
+  // public_profiles.id is a much smaller set than the app's full user base,
+  // and this app runs at leaderboard scale — an .in() over all public ids is
+  // the same tradeoff fetchFriendsLeaderboard already makes for its group.
+  const { data: publicProfiles, error: publicError } = await supabase
+    .from('public_profiles')
+    .select('id')
+    .eq('is_public', true)
+
+  if (publicError) throw publicError
+  const publicIds = (publicProfiles ?? []).map((p) => p.id)
+  if (publicIds.length === 0) return { rank: 1, focus_minutes: statsData.focus_minutes }
+
   const { count, error: countError } = await supabase
     .from('user_stats')
-    .select('*, profiles!inner(is_public)', { count: 'exact', head: true })
+    .select('*', { count: 'exact', head: true })
     .eq('period_type', periodType)
     .eq('period_key', periodKey)
-    .eq('profiles.is_public', true)
+    .in('user_id', publicIds)
     .gt('focus_minutes', statsData.focus_minutes)
 
   if (countError) throw countError
@@ -214,13 +269,13 @@ export async function fetchFriendsRank(
   }
 }
 
-// Fetched as two separate queries rather than an embedded profiles!inner(...)
-// join — that embed drops the whole user_stats row if RLS can't resolve the
-// joined profiles row, which silently removed private friends from their own
-// Friends leaderboard (same failure mode fixed in fetchPendingFriendRequests).
-// A friend's private profile IS readable under RLS (is_connected_via_follows
-// covers accepted connections), but a plain .in('id', …) select doesn't
-// depend on that working through an inner join to show up.
+// Fetched as two separate queries rather than an embedded join — public_profiles
+// is a view (PostgREST can't auto-detect the FK needed for embedding through
+// it), and a plain .in('id', …) select doesn't drop a row just because one
+// id in the batch isn't resolvable, the way an inner-join embed would. A
+// friend's private profile is covered by public_profiles' own
+// is_connected_via_follows branch (see 012_security_hardening.sql), same as
+// it was via RLS before.
 export async function fetchFriendsLeaderboard(
   userId: string,
   periodType: PeriodType,
@@ -240,7 +295,7 @@ export async function fetchFriendsLeaderboard(
   if (!statsData || statsData.length === 0) return []
 
   const { data: profilesData, error: profilesError } = await supabase
-    .from('profiles')
+    .from('public_profiles')
     .select('id, display_name, avatar_url, profile_slug, current_streak, last_focus_date, is_public')
     .in('id', statsData.map((s) => s.user_id))
 
@@ -285,7 +340,7 @@ export async function searchPublicProfiles(
   const pattern = `%${trimmed}%`
 
   const { data, error } = await supabase
-    .from('profiles')
+    .from('public_profiles')
     .select('id, display_name, avatar_url, profile_slug')
     .eq('is_public', true)
     .neq('id', excludeUserId)
@@ -424,8 +479,11 @@ export async function fetchPendingFriendRequests(userId: string): Promise<Pendin
 
   const requesterIds = [...new Set(followsData.map((f) => f.follower_id))]
 
+  // public_profiles' is_connected_via_follows branch covers pending (not
+  // just accepted) connections, matching what the base-table policy used to
+  // grant here — see 012_security_hardening.sql.
   const { data: profilesData, error: profilesError } = await supabase
-    .from('profiles')
+    .from('public_profiles')
     .select('id, display_name, avatar_url, profile_slug')
     .in('id', requesterIds)
 

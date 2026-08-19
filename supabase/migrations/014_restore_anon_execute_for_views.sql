@@ -1,0 +1,52 @@
+-- ============================================================================
+-- MIGRATION 014 — restore anon EXECUTE on is_connected_via_follows /
+--                 are_friends_via_follows (013 broke public access)
+-- ============================================================================
+-- Run in: Supabase Dashboard → SQL Editor → New Query → Run
+--
+-- 013_revoke_anon_execute.sql revoked EXECUTE on save_session,
+-- is_connected_via_follows, and are_friends_via_follows from anon, to close
+-- the minor anon-callable-RPC info-leak found while testing 012.
+--
+-- Verified live immediately after applying 013 — this broke anonymous access
+-- to BOTH:
+--   - public_profiles (the view from 012): its own WHERE clause calls
+--     is_connected_via_follows(auth.uid(), id) as one of three OR branches.
+--     Postgres checks EXECUTE privilege on a function referenced in a query
+--     at plan/rewrite time, not lazily per-row after short-circuiting — so
+--     ANY anon query against public_profiles started failing with
+--     "permission denied for function is_connected_via_follows", even for
+--     public rows that never needed that branch. This is the leaderboard's
+--     and PublicProfilePage's data source, and PublicProfilePage is
+--     explicitly a no-auth-required route (docs/LEADERBOARD.md) — so
+--     anonymous visitors lost the entire public leaderboard and every public
+--     profile page.
+--   - user_stats: the "user_stats: read if friends via follows" policy
+--     (009_user_stats_friends_visibility.sql) calls
+--     are_friends_via_follows(auth.uid(), user_id) as one of its OR'd RLS
+--     quals, combined with every other SELECT policy on the table. Same
+--     plan-time EXECUTE check — ANY anon query against user_stats started
+--     failing the same way, including reads of otherwise-public rows.
+--
+-- Both helper functions are called FROM WITHIN a view/RLS policy that
+-- itself needs to work for anon (that's the whole point of "public"
+-- profiles/stats) — so anon needs EXECUTE on them structurally, not just as
+-- a convenience. There is no privilege mechanism that lets a view/policy
+-- invoke a function on behalf of a role that function is denied to; EXECUTE
+-- is checked against the actual querying role, not the view/policy owner.
+--
+-- Net effect: the anon-callable-RPC info leak these two functions have
+-- (probing arbitrary (viewer_id, target_id) pairs for "connected?"/
+-- "friends?") is accepted as a known, low-severity, structurally-required
+-- tradeoff — it cannot be closed without breaking the public leaderboard and
+-- public profile pages for logged-out visitors. save_session's revoke is
+-- unaffected by this and stays in place — nothing else calls it from inside
+-- a view or policy, and it has its own ownership check regardless.
+-- ============================================================================
+
+grant execute on function public.is_connected_via_follows(uuid, uuid) to anon;
+grant execute on function public.are_friends_via_follows(uuid, uuid) to anon;
+
+-- ============================================================================
+-- END OF MIGRATION 014
+-- ============================================================================

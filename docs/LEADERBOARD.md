@@ -3,14 +3,16 @@
 ## Overview
 
 The leaderboard ranks users by focus time or streak length across configurable time windows.
-Visibility is opt-in: only users with `profiles.is_public = true` appear.
-The feature is split into two surfaces:
+Visibility is opt-in: a profile with `is_public = true` appears to everyone. A private
+profile appears only to itself and to its accepted friends — see `docs/FRIENDS.md` for the
+full friend-request system and the RLS layer behind that. The feature is split into two
+surfaces:
 
 - `/leaderboard` — the main ranked list, protected, requires auth
 - `/u/:slug` — a public profile page, no auth required
 
-The follow system (`follows` table) powers the Friends tab, which limits the ranked list
-to the current user plus the people they follow.
+The `follows` table powers the Friends tab, which limits the ranked list to the current
+user plus their accepted friends.
 
 ---
 
@@ -26,7 +28,8 @@ to the current user plus the people they follow.
   - **Time:** Day / Week / Month / Year / All Time
   - **Streak:** Current Streak / Best Streak
 - **Right content** (flex-1, scrollable, max-width 720 px) — title, optional
-  `PeriodNavigator`, status bar, rank bar, column headers, row list, `UserProfileModal`
+  `PeriodNavigator`, status bar, rank bar, **Incoming Requests** and **Friends search**
+  (Friends tab only — see `docs/FRIENDS.md`), column headers, row list, `UserProfileModal`
 
 **State:**
 
@@ -36,6 +39,7 @@ to the current user plus the people they follow.
 | `viewTab` | `'global'` | `'global'` or `'friends'` tab (time modes only) |
 | `currentDate` | `new Date()` | Date used for period key; reset on nav change |
 | `selectedUserId` | `null` | Opens `UserProfileModal` when set |
+| `searchQuery` | `''` | Friends-tab search input (finding people to friend — see `docs/FRIENDS.md`); debounced 300 ms before querying |
 
 **Data modes:**
 
@@ -43,8 +47,9 @@ to the current user plus the people they follow.
   calls `useGlobalLeaderboard` or `useFriendsLeaderboard` depending on `viewTab`.
   Shows `PeriodCountdown`, `PeriodNavigator` (not for `all_time`), and the rank bar.
 - **Streak mode** (`activeNav` is `current_streak | best_streak`):
-  calls an inline `fetchStreakLeaderboard` query (defined in the page file, not in the
-  shared query file). Hides the rank bar and view tabs.
+  calls an inline `fetchStreakLeaderboard` (split into `fetchCurrentStreakLeaderboard` /
+  `fetchBestStreakLeaderboard`, defined in the page file, not the shared query file).
+  Hides the rank bar, view tabs, friend search, and incoming requests.
 
 **Period key calculation:** `formatPeriodKey(currentDate, periodType)` from
 `@/lib/utils/analytics`. When the user navigates the `PeriodNavigator` the date
@@ -54,12 +59,26 @@ changes but the nav mode stays fixed. Switching nav items resets `currentDate` t
 their focus hours, and a `'Your position'` label with a brand-color left border and
 `rgba(75,158,255,0.05)` background. When the user has no data for the period the bar
 shows "Unranked" with a Clock icon. For `all_time` the rank is derived by searching
-the fetched list for the current user's entry rather than calling `useUserRank`.
+the fetched list for the current user's entry rather than calling a rank hook.
+
+For time-mode periods, the rank source switches with `viewTab`: `useUserRank` (global rank)
+on Everyone, `useFriendsRank` (rank within the friends group) on Friends. This matters —
+`useUserRank` ranks against *all* public users regardless of tab, so using it unconditionally
+while the "of N users" count came from the friends-scoped list produced impossible results
+like "#4 of 3 users." Both the rank number and the `entries.length` total must be computed
+against the same population, which is why they're switched together.
+
+**Incoming Requests / Friends search:** rendered only on the Friends tab in time mode.
+Full behavior, components (`SearchResultRow`, `PendingRequestRow`), and the friend-request
+hooks/queries behind them are documented in `docs/FRIENDS.md` rather than here, since
+they're about the friend system, not leaderboard ranking mechanics.
 
 **Sub-components defined in file:**
 
 - `NavSection` — labeled group of nav buttons with active styling
 - `TabPill` — pill toggle used for Everyone / Friends
+- `SearchResultRow` — one friends-search result row (see `docs/FRIENDS.md`)
+- `PendingRequestRow` — one incoming-request row with Accept/Decline (see `docs/FRIENDS.md`)
 
 ---
 
@@ -69,22 +88,27 @@ the fetched list for the current user's entry rather than calling `useUserRank`.
 
 **Behaviour:**
 - Reads `slug` from `useParams`, calls `usePublicProfile(slug)`.
-- If profile not found or `is_public = false`: renders a centered lock-icon card.
-- If public: renders header card (avatar + name + member-since) + three stat cards
-  (total focus, current streak, longest streak) + optional heatmap.
+- The profile is viewable if it's public, it's the viewer's own, or the viewer is an
+  accepted friend of the owner — see `docs/FRIENDS.md` for the exact rule (a pending
+  connection does **not** unlock it) and the loading-state handling that avoids a
+  private-but-friended profile flashing the lock screen. Otherwise renders a centered
+  lock-icon card ("This profile is private").
+- If viewable: renders header card (avatar + name + member-since + friend-action button) +
+  three stat cards (total focus, current streak, longest streak) + optional heatmap.
 
-**Heatmap:** shown when `profile.show_heatmap_on_profile = true`. Renders the full
-current calendar year as a week-grid using `daily_summaries` data fetched via
-`usePublicHeatmap`. Mirrors the YearlyView heatmap in Analytics: 13 px circle cells,
-5-level brand-color scale, month labels, day-of-week labels, tooltips via shadcn
-`TooltipProvider`.
+**Heatmap:** shown when `profile.show_heatmap_on_profile = true` and the profile is
+viewable (same public/own/friend rule as above). Renders the full current calendar year as
+a week-grid using `daily_summaries` data fetched via `usePublicHeatmap`. Mirrors the
+YearlyView heatmap in Analytics: 13 px circle cells, 5-level brand-color scale, month
+labels, day-of-week labels, tooltips via shadcn `TooltipProvider`.
 
-**Follow button:** rendered only when `currentUserId` is set (logged in) and the
-profile is not the current user's own profile. Uses `useFollowStatus`, `useFollowUser`,
-`useUnfollowUser` hooks.
+**Friend action button:** rendered only when `currentUserId` is set and the profile isn't
+the viewer's own. Behavior, the four states, and the underlying hooks are documented in
+`docs/FRIENDS.md`.
 
 **Streak color:** `current_streak > 0` → value rendered in `#C8FF64` via inline style;
-`= 0` → `#E8E6F0`.
+`= 0` → `#E8E6F0`. `current_streak` here is the stored column value already passed through
+`getEffectiveStreak(current_streak, last_focus_date)` — see `src/lib/utils/streak.ts`.
 
 ---
 
@@ -131,12 +155,16 @@ when streak is 0.
 
 **Props:** `{ userId: string; onClose: () => void }`
 
-Opened from `LeaderboardPage` when a row is clicked. Uses shadcn `<Dialog>`.
+Opened from `LeaderboardPage` when a row is clicked (leaderboard entry or friends-search
+result). Uses shadcn `<Dialog>`.
 
 **Data:** fetches `profiles` directly via inline `useQuery` with key
 `['profile', 'by-id', userId]`. Columns fetched:
 `id, display_name, avatar_url, profile_slug, current_streak, longest_streak,
-total_focus_minutes, total_sessions`.
+total_focus_minutes, total_sessions, last_focus_date` — `current_streak` is passed through
+`getEffectiveStreak` before being returned. No `is_public` check happens here; visibility is
+enforced entirely by RLS — a friend's private profile just comes back with data, a
+stranger's comes back `null`. See `docs/FRIENDS.md` for the RLS rules behind that.
 
 **Layout:**
 - Header (28/24 px padding, bottom border): 56 px avatar + name + `@slug` + stats pills
@@ -146,9 +174,10 @@ total_focus_minutes, total_sessions`.
 **Stats pills:** streak pill in `#C8FF64` with `rgba(200,255,100,0.08)` background
 (only when `current_streak > 0`); focus-time pill in brand color.
 
-**`FollowActionButton` inner component:** reads `useFollowStatus`, `useFollowUser`,
-`useUnfollowUser`. Returns `null` when the profile is the current user's own profile
-or when the user is not logged in.
+**`FollowActionButton` inner component** *(name predates the friend-request system it now
+implements — see `docs/FRIENDS.md` Known Limitations)*: the same four-state friend-request
+button documented in `docs/FRIENDS.md`. Returns `null` when the profile is the current
+user's own or when the user is not logged in.
 
 **Avatar:** falls back to `avatarColor(name)` colored-initial circle (56 px) using a
 6-color palette. No `onError` handler — broken URLs show the browser's broken-image
@@ -179,6 +208,11 @@ unmount / periodType change).
 
 ## Hooks & Query Functions
 
+Friend-request hooks/functions (`useFriendshipStatus`, `usePendingFriendRequests`,
+`usePendingFriendRequestsCount`, `useSendFriendRequest`, `useAcceptFriendRequest`,
+`useDeclineFriendRequest`, `useUnfriend`, `useSearchProfiles`, and their underlying query
+functions) are documented in `docs/FRIENDS.md`, not repeated here.
+
 ### `src/hooks/useLeaderboard.ts`
 
 | Hook | Query key | Data returned |
@@ -186,14 +220,9 @@ unmount / periodType change).
 | `useGlobalLeaderboard(periodType, periodKey)` | `leaderboardKeys.allTime()` or `leaderboardKeys.global(...)` | `LeaderboardEntry[]` |
 | `useFriendsLeaderboard(periodType, periodKey)` | `leaderboardKeys.friends(userId, ...)` | `LeaderboardEntry[]` |
 | `useUserRank(periodType, periodKey)` | `leaderboardKeys.userRank(userId, ...)` | `{ rank, focus_minutes } \| null` |
-| `useFollowStatus(followingId)` | `leaderboardKeys.followStatus(userId, followingId)` | `boolean` |
+| `useFriendsRank(periodType, periodKey)` | `leaderboardKeys.friendsRank(userId, ...)` | `{ rank, focus_minutes } \| null` — rank within the friends group, not global |
 | `usePublicProfile(slug)` | `['profile', 'public', slug]` | `PublicProfile \| null` |
 | `usePublicHeatmap(userId, startDate, endDate)` | `['heatmap', 'public', userId, startDate, endDate]` | `Array<{ date, focus_minutes }>` |
-| `useFollowUser()` | mutation | invalidates `followStatus` + `['leaderboard','friends']` |
-| `useUnfollowUser()` | mutation | invalidates `followStatus` + `['leaderboard','friends']` |
-
-All hooks that need the current user's ID read from `useAuthStore(s => s.user?.id ?? '')`.
-`useFollowStatus` is disabled when `followingId === userId` (can't follow yourself).
 
 ### `src/lib/supabase/queries/leaderboard.ts`
 
@@ -214,41 +243,24 @@ type LeaderboardEntry = {
 
 **Functions:**
 
-| Function | Table(s) | Filter |
+| Function | Table(s) | Notes |
 |---|---|---|
-| `fetchProfileBySlug(slug)` | `profiles` | `profile_slug = slug` |
+| `fetchProfileBySlug(slug)` | `profiles` | `profile_slug = slug`; RLS-gated, not an explicit `is_public` filter |
 | `fetchPublicHeatmap(userId, start, end)` | `daily_summaries` | `user_id`, date range |
-| `fetchGlobalLeaderboard(periodType, periodKey, limit=50)` | `user_stats` ⋈ `profiles` | `is_public = true`, period |
+| `fetchGlobalLeaderboard(periodType, periodKey, limit=50)` | `user_stats` ⋈ `profiles` | `is_public = true`, period. Uses an embedded `profiles!inner(...)` join — safe here because it only ever targets rows that are already public |
 | `fetchAllTimeLeaderboard(limit=50)` | `profiles` | `is_public = true`, order by `total_focus_minutes` |
-| `fetchUserRank(userId, periodType, periodKey)` | `user_stats` (×2) | two queries: own row + count with higher score |
-| `fetchFriendsLeaderboard(userId, periodType, periodKey)` | `follows` + `user_stats` ⋈ `profiles` | `user_id IN (followingIds + self)` |
-| `fetchFollowStatus(followerId, followingId)` | `follows` | exact row lookup |
-| `followUser(followerId, followingId)` | `follows` | insert; ignores error code `23505` (already following) |
-| `unfollowUser(followerId, followingId)` | `follows` | delete by both IDs |
+| `fetchUserRank(userId, periodType, periodKey)` | `user_stats` (×2) | two queries: own row + count of public users with a higher score |
+| `fetchFriendsRank(userId, periodType, periodKey)` | `user_stats` (×2) + `follows` | own row + count within the friends group (not global) with a higher score |
+| `fetchFriendsLeaderboard(userId, periodType, periodKey)` | `follows` + `user_stats` + `profiles` | **Two plain queries + in-memory merge**, not an embedded join — a private friend's `user_stats` row would otherwise silently vanish from the result; full explanation in `docs/FRIENDS.md` |
 
-`fetchUserRank` uses two sequential Supabase calls: first to get the user's own
-`focus_minutes`, then to count how many public users have a higher value. Rank = count + 1.
+`fetchUserRank`/`fetchFriendsRank` each use two sequential Supabase calls: first to get the
+user's own `focus_minutes`, then to count how many people (public users, or friends
+respectively) have a higher value. Rank = count + 1.
 
----
-
-## Follow System
-
-**DB table:** `follows (id, follower_id, following_id, created_at)`
-
-**Flow:**
-
-1. User clicks Follow on a row → `useFollowUser().mutate(targetUserId)`
-2. `followUser(currentUserId, targetUserId)` inserts into `follows`
-3. On success, TanStack Query invalidates:
-   - `leaderboardKeys.followStatus(userId, targetUserId)` — updates button state
-   - `['leaderboard', 'friends']` — refreshes Friends tab list
-4. Unfollow mirrors this with a delete.
-
-**Self-follow guard:** `useFollowStatus` is disabled when `followingId === userId`.
-`FollowActionButton` (in `UserProfileModal`) returns `null` for own profile.
-
-**Friends leaderboard always includes the current user's own row** — `fetchFriendsLeaderboard`
-merges the current user's ID into the `userIds` array before querying `user_stats`.
+`getFriendsGroupIds(userId)` (private helper, shared by `fetchFriendsRank` and
+`fetchFriendsLeaderboard`) returns the current user's id plus every `following_id` where
+`follower_id = userId AND status = 'accepted'` — see `docs/FRIENDS.md` Known Limitations for
+a one-directional-row asymmetry this implies for pre-friend-request-system data.
 
 ---
 
@@ -282,10 +294,12 @@ never pollute revenue metrics. See the script's header comment for full details,
    `LeaderboardPage` works around this by searching the fetched list for the current
    user's entry (`entries.find(e => e.user_id === currentUserId)`). This means the
    all-time rank bar only works if the user appears within the top 50 results.
+   `useFriendsRank` has the same gap and the same `all_time → yearly` fallback (#2).
 
 2. **Friends tab falls back to `yearly` when `all_time` is selected.**
    `user_stats` requires a `period_type` and `period_key`; there is no all-time friends
-   ranking. The Friends tab is hidden in streak mode too.
+   ranking. The Friends tab (and friend search / incoming requests) is hidden in streak
+   mode too.
 
 3. **`PeriodCountdown` ignores `periodKey`.**
    End time is always calculated from the current wall clock, not from the navigated
@@ -293,16 +307,19 @@ never pollute revenue metrics. See the script's header comment for full details,
    in the current week.
 
 4. **Streak leaderboard is not in the shared query file.**
-   `fetchStreakLeaderboard` is defined inline in `LeaderboardPage.tsx`. It queries
-   `profiles` directly (not `user_stats`) and is not accessible to other consumers.
+   `fetchCurrentStreakLeaderboard`/`fetchBestStreakLeaderboard` are defined inline in
+   `LeaderboardPage.tsx`. They query `profiles` directly (not `user_stats`) and are not
+   accessible to other consumers.
 
 5. **`UserProfileModal` avatar has no broken-image fallback.**
    `LeaderboardRow` handles broken URLs via `onError` + `imgError` state, but
-   `UserProfileModal` does not — a broken `avatar_url` will show the browser default.
+   `UserProfileModal`'s header avatar does not — a broken `avatar_url` will show the
+   browser default.
 
 6. **`fetchPublicHeatmap` may return an empty array for other users.**
    If Supabase RLS on `daily_summaries` blocks cross-user reads, the heatmap renders
-   silently empty rather than erroring.
+   silently empty rather than erroring. See `docs/FRIENDS.md` Known Limitations for why
+   this affects friends too, not just strangers.
 
 7. **Avatar color palettes are duplicated across three files.**
    `LeaderboardRow` (8 colors via `getAvatarColor`), `UserProfileModal` (6 colors via

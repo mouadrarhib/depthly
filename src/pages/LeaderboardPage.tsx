@@ -78,7 +78,7 @@ const IS_TIME_NAV = (n: NavItem): n is TimeNav =>
 // ordered and paginated server-side as-is.
 async function fetchBestStreakLeaderboard(limit: number): Promise<StreakEntry[]> {
   const { data, error } = await supabase
-    .from('profiles')
+    .from('public_profiles')
     .select('id, display_name, avatar_url, profile_slug, current_streak, longest_streak')
     .eq('is_public', true)
     .gt('longest_streak', 0)
@@ -106,7 +106,7 @@ async function fetchBestStreakLeaderboard(limit: number): Promise<StreakEntry[]>
 // the page.
 async function fetchCurrentStreakLeaderboard(limit: number): Promise<StreakEntry[]> {
   const { data, error } = await supabase
-    .from('profiles')
+    .from('public_profiles')
     .select('id, display_name, avatar_url, profile_slug, current_streak, longest_streak, last_focus_date')
     .eq('is_public', true)
     .gt('current_streak', 0)
