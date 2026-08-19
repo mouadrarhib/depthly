@@ -15,6 +15,8 @@ interface FeatureSectionProps {
   mockup: ReactNode
   /** Stacked FeatureBlock elements. */
   children: ReactNode
+  /** Fit this row into the desktop viewport below the 64px landing nav. */
+  viewportFit?: boolean
 }
 
 /**
@@ -24,14 +26,9 @@ interface FeatureSectionProps {
  * to one column with the mockup always on top (mockup is first in DOM;
  * desktop side is controlled by flex-row vs flex-row-reverse).
  *
- * Section-to-section spacing: `sectionPad` is a fixed, content-independent
- * margin applied to every instance, and this row's height is always
- * content-driven (no explicit/min height anywhere in the chain) — so the
- * gap before the next section is `sectionPad.bottom + sectionPad.top`
- * regardless of how tall any mockup's content is. What differs per mockup
- * is how the *shorter* side of the row (mockup or text) sits inside that
- * content-driven height, which the mockup slot below always resolves the
- * same way — no per-instance opt-in needed when a mockup's content grows.
+ * By default, section height is content-driven and uses the shared
+ * `sectionPad`. A viewport-fitted section keeps that mobile spacing, then
+ * fills the desktop viewport below the landing nav with height-aware padding.
  */
 export function FeatureSection({
   eyebrow,
@@ -42,15 +39,29 @@ export function FeatureSection({
   mockupSide,
   mockup,
   children,
+  viewportFit = false,
 }: FeatureSectionProps) {
   const rowClass = mockupSide === 'left' ? 'md:flex-row' : 'md:flex-row-reverse'
   const hasCenteredHeader = Boolean(eyebrow && title && subtext)
 
   return (
-    <section data-reveal-group className="px-5 md:px-8" style={sectionPad}>
-      <div className="mx-auto" style={{ maxWidth: 1100 }}>
+    <section
+      data-reveal-group
+      data-viewport-fit={viewportFit || undefined}
+      className={`px-5 md:px-8 ${
+        viewportFit
+          ? 'flex py-[5.5rem] md:min-h-[calc(100dvh-4rem)] md:items-center md:py-[clamp(1.5rem,5vh,4rem)]'
+          : ''
+      }`}
+      style={viewportFit ? undefined : sectionPad}
+    >
+      <div className="mx-auto w-full" style={{ maxWidth: 1100 }}>
         {hasCenteredHeader ? (
-          <SectionHeader eyebrow={eyebrow as string} title={title as string} subtext={subtext as string} />
+          <SectionHeader
+            eyebrow={eyebrow as string}
+            title={title as string}
+            subtext={subtext as string}
+          />
         ) : null}
 
         <div

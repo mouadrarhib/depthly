@@ -89,6 +89,7 @@ export function LandingPage() {
           body="Set a daily target, watch it fill as you work, and use Analytics to understand where your time went across days, weeks, months, and years."
           mockupSide="right"
           mockup={<AnalyticsMockup />}
+          viewportFit
         >
           <FeatureBlock
             Icon={Target}

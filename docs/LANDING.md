@@ -81,6 +81,11 @@ its normal visible layout.
 The 320–375px layout uses reduced navigation and hero padding, mobile-safe line
 wrapping, full-width hero CTAs, and a shortened navigation CTA. Mockups must use
 bounded widths and `min-w-0`/overflow containment so they cannot widen the page.
+At the desktop breakpoint, the Daily goals and Analytics section fills the
+viewport below the 64px landing nav and vertically centers both columns. Its
+complete mockup scales with viewport height so the goal, heatmap, and project
+breakdown remain visible together; smaller screens keep the stacked,
+content-driven layout and normal document scrolling.
 Global horizontal overflow uses `overflow-x: clip`, not `hidden`. Using `hidden`
 causes the other axis to compute as `auto`, which can turn `body` into a second
 vertical scroll container while GSAP-translated sections extend beyond their

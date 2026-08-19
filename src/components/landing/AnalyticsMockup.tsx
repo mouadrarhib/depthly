@@ -46,12 +46,11 @@ function StatCard({
 }) {
   return (
     <div
-      className="flex flex-1 flex-col gap-2"
+      className="flex flex-1 flex-col gap-2 p-[18px_20px] md:gap-1.5 md:p-[clamp(12px,1.7vh,18px)_clamp(14px,1.8vh,20px)]"
       style={{
         backgroundColor: '#141417',
         border: '1px solid #2E2E38',
         borderRadius: 14,
-        padding: '18px 20px',
       }}
     >
       <span className="flex items-center gap-2" style={{ fontSize: 12, color: '#7A7890' }}>
@@ -59,8 +58,12 @@ function StatCard({
         {label}
       </span>
       <span
-        className="font-data"
-        style={{ fontSize: 26, fontWeight: 600, color: '#E8E6F0', letterSpacing: '-0.02em' }}
+        className="font-data text-[26px] md:text-[clamp(22px,3vh,26px)]"
+        style={{
+          fontWeight: 600,
+          color: '#E8E6F0',
+          letterSpacing: '-0.02em',
+        }}
         {...(countup !== undefined ? { 'data-countup': countup, 'data-suffix': suffix ?? '' } : {})}
       >
         {value}
@@ -77,13 +80,16 @@ function StatCard({
  */
 export function AnalyticsMockup() {
   return (
-    <div className="mx-auto flex w-full flex-col gap-4" style={{ maxWidth: 460 }}>
-      <div className="flex flex-col gap-4 sm:flex-row">
+    <div
+      data-analytics-preview
+      className="mx-auto flex w-full max-w-[460px] flex-col gap-4 md:max-w-[min(460px,calc((100dvh-220px)*0.71))] md:gap-[clamp(8px,1.4vh,14px)]"
+    >
+      <div className="flex flex-col gap-4 sm:flex-row md:gap-[clamp(8px,1.4vh,14px)]">
         <StatCard Icon={Clock} label="Today's focus" value="2h 30m" />
         <StatCard Icon={CalendarDays} label="Sessions" value="4" countup={4} />
       </div>
 
-      <div className="rounded-[14px] border border-depth-border bg-depth-surface p-[18px]">
+      <div className="rounded-[14px] border border-depth-border bg-depth-surface p-[18px] md:p-[clamp(12px,1.7vh,16px)]">
         <div className="flex items-center justify-between gap-3">
           <span className="flex items-center gap-2 text-[12px] text-ink-secondary">
             <Target size={14} className="text-brand" /> Daily goal
@@ -92,29 +98,29 @@ export function AnalyticsMockup() {
             2h 30m / 3h <span className="text-brand">· 83%</span>
           </span>
         </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-depth-raised">
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-depth-raised md:mt-[clamp(8px,1.3vh,12px)]">
           <div className="h-full w-[83%] rounded-full bg-brand" />
         </div>
-        <p className="font-data mt-2 text-right text-[10px] text-ink-muted">30m to go</p>
+        <p className="font-data mt-2 text-right text-[10px] text-ink-muted md:mt-1.5">30m to go</p>
       </div>
 
       <div
         data-heatmap
+        className="p-5 md:p-[clamp(12px,1.8vh,20px)]"
         style={{
           backgroundColor: '#141417',
           border: '1px solid #2E2E38',
           borderRadius: 14,
-          padding: 20,
         }}
       >
-        <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
+        <div className="mb-[14px] flex items-center justify-between md:mb-[clamp(9px,1.5vh,14px)]">
           <span style={{ fontSize: 13, fontWeight: 500, color: '#E8E6F0' }}>July 2026</span>
           <span className="font-data" style={{ fontSize: 11, color: '#7A7890' }}>
             18h 40m
           </span>
         </div>
 
-        <div className="grid grid-cols-7" style={{ gap: 8, marginBottom: 6 }}>
+        <div className="mb-1.5 grid grid-cols-7 gap-2 md:gap-[clamp(5px,0.8vh,8px)]">
           {WEEKDAYS.map((d) => (
             <span key={d} style={{ fontSize: 10, color: '#7A7890', textAlign: 'center' }}>
               {d}
@@ -122,7 +128,7 @@ export function AnalyticsMockup() {
           ))}
         </div>
 
-        <div className="grid grid-cols-7" style={{ gap: 8 }}>
+        <div className="grid grid-cols-7 gap-2 md:gap-[clamp(5px,0.8vh,8px)]">
           {DAYS.map((minutes, i) => (
             <span
               key={i}
@@ -143,24 +149,24 @@ export function AnalyticsMockup() {
       </div>
 
       <div
+        className="p-[18px] md:p-[clamp(12px,1.7vh,18px)]"
         style={{
           backgroundColor: '#141417',
           border: '1px solid #2E2E38',
           borderRadius: 14,
-          padding: 18,
         }}
       >
         <span style={{ fontSize: 13, fontWeight: 500, color: '#E8E6F0' }}>By project</span>
 
-        <div className="flex items-center gap-4" style={{ marginTop: 14 }}>
+        <div className="mt-[14px] flex items-center gap-4 md:mt-[clamp(9px,1.5vh,14px)] md:gap-3">
           <div style={{ flexShrink: 0 }}>
-            <PieChart width={100} height={100}>
+            <PieChart width={92} height={92}>
               <Pie
                 data={PROJECTS}
-                cx={50}
-                cy={50}
-                innerRadius={28}
-                outerRadius={45}
+                cx={46}
+                cy={46}
+                innerRadius={26}
+                outerRadius={41}
                 dataKey="minutes"
                 startAngle={90}
                 endAngle={-270}
