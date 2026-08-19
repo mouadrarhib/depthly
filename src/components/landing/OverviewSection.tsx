@@ -1,7 +1,7 @@
 import { BarChart2, Share2, Target, Timer, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
-import { SectionHeader, sectionPad } from './primitives'
+import { SectionHeader } from './primitives'
 
 interface OverviewItem {
   Icon: LucideIcon
@@ -39,7 +39,7 @@ const ITEMS: OverviewItem[] = [
 
 export function OverviewSection() {
   return (
-    <section id="features" data-focus-path className="px-5 md:px-8" style={sectionPad}>
+    <section id="features" data-focus-path className="px-5 pb-12 pt-[5.5rem] md:px-8 md:pb-4">
       <div className="mx-auto" style={{ maxWidth: 1100 }}>
         <div data-focus-path-header>
           <SectionHeader
@@ -73,7 +73,7 @@ export function OverviewSection() {
                 <Icon size={19} style={{ color: '#4B9EFF' }} strokeWidth={1.75} />
               </span>
               <div className="min-w-0 flex-1 md:min-h-[76px]">
-                <span className="font-data text-[10px] text-ink-muted">0{index + 1}</span>
+                <span className="font-data text-[10px] text-[#555266]">0{index + 1}</span>
                 <h3
                   style={{
                     fontSize: 16,
@@ -84,7 +84,7 @@ export function OverviewSection() {
                 >
                   {title}
                 </h3>
-                <p style={{ fontSize: 14, color: '#7A7890', lineHeight: 1.6 }}>{description}</p>
+                <p style={{ fontSize: 14, color: '#848198', lineHeight: 1.6 }}>{description}</p>
               </div>
             </div>
           ))}
