@@ -81,11 +81,24 @@ its normal visible layout.
 The 320–375px layout uses reduced navigation and hero padding, mobile-safe line
 wrapping, full-width hero CTAs, and a shortened navigation CTA. Mockups must use
 bounded widths and `min-w-0`/overflow containment so they cannot widen the page.
-At the desktop breakpoint, the Daily goals and Analytics section fills the
-viewport below the 64px landing nav and vertically centers both columns. Its
-complete mockup scales with viewport height so the goal, heatmap, and project
-breakdown remain visible together; smaller screens keep the stacked,
-content-driven layout and normal document scrolling.
+
+### Analytics viewport fit
+
+The Daily goals and Analytics section opts into `FeatureSection`'s
+`viewportFit` mode. At the desktop breakpoint it uses
+`min-height: calc(100dvh - 4rem)` to fill the viewport below the 64px landing
+nav, applies height-aware clamped vertical padding, and vertically centers the
+copy and mockup columns.
+
+`AnalyticsMockup` keeps every part of the composition visible together:
+Today's focus, Sessions, Daily goal, the monthly heatmap, and By project. Its
+desktop width is capped at 460px and also responds to viewport height. Card
+padding, inter-card gaps, metric size, heatmap gaps, and the project donut are
+compacted without changing the established colors, typography, borders, data,
+or GSAP animation hooks. Below the desktop breakpoint, the section retains the
+original 5.5rem vertical padding, stacked layout, full-size mobile spacing, and
+normal document scrolling.
+
 Global horizontal overflow uses `overflow-x: clip`, not `hidden`. Using `hidden`
 causes the other axis to compute as `auto`, which can turn `body` into a second
 vertical scroll container while GSAP-translated sections extend beyond their
@@ -128,5 +141,11 @@ src/components/landing/
 - Hero content remains readable with normal and reduced motion.
 - The focus-path heading and all five steps animate in order when scrolled into
   view and remain static and visible with reduced motion enabled.
+- The complete Analytics composition is visible at once with both columns
+  vertically centered at 1920×1080 and 1536×864; it also remains within the
+  viewport below the nav at common 768px, 800px, 900px, and 1080px desktop
+  heights.
+- The Analytics section returns to the stacked, content-driven layout below the
+  desktop breakpoint without horizontal overflow or excessive shrinking.
 - Typecheck, production build, React quality review, and mobile/desktop visual
   checks pass.
