@@ -124,10 +124,10 @@ export async function fetchGlobalLeaderboard(
   // used by fetchFriendsLeaderboard below.
   const { data: statsRows, error: statsError } = await supabase
     .from('user_stats')
-    .select('user_id, focus_minutes, session_count')
+    .select('user_id, trusted_focus_minutes, trusted_session_count')
     .eq('period_type', periodType)
     .eq('period_key', periodKey)
-    .order('focus_minutes', { ascending: false })
+    .order('trusted_focus_minutes', { ascending: false })
 
   if (statsError) throw statsError
   if (!statsRows || statsRows.length === 0) return []
@@ -144,8 +144,8 @@ export async function fetchGlobalLeaderboard(
       display_name: profile.display_name,
       avatar_url: profile.avatar_url,
       profile_slug: profile.profile_slug,
-      focus_minutes: row.focus_minutes,
-      session_count: row.session_count,
+      focus_minutes: row.trusted_focus_minutes,
+      session_count: row.trusted_session_count,
       current_streak: getEffectiveStreak(profile.current_streak, profile.last_focus_date),
       is_public: true,
     })
@@ -158,10 +158,10 @@ export async function fetchAllTimeLeaderboard(limit: number = 50): Promise<Leade
   const { data, error } = await supabase
     .from('public_profiles')
     .select(
-      'id, display_name, avatar_url, profile_slug, total_focus_minutes, total_sessions, current_streak, last_focus_date',
+      'id, display_name, avatar_url, profile_slug, trusted_focus_minutes, trusted_sessions, current_streak, last_focus_date',
     )
     .eq('is_public', true)
-    .order('total_focus_minutes', { ascending: false })
+    .order('trusted_focus_minutes', { ascending: false })
     .limit(limit)
 
   if (error) throw error
@@ -171,8 +171,8 @@ export async function fetchAllTimeLeaderboard(limit: number = 50): Promise<Leade
     display_name: row.display_name,
     avatar_url: row.avatar_url,
     profile_slug: row.profile_slug,
-    focus_minutes: row.total_focus_minutes,
-    session_count: row.total_sessions,
+    focus_minutes: row.trusted_focus_minutes,
+    session_count: row.trusted_sessions,
     current_streak: getEffectiveStreak(row.current_streak, row.last_focus_date),
     is_public: true,
   }))
@@ -185,7 +185,7 @@ export async function fetchUserRank(
 ): Promise<{ rank: number; focus_minutes: number } | null> {
   const { data: statsData, error: statsError } = await supabase
     .from('user_stats')
-    .select('focus_minutes')
+    .select('trusted_focus_minutes')
     .eq('user_id', userId)
     .eq('period_type', periodType)
     .eq('period_key', periodKey)
@@ -204,7 +204,7 @@ export async function fetchUserRank(
 
   if (publicError) throw publicError
   const publicIds = (publicProfiles ?? []).map((p) => p.id)
-  if (publicIds.length === 0) return { rank: 1, focus_minutes: statsData.focus_minutes }
+  if (publicIds.length === 0) return { rank: 1, focus_minutes: statsData.trusted_focus_minutes }
 
   const { count, error: countError } = await supabase
     .from('user_stats')
@@ -212,13 +212,13 @@ export async function fetchUserRank(
     .eq('period_type', periodType)
     .eq('period_key', periodKey)
     .in('user_id', publicIds)
-    .gt('focus_minutes', statsData.focus_minutes)
+    .gt('trusted_focus_minutes', statsData.trusted_focus_minutes)
 
   if (countError) throw countError
 
   return {
     rank: (count ?? 0) + 1,
-    focus_minutes: statsData.focus_minutes,
+    focus_minutes: statsData.trusted_focus_minutes,
   }
 }
 
@@ -242,7 +242,7 @@ export async function fetchFriendsRank(
 ): Promise<{ rank: number; focus_minutes: number } | null> {
   const { data: statsData, error: statsError } = await supabase
     .from('user_stats')
-    .select('focus_minutes')
+    .select('trusted_focus_minutes')
     .eq('user_id', userId)
     .eq('period_type', periodType)
     .eq('period_key', periodKey)
@@ -259,13 +259,13 @@ export async function fetchFriendsRank(
     .eq('period_type', periodType)
     .eq('period_key', periodKey)
     .in('user_id', userIds)
-    .gt('focus_minutes', statsData.focus_minutes)
+    .gt('trusted_focus_minutes', statsData.trusted_focus_minutes)
 
   if (countError) throw countError
 
   return {
     rank: (count ?? 0) + 1,
-    focus_minutes: statsData.focus_minutes,
+    focus_minutes: statsData.trusted_focus_minutes,
   }
 }
 
@@ -285,11 +285,11 @@ export async function fetchFriendsLeaderboard(
 
   const { data: statsData, error: statsError } = await supabase
     .from('user_stats')
-    .select('user_id, focus_minutes, session_count')
+    .select('user_id, trusted_focus_minutes, trusted_session_count')
     .eq('period_type', periodType)
     .eq('period_key', periodKey)
     .in('user_id', userIds)
-    .order('focus_minutes', { ascending: false })
+    .order('trusted_focus_minutes', { ascending: false })
 
   if (statsError) throw statsError
   if (!statsData || statsData.length === 0) return []
@@ -313,8 +313,8 @@ export async function fetchFriendsLeaderboard(
       display_name: profile.display_name,
       avatar_url: profile.avatar_url,
       profile_slug: profile.profile_slug,
-      focus_minutes: row.focus_minutes,
-      session_count: row.session_count,
+      focus_minutes: row.trusted_focus_minutes,
+      session_count: row.trusted_session_count,
       current_streak: getEffectiveStreak(profile.current_streak, profile.last_focus_date),
       is_public: profile.is_public,
     })

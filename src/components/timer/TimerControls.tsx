@@ -9,28 +9,25 @@ interface TimerControlsProps {
 }
 
 export function TimerControls({ onStop }: TimerControlsProps = {}) {
-  const { isRunning, isPaused, sessionType, start, pause, resume, skipBreak } =
+  const { isRunning, isPaused, sessionType } =
     useTimerStore()
 
   // Default to the real save-and-stop flow (not the raw store reset) so a
   // caller that doesn't pass onStop — e.g. TimerFullscreen — still persists
   // the session instead of silently discarding it.
-  const { saveAndStop, toastMessage } = useSaveSession()
+  const { start, pause, resume, saveAndStop, cancelActiveTimer, toastMessage, isSaving } = useSaveSession()
   const handleStop = onStop ?? saveAndStop
 
   const isIdle = !isRunning && !isPaused
-  // Idle can mean "haven't started a focus session yet" OR "auto-start break
-  // is off, so the break phase is sitting idle waiting for the user" — the
-  // latter must resume() (keep the already-set break duration/elapsed)
-  // rather than start(), which would force sessionType back to focus and
-  // discard the break the user was just about to take.
+  // An idle phase has no active server run yet; paused phases use resume.
   const isBreakIdle = isIdle && sessionType === 'break'
 
   if (isIdle) {
     return (
       <>
         <button
-          onClick={isBreakIdle ? resume : start}
+          onClick={start}
+          disabled={isSaving}
           className={cn(base, 'w-full max-w-[220px] h-[48px] sm:h-[52px] rounded-[14px] text-[14px] sm:text-[15px] font-semibold tracking-wide')}
           style={{
             background:  'rgba(75, 158, 255, 0.08)',
@@ -67,6 +64,7 @@ export function TimerControls({ onStop }: TimerControlsProps = {}) {
         {/* Resume — same crystal blue */}
         <button
           onClick={resume}
+          disabled={isSaving}
           className={cn(base, 'h-[44px] sm:h-[48px] min-w-[100px] sm:min-w-[120px] px-4 sm:px-6 rounded-[12px] text-[13px] sm:text-[14px] font-semibold tracking-wide')}
           style={{
             background: 'rgba(75, 158, 255, 0.08)',
@@ -95,6 +93,7 @@ export function TimerControls({ onStop }: TimerControlsProps = {}) {
         {/* Stop — faint red chip */}
         <button
           onClick={handleStop}
+          disabled={isSaving}
           className={cn(base, 'h-[44px] sm:h-[48px] min-w-[100px] sm:min-w-[120px] px-4 sm:px-6 rounded-[12px] text-[13px] sm:text-[14px]')}
           style={{
             background: 'rgba(242, 92, 92, 0.06)',
@@ -129,6 +128,7 @@ export function TimerControls({ onStop }: TimerControlsProps = {}) {
       {/* Pause — neutral surface chip */}
       <button
         onClick={pause}
+        disabled={isSaving}
         className={cn(base, 'h-[44px] sm:h-[48px] min-w-[100px] sm:min-w-[120px] px-4 sm:px-6 rounded-[12px] text-[13px] sm:text-[14px]')}
         style={{
           background: 'rgba(255, 255, 255, 0.04)',
@@ -154,6 +154,7 @@ export function TimerControls({ onStop }: TimerControlsProps = {}) {
       {/* Stop — faint red chip */}
       <button
         onClick={handleStop}
+        disabled={isSaving}
         className={cn(base, 'h-[44px] sm:h-[48px] min-w-[100px] sm:min-w-[120px] px-4 sm:px-6 rounded-[12px] text-[13px] sm:text-[14px]')}
         style={{
           background: 'rgba(242, 92, 92, 0.06)',
@@ -178,7 +179,7 @@ export function TimerControls({ onStop }: TimerControlsProps = {}) {
 
       {sessionType === 'break' ? (
         <button
-          onClick={skipBreak}
+          onClick={cancelActiveTimer}
           className={cn(base, 'h-[44px] sm:h-[48px] min-w-[100px] sm:min-w-[120px] px-4 sm:px-6 rounded-[12px] text-[13px] sm:text-[14px]')}
           style={{
             background: 'rgba(255, 255, 255, 0.04)',

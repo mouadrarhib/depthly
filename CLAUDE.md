@@ -183,6 +183,7 @@ Read the relevant doc before touching a feature:
 - Leaderboard: docs/LEADERBOARD.md
 - Friends:     docs/FRIENDS.md
 - Security:    docs/SECURITY.md
+- Sessions:    docs/TRUSTED_SESSIONS.md
 
 These docs reflect what is actually built.
 They are the source of truth for implementation

@@ -89,6 +89,10 @@ Renders two `GoalRow` sub-components — one for daily, one for weekly — each 
 
 ## Sessions Log
 
+> **Update 1:** manual creation, timing edits, and hard deletion were replaced by the trusted timer
+> lifecycle in `docs/TRUSTED_SESSIONS.md`. The historical CRUD notes below describe the pre-015
+> implementation and must not be used for new code.
+
 ### Pagination approach
 
 `fetchSessionsPaginated` in `src/lib/supabase/queries/sessions.ts` uses Supabase's `.range(from, to)` with `{ count: 'exact' }` to retrieve a page of sessions and the total row count in a single request.

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BarChart2 } from 'lucide-react'
 
@@ -8,6 +8,7 @@ import { DailyView }       from '@/components/analytics/DailyView'
 import { WeeklyView }      from '@/components/analytics/WeeklyView'
 import { MonthlyView }     from '@/components/analytics/MonthlyView'
 import { YearlyView }      from '@/components/analytics/YearlyView'
+import { ShareProgressButton } from '@/components/analytics/ShareProgressButton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { useProfile } from '@/hooks/useAnalytics'
@@ -27,6 +28,7 @@ const TABS: { value: TabValue; label: string }[] = [
 export function AnalyticsPage() {
   const navigate = useNavigate()
   const { data: profile } = useProfile()
+  const analyticsCaptureRef = useRef<HTMLDivElement>(null)
 
   const [activeTab,   setActiveTab]   = useState<TabValue>('overview')
   const [dailyDate,   setDailyDate]   = useState(() => new Date())
@@ -104,17 +106,18 @@ export function AnalyticsPage() {
             {/* Period navigator — not shown for Overview, which is lifetime
                 data with no date to page through */}
             {activeTab !== 'overview' && currentDate && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8, marginBottom: 6 }}>
+              <div className="flex flex-wrap items-center justify-center gap-2" style={{ marginTop: 8, marginBottom: 6 }}>
                 <PeriodNavigator
                   period={activeTab}
                   currentDate={currentDate}
                   onNavigate={handleNavigate}
                 />
+                <ShareProgressButton period={activeTab} date={currentDate} targetRef={analyticsCaptureRef} />
               </div>
             )}
 
             {/* Tab content */}
-            <div style={activeTab === 'overview' ? { marginTop: 12 } : undefined}>
+            <div ref={analyticsCaptureRef} style={activeTab === 'overview' ? { marginTop: 12 } : undefined}>
               {activeTab === 'overview' && <OverviewView />}
               {activeTab === 'daily'    && <DailyView   date={dailyDate}   />}
               {activeTab === 'weekly'   && <WeeklyView  date={weeklyDate}  />}

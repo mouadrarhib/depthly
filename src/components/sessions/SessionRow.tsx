@@ -1,4 +1,4 @@
-import { ChevronRight, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { ChevronRight, MoreHorizontal, Pencil, RotateCcw, ShieldQuestion, XCircle } from 'lucide-react'
 
 import {
   DropdownMenu,
@@ -82,6 +82,13 @@ export function SessionRow({ session, onOpenDetail, onEdit, onDelete }: SessionR
 
       {/* PROJECT + TASK, or a Break badge — flex-1 */}
       <div className="min-w-0 flex-1">
+        {!isBreak && (!session.is_trusted || session.excluded_at) ? <div className="mb-1 flex items-center gap-1.5">
+          {!session.is_trusted ? <Badge variant="outline" className="gap-1 border-depth-border bg-depth-raised text-ink-muted">
+            <ShieldQuestion className="h-3 w-3" />
+            Legacy
+          </Badge> : null}
+          {session.excluded_at ? <Badge variant="outline" className="border-depth-border bg-depth-raised text-ink-muted">Excluded</Badge> : null}
+        </div> : null}
         {isBreak ? (
           <Badge
             variant="outline"
@@ -159,14 +166,11 @@ export function SessionRow({ session, onOpenDetail, onEdit, onDelete }: SessionR
                 <Pencil className="h-3.5 w-3.5" />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={onDelete}
-                className="text-feedback-error focus:text-feedback-error"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Delete
-              </DropdownMenuItem>
+              {session.is_trusted && !isBreak ? <><DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onDelete} className={session.excluded_at ? '' : 'text-feedback-error focus:text-feedback-error'}>
+                  {session.excluded_at ? <RotateCcw className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                  {session.excluded_at ? 'Restore' : 'Exclude'}
+                </DropdownMenuItem></> : null}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

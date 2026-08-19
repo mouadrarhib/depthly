@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock, Download, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock, Download, Search, SlidersHorizontal, X } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -18,12 +18,12 @@ import { ExportPanel } from '@/components/sessions/ExportPanel'
 import { SessionDetailModal } from '@/components/sessions/SessionDetailModal'
 import { SessionModal } from '@/components/sessions/SessionModal'
 import { SessionRow } from '@/components/sessions/SessionRow'
-import { useSessionsPaginated, useDeleteSession } from '@/hooks/useSessions'
+import { useSessionsPaginated, useSetSessionExcluded } from '@/hooks/useSessions'
 import { useProjects } from '@/hooks/useProjects'
 import { usePlan } from '@/hooks/usePlan'
 import { formatPeriodKey } from '@/lib/utils/analytics'
 import { PATHS } from '@/routes/paths'
-import type { SessionWithRelations, SessionTypeFilter } from '@/lib/supabase/queries/sessions'
+import type { SessionWithRelations, SessionTypeFilter, SessionStatusFilter } from '@/lib/supabase/queries/sessions'
 
 const PAGE_SIZE = 20
 
@@ -98,7 +98,7 @@ export function SessionsPage() {
   const [currentPage,     setCurrentPage]    = useState(0)
   const [isModalOpen,     setIsModalOpen]    = useState(false)
   const [editingSession,  setEditingSession] = useState<SessionWithRelations | null>(null)
-  const [deletingSession, setDeletingSession] = useState<SessionWithRelations | null>(null)
+  const [excludingSession, setExcludingSession] = useState<SessionWithRelations | null>(null)
   const [viewingSession,  setViewingSession] = useState<SessionWithRelations | null>(null)
   const [exportOpen,      setExportOpen]     = useState(false)
   const [filtersOpen,     setFiltersOpen]    = useState(false)
@@ -110,8 +110,9 @@ export function SessionsPage() {
   const [projectFilter,  setProjectFilter]  = useState('all')
   const [durationFilter, setDurationFilter] = useState<DurationFilter>('all')
   const [typeFilter,     setTypeFilter]     = useState<SessionTypeFilter>('all')
+  const [statusFilter,   setStatusFilter]   = useState<SessionStatusFilter>('active')
 
-  const query      = useSessionsPaginated(currentPage, typeFilter)
+  const query      = useSessionsPaginated(currentPage, typeFilter, statusFilter)
   const sessions   = query.data?.sessions   ?? []
   const totalCount = query.data?.totalCount ?? 0
   const isPending  = query.isPending
@@ -120,7 +121,7 @@ export function SessionsPage() {
   const { isPro }          = usePlan()
   const exportPanelRef     = useRef<HTMLDivElement>(null)
 
-  const deleteSession = useDeleteSession()
+  const setExcluded = useSetSessionExcluded()
 
   useEffect(() => {
     if (exportOpen) exportPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -151,7 +152,8 @@ export function SessionsPage() {
     toDate     !== '' ||
     projectFilter  !== 'all' ||
     durationFilter !== 'all' ||
-    typeFilter     !== 'all'
+    typeFilter     !== 'all' ||
+    statusFilter   !== 'active'
 
   // The "secondary" filters (date range, project, duration) collapse behind
   // a toggle on mobile — Type and Search stay visible since those are the
@@ -213,6 +215,7 @@ export function SessionsPage() {
     setProjectFilter('all')
     setDurationFilter('all')
     setTypeFilter('all')
+    setStatusFilter('active')
     setCurrentPage(0)
   }
 
@@ -221,11 +224,6 @@ export function SessionsPage() {
   function handleTypeFilterChange(next: SessionTypeFilter) {
     setTypeFilter(next)
     setCurrentPage(0)
-  }
-
-  function openCreate() {
-    setEditingSession(null)
-    setIsModalOpen(true)
   }
 
   function openEdit(session: SessionWithRelations) {
@@ -238,10 +236,10 @@ export function SessionsPage() {
     setEditingSession(null)
   }
 
-  function handleDeleteConfirm() {
-    if (!deletingSession) return
-    deleteSession.mutate(deletingSession.id, {
-      onSuccess: () => setDeletingSession(null),
+  function handleExcludeConfirm() {
+    if (!excludingSession) return
+    setExcluded.mutate({ id: excludingSession.id, excluded: !excludingSession.excluded_at }, {
+      onSuccess: () => setExcludingSession(null),
     })
   }
 
@@ -253,7 +251,7 @@ export function SessionsPage() {
 
   function handleDeleteFromDetail() {
     if (!viewingSession) return
-    setDeletingSession(viewingSession)
+    setExcludingSession(viewingSession)
     setViewingSession(null)
   }
 
@@ -289,10 +287,6 @@ export function SessionsPage() {
               )}
             </Button>
           )}
-          <Button variant="primary" size="sm" onClick={openCreate}>
-            <Plus className="h-4 w-4" />
-            Add session
-          </Button>
         </div>
       </div>
 
@@ -317,11 +311,8 @@ export function SessionsPage() {
             Start the timer to record your first focus session
           </p>
           <div className="flex gap-3" style={{ marginTop: 20 }}>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="primary" size="sm" asChild>
               <Link to={PATHS.timer}>Start Timer</Link>
-            </Button>
-            <Button variant="primary" size="sm" onClick={openCreate}>
-              Add Session
             </Button>
           </div>
         </div>
@@ -371,7 +362,8 @@ export function SessionsPage() {
 
             {/* Row 2 — Type (always visible) + mobile Filters toggle */}
             <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
+              <div className="flex flex-wrap gap-3">
+                <div>
                 <p className="mb-1 text-[11px] text-ink-muted">Type</p>
                 <Tabs
                   value={typeFilter}
@@ -399,6 +391,15 @@ export function SessionsPage() {
                     ))}
                   </TabsList>
                 </Tabs>
+                </div>
+                <label className="flex flex-col gap-1 text-[11px] text-ink-muted">Status
+                  <select value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value as SessionStatusFilter); setCurrentPage(0) }}
+                    className="h-9 rounded-full border border-depth-border bg-depth-raised px-3 text-[13px] text-ink-primary">
+                    <option value="active">Active</option>
+                    <option value="excluded">Excluded</option>
+                    <option value="all">All</option>
+                  </select>
+                </label>
               </div>
 
               {/* Date range / project / duration collapse behind this on
@@ -573,7 +574,7 @@ export function SessionsPage() {
                             session={session}
                             onOpenDetail={() => setViewingSession(session)}
                             onEdit={() => openEdit(session)}
-                            onDelete={() => setDeletingSession(session)}
+                            onDelete={() => setExcludingSession(session)}
                           />
                         ))}
                       </div>
@@ -641,13 +642,13 @@ export function SessionsPage() {
 
       {/* Delete confirm */}
       <ConfirmDialog
-        open={!!deletingSession}
-        onClose={() => setDeletingSession(null)}
-        onConfirm={handleDeleteConfirm}
-        title="Delete session?"
-        description="This session will be permanently deleted. Session stats won't be recalculated automatically."
-        confirmLabel="Delete"
-        isLoading={deleteSession.isPending}
+        open={!!excludingSession}
+        onClose={() => setExcludingSession(null)}
+        onConfirm={handleExcludeConfirm}
+        title={excludingSession?.excluded_at ? 'Restore session?' : 'Exclude session?'}
+        description={excludingSession?.excluded_at ? 'This session will count toward analytics, goals, streaks, and leaderboards again.' : 'The record stays in your history but will stop counting toward analytics, goals, streaks, and leaderboards.'}
+        confirmLabel={excludingSession?.excluded_at ? 'Restore' : 'Exclude'}
+        isLoading={setExcluded.isPending}
         variant="danger"
       />
 

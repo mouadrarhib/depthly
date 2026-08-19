@@ -13,9 +13,7 @@ export type Database = {
     PostgrestVersion: "14.5"
   }
   graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
+    Tables: { [_ in never]: never }
     Views: {
       [_ in never]: never
     }
@@ -39,6 +37,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      active_timer_runs: {
+        Row: { accumulated_seconds: number; created_at: string; id: string; notes: string | null; project_id: string | null; segment_started_at: string | null; status: string; target_seconds: number | null; task_id: string | null; timer_mode: Database["public"]["Enums"]["timer_mode_type"]; timezone: string; title: string | null; type: Database["public"]["Enums"]["session_type"]; updated_at: string; user_id: string }
+        Insert: { accumulated_seconds?: number; created_at?: string; id?: string; notes?: string | null; project_id?: string | null; segment_started_at?: string | null; status?: string; target_seconds?: number | null; task_id?: string | null; timer_mode: Database["public"]["Enums"]["timer_mode_type"]; timezone: string; title?: string | null; type: Database["public"]["Enums"]["session_type"]; updated_at?: string; user_id: string }
+        Update: { accumulated_seconds?: number; created_at?: string; id?: string; notes?: string | null; project_id?: string | null; segment_started_at?: string | null; status?: string; target_seconds?: number | null; task_id?: string | null; timer_mode?: Database["public"]["Enums"]["timer_mode_type"]; timezone?: string; title?: string | null; type?: Database["public"]["Enums"]["session_type"]; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
       daily_summaries: {
         Row: {
           daily_goal_met: boolean
@@ -46,6 +50,8 @@ export type Database = {
           focus_minutes: number
           id: string
           session_count: number
+          trusted_focus_minutes: number
+          trusted_session_count: number
           updated_at: string
           user_id: string
         }
@@ -55,6 +61,8 @@ export type Database = {
           focus_minutes?: number
           id?: string
           session_count?: number
+          trusted_focus_minutes?: number
+          trusted_session_count?: number
           updated_at?: string
           user_id: string
         }
@@ -64,6 +72,8 @@ export type Database = {
           focus_minutes?: number
           id?: string
           session_count?: number
+          trusted_focus_minutes?: number
+          trusted_session_count?: number
           updated_at?: string
           user_id?: string
         }
@@ -178,6 +188,11 @@ export type Database = {
             | null
           total_focus_minutes: number
           total_sessions: number
+          trusted_focus_minutes: number
+          trusted_sessions: number
+          trusted_current_streak: number
+          trusted_longest_streak: number
+          trusted_last_focus_date: string | null
           updated_at: string
         }
         Insert: {
@@ -206,6 +221,11 @@ export type Database = {
             | null
           total_focus_minutes?: number
           total_sessions?: number
+          trusted_focus_minutes?: number
+          trusted_sessions?: number
+          trusted_current_streak?: number
+          trusted_longest_streak?: number
+          trusted_last_focus_date?: string | null
           updated_at?: string
         }
         Update: {
@@ -234,6 +254,11 @@ export type Database = {
             | null
           total_focus_minutes?: number
           total_sessions?: number
+          trusted_focus_minutes?: number
+          trusted_sessions?: number
+          trusted_current_streak?: number
+          trusted_longest_streak?: number
+          trusted_last_focus_date?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -292,6 +317,11 @@ export type Database = {
           ended_at: string
           id: string
           is_manual: boolean
+          is_trusted: boolean
+          excluded_at: string | null
+          excluded_reason: string | null
+          local_date: string | null
+          title: string | null
           notes: string | null
           project_id: string | null
           started_at: string
@@ -307,6 +337,11 @@ export type Database = {
           ended_at: string
           id?: string
           is_manual?: boolean
+          is_trusted?: boolean
+          excluded_at?: string | null
+          excluded_reason?: string | null
+          local_date?: string | null
+          title?: string | null
           notes?: string | null
           project_id?: string | null
           started_at: string
@@ -322,6 +357,11 @@ export type Database = {
           ended_at?: string
           id?: string
           is_manual?: boolean
+          is_trusted?: boolean
+          excluded_at?: string | null
+          excluded_reason?: string | null
+          local_date?: string | null
+          title?: string | null
           notes?: string | null
           project_id?: string | null
           started_at?: string
@@ -555,6 +595,8 @@ export type Database = {
           period_key: string
           period_type: Database["public"]["Enums"]["period_type"]
           session_count: number
+          trusted_focus_minutes: number
+          trusted_session_count: number
           updated_at: string
           user_id: string
         }
@@ -564,6 +606,8 @@ export type Database = {
           period_key: string
           period_type: Database["public"]["Enums"]["period_type"]
           session_count?: number
+          trusted_focus_minutes?: number
+          trusted_session_count?: number
           updated_at?: string
           user_id: string
         }
@@ -573,6 +617,8 @@ export type Database = {
           period_key?: string
           period_type?: Database["public"]["Enums"]["period_type"]
           session_count?: number
+          trusted_focus_minutes?: number
+          trusted_session_count?: number
           updated_at?: string
           user_id?: string
         }
@@ -602,6 +648,11 @@ export type Database = {
           show_heatmap_on_profile: boolean
           total_focus_minutes: number
           total_sessions: number
+          trusted_focus_minutes: number
+          trusted_sessions: number
+          trusted_current_streak: number
+          trusted_longest_streak: number
+          trusted_last_focus_date: string | null
         }
         Relationships: []
       }

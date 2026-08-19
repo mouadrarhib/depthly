@@ -2,6 +2,10 @@
 
 ## Overview
 
+Session-write hardening continues in `015_trusted_sessions.sql`: direct session mutations and the
+arbitrary-value `save_session()` RPC are removed from authenticated clients in favor of the
+server-timestamped lifecycle documented in `docs/TRUSTED_SESSIONS.md`.
+
 Depthly has no backend of its own — Supabase (Postgres + PostgREST + Auth) is the entire
 API surface, so Row Level Security policies and `SECURITY DEFINER` RPC functions *are* the
 authorization layer. There is no application-layer permission check backing them up. This

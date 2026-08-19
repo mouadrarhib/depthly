@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 
 import { useTimerStore } from '@/store/timerStore'
 import { useSaveSession } from '@/hooks/useSaveSession'
+import { useActiveTimerRealtime } from '@/hooks/useActiveTimerRealtime'
 
 function playBeep(freq = 880, duration = 0.6) {
   try {
@@ -33,6 +34,7 @@ function formatTitle(seconds: number): string {
 }
 
 export function useTimerEffects() {
+  useActiveTimerRealtime()
   const {
     isRunning,
     isPaused,
@@ -104,9 +106,9 @@ export function useTimerEffects() {
     ) {
       breakDoneRef.current = true
       playBeep(660, 0.4) // E5 — softer tone, break done
-      useTimerStore.getState().endBreak()
+      saveSession()
     }
-  }, [elapsed, duration, sessionType, mode, isRunning])
+  }, [elapsed, duration, sessionType, mode, isRunning, saveSession])
 
   // ── 4. Tick interval ──────────────────────────────────────────────────────
   useEffect(() => {

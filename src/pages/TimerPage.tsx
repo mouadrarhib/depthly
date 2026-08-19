@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
 import { useSaveSession } from '@/hooks/useSaveSession'
-import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { TimerFullscreen } from '@/components/timer/TimerFullscreen'
 import { TimerModeSelector } from '@/components/timer/TimerModeSelector'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
@@ -17,14 +16,18 @@ import { useUiStore } from '@/store'
 type PhaseKey = 'focus' | 'break'
 
 function SessionDots() {
-  const { mode, sessionType, startBreak, skipBreak } = useTimerStore()
+  const { mode, sessionType, isRunning, isPaused } = useTimerStore()
 
   if (mode === 'free') return null
 
   const handleSwitch = (phase: PhaseKey) => {
     if (phase === sessionType) return
-    if (phase === 'break') startBreak()
-    else skipBreak()
+    if (isRunning || isPaused) return
+    useTimerStore.setState((state) => ({
+      sessionType: phase,
+      duration: phase === 'break' ? state.breakDuration : state.focusDuration,
+      elapsed: 0,
+    }))
   }
 
   const phases: { key: PhaseKey; label: string; color: string; glow: string }[] = [
@@ -214,17 +217,7 @@ function BottomActionRow() {
 // ── Timer page ─────────────────────────────────────────────────────────────
 
 export function TimerPage() {
-  const { sessionType, isRunning } = useTimerStore()
-  const { saveAndStop, isSessionLimitReached } = useSaveSession()
-  const [upgradeOpen, setUpgradeOpen] = useState(false)
-
-  // Intercept timer start when monthly session limit is reached
-  useEffect(() => {
-    if (isRunning && sessionType === 'focus' && isSessionLimitReached && !upgradeOpen) {
-      useTimerStore.getState().pause()
-      setUpgradeOpen(true)
-    }
-  }, [isRunning, sessionType, isSessionLimitReached, upgradeOpen])
+  const { saveAndStop } = useSaveSession()
 
   return (
     <>
@@ -249,11 +242,6 @@ export function TimerPage() {
       {/* Fixed fullscreen overlay */}
       <TimerFullscreen />
 
-      <UpgradeModal
-        open={upgradeOpen}
-        onClose={() => setUpgradeOpen(false)}
-        trigger="sessions"
-      />
     </>
   )
 }

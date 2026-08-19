@@ -94,7 +94,7 @@ export function ProjectDetailPage() {
     } else {
       useTimerStore.getState().setSelectedProject(project!.id)
       useTimerStore.getState().setSelectedTask(task.id)
-      useTimerStore.getState().start()
+      showSaveToast('Task selected — start the timer when you are ready')
     }
     setIsDetailOpen(false)
     navigate(PATHS.timer)

@@ -1,4 +1,4 @@
-import { Calendar, Clock, FolderOpen, FileText, Pencil, Trash2 } from 'lucide-react'
+import { Calendar, Clock, FolderOpen, FileText, Pencil, RotateCcw, XCircle } from 'lucide-react'
 
 import {
   Dialog,
@@ -167,6 +167,10 @@ export function SessionDetailModal({ open, onClose, session, onEdit, onDelete }:
           )}
 
           {/* Notes */}
+          {session.title ? <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-ink-secondary">Title</label>
+            <p className="text-[14px] font-medium text-ink-primary">{session.title}</p>
+          </div> : null}
           <div className="flex flex-col gap-1.5">
             <label className="flex items-center gap-1 text-xs text-ink-secondary">
               <FileText size={12} /> Notes
@@ -188,10 +192,10 @@ export function SessionDetailModal({ open, onClose, session, onEdit, onDelete }:
           <Button type="button" variant="ghost" onClick={onClose}>
             Close
           </Button>
-          <Button type="button" variant="danger" onClick={onDelete} style={{ gap: 6 }}>
-            <Trash2 size={14} />
-            Delete
-          </Button>
+          {session.is_trusted && !isBreak ? <Button type="button" variant={session.excluded_at ? 'ghost' : 'danger'} onClick={onDelete} style={{ gap: 6 }}>
+            {session.excluded_at ? <RotateCcw size={14} /> : <XCircle size={14} />}
+            {session.excluded_at ? 'Restore' : 'Exclude'}
+          </Button> : null}
           <Button type="button" variant="primary" onClick={onEdit} style={{ gap: 6 }}>
             <Pencil size={14} />
             Edit

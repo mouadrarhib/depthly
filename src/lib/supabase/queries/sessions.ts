@@ -1,5 +1,3 @@
-import type { PostgrestError } from '@supabase/supabase-js'
-
 import { supabase } from '@/lib/supabase/client'
 import type { Tables } from '@/types/database'
 
@@ -10,57 +8,31 @@ export type SessionWithRelations = Session & {
   tasks: { title: string } | null
 }
 
-export interface SaveSessionParams {
-  p_user_id:       string
-  p_project_id:    string | null
-  p_task_id:       string | null
-  p_type:          'focus' | 'break'
-  p_duration_mins: number
-  p_started_at:    string
-  p_ended_at:      string
-  p_timer_mode:    'pomodoro' | 'custom' | 'free'  // mapped to timer_mode_type in DB
-  p_notes:         string | null
-  // Client's local date (YYYY-MM-DD) — the RPC files daily_summaries/user_stats/
-  // streak under this date instead of re-deriving it from p_started_at in UTC,
-  // which used to desync from the client's "today" for any non-UTC timezone.
-  p_local_date:    string
+export type ActiveTimerRun = Tables<'active_timer_runs'>
+
+export interface SessionMetadataInput {
+  project_id: string | null
+  task_id: string | null
+  title: string | null
+  notes: string | null
 }
 
-export interface UpdateSessionInput {
-  project_id?:    string | null
-  task_id?:       string | null
-  duration_mins?: number
-  started_at?:    string
-  ended_at?:      string
-  notes?:         string | null
+export interface StartTimerRunInput extends SessionMetadataInput {
+  type: 'focus' | 'break'
+  timer_mode: 'pomodoro' | 'free'
+  target_seconds: number | null
+  timezone: string
 }
 
-export interface CreateManualSessionInput {
-  user_id:       string
-  project_id:    string | null
-  task_id:       string | null
-  duration_mins: number
-  started_at:    string
-  ended_at:      string
-  notes:         string | null
-  // The local date (YYYY-MM-DD) the user picked in the form — see
-  // SaveSessionParams.p_local_date for why this can't be derived server-side.
-  local_date:    string
+type RpcResult<T> = Promise<{ data: T | null; error: { message: string } | null }>
+type TrustedTimerRpc = (fn: string, params?: Record<string, unknown>) => RpcResult<unknown>
+// Supabase's rpc method reads internal client state through `this`. Keep it
+// bound to the client instead of storing a detached method reference.
+const trustedRpc = supabase.rpc.bind(supabase) as unknown as TrustedTimerRpc
+
+function throwRpcError(error: { message: string } | null): void {
+  if (error) throw new Error(error.message)
 }
-
-// save_session is a SECURITY DEFINER RPC that writes to sessions,
-// daily_summaries, user_stats, and profiles atomically.
-// It is not yet in the generated types — cast rpc to accept it explicitly.
-type RpcFn = (
-  fn: 'save_session',
-  params: SaveSessionParams
-) => Promise<{ data: Session | null; error: PostgrestError | null }>
-
-// Variant that allows null for p_timer_mode (the RPC accepts text, which is nullable).
-type RpcFnNullableMode = (
-  fn: 'save_session',
-  params: Omit<SaveSessionParams, 'p_timer_mode'> & { p_timer_mode: string | null }
-) => Promise<{ data: Session | null; error: PostgrestError | null }>
 
 export async function fetchSessionsByProject(projectId: string): Promise<Session[]> {
   const { data, error } = await supabase
@@ -68,23 +40,26 @@ export async function fetchSessionsByProject(projectId: string): Promise<Session
     .select('*')
     .eq('project_id', projectId)
     .eq('type', 'focus')
+    .is('excluded_at', null)
     .order('started_at', { ascending: false })
     .limit(50)
 
-  if (error) throw error
-  return data
+  throwRpcError(error)
+  return data ?? []
 }
 
 // 'all' returns both focus and break sessions. Defaults to 'focus' so every
 // existing caller (e.g. the home page's recent-sessions list) keeps its
 // current behavior unchanged.
 export type SessionTypeFilter = 'all' | 'focus' | 'break'
+export type SessionStatusFilter = 'active' | 'excluded' | 'all'
 
 export async function fetchSessionsPaginated(
   userId: string,
   page: number,
   pageSize: number = 20,
   typeFilter: SessionTypeFilter = 'focus',
+  statusFilter: SessionStatusFilter = 'active',
 ): Promise<{ sessions: SessionWithRelations[]; totalCount: number }> {
   const from = page * pageSize
   const to   = page * pageSize + pageSize - 1
@@ -97,54 +72,75 @@ export async function fetchSessionsPaginated(
   if (typeFilter !== 'all') {
     query = query.eq('type', typeFilter)
   }
+  if (statusFilter === 'active') query = query.is('excluded_at', null)
+  if (statusFilter === 'excluded') query = query.not('excluded_at', 'is', null)
 
   const { data, error, count } = await query
     .order('started_at', { ascending: false })
     .range(from, to)
 
-  if (error) throw error
+  throwRpcError(error)
   return {
     sessions:   (data ?? []) as SessionWithRelations[],
     totalCount: count ?? 0,
   }
 }
 
-export async function saveSession(params: SaveSessionParams): Promise<Session> {
-  const { data, error } = await (supabase.rpc as unknown as RpcFn)(
-    'save_session',
-    params
-  )
-
-  if (error) throw error
-  if (!data)  throw new Error('save_session returned no data')
-
+export async function fetchActiveTimerRun(userId: string): Promise<ActiveTimerRun | null> {
+  const { data, error } = await supabase.from('active_timer_runs').select('*').eq('user_id', userId).maybeSingle()
+  throwRpcError(error)
   return data
 }
 
-export async function updateSession(id: string, data: UpdateSessionInput): Promise<Session> {
-  // KNOWN LIMITATION: changing duration_mins, started_at, or ended_at does NOT
-  // recalculate daily_summaries or user_stats — those aggregates will be stale.
-  const { data: updated, error } = await supabase
-    .from('sessions')
-    .update(data)
-    .eq('id', id)
-    .select()
-    .single()
-
-  if (error) throw error
-  return updated
+export async function startTimerRun(input: StartTimerRunInput): Promise<ActiveTimerRun> {
+  const { data, error } = await trustedRpc('start_timer_run', {
+    p_type: input.type, p_timer_mode: input.timer_mode, p_target_seconds: input.target_seconds,
+    p_timezone: input.timezone, p_project_id: input.project_id, p_task_id: input.task_id,
+    p_title: input.title, p_notes: input.notes,
+  })
+  throwRpcError(error)
+  if (!data) throw new Error('Timer did not start')
+  return data as ActiveTimerRun
 }
 
-export async function deleteSession(id: string): Promise<void> {
-  // KNOWN LIMITATION: deleting a session does NOT recalculate daily_summaries
-  // or user_stats — those aggregates will remain inflated until the next
-  // scheduled recalculation or manual correction.
-  const { error } = await supabase
-    .from('sessions')
-    .delete()
-    .eq('id', id)
+async function timerRunAction(name: string, runId: string): Promise<ActiveTimerRun> {
+  const { data, error } = await trustedRpc(name, { p_run_id: runId })
+  throwRpcError(error)
+  if (!data) throw new Error('Timer action failed')
+  return data as ActiveTimerRun
+}
 
-  if (error) throw error
+export const pauseTimerRun = (id: string) => timerRunAction('pause_timer_run', id)
+export const resumeTimerRun = (id: string) => timerRunAction('resume_timer_run', id)
+
+export async function finishTimerRun(id: string, metadata: SessionMetadataInput): Promise<Session> {
+  const { data, error } = await trustedRpc('finish_timer_run', { p_run_id: id, p_project_id: metadata.project_id,
+    p_task_id: metadata.task_id, p_title: metadata.title, p_notes: metadata.notes })
+  throwRpcError(error)
+  if (!data) throw new Error('Session did not save')
+  return data as Session
+}
+
+export async function cancelTimerRun(id: string): Promise<void> {
+  const { error } = await trustedRpc('cancel_timer_run', { p_run_id: id })
+  throwRpcError(error)
+}
+
+export async function updateSessionMetadata(id: string, data: SessionMetadataInput): Promise<Session> {
+  const { data: updated, error } = await trustedRpc('update_session_metadata', {
+    p_session_id: id, p_project_id: data.project_id, p_task_id: data.task_id,
+    p_title: data.title, p_notes: data.notes,
+  })
+  throwRpcError(error)
+  if (!updated) throw new Error('Session not found')
+  return updated as Session
+}
+
+export async function setSessionExcluded(id: string, excluded: boolean): Promise<Session> {
+  const { data, error } = await trustedRpc('set_session_excluded', { p_session_id: id, p_excluded: excluded })
+  throwRpcError(error)
+  if (!data) throw new Error('Session not found')
+  return data as Session
 }
 
 export async function fetchSessionsThisMonth(userId: string): Promise<number> {
@@ -156,6 +152,7 @@ export async function fetchSessionsThisMonth(userId: string): Promise<number> {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('type', 'focus')
+    .is('excluded_at', null)
     .gte('started_at', firstOfMonth)
 
   if (error) throw error
@@ -177,6 +174,7 @@ export async function fetchSessionsForExport(
     .from('sessions')
     .select('*, projects(name, color), tasks(title)')
     .eq('user_id', userId)
+    .is('excluded_at', null)
     .order('started_at', { ascending: false })
 
   if (!filters.includeBreaks) {
@@ -197,29 +195,4 @@ export async function fetchSessionsForExport(
 
   if (error) throw error
   return (data ?? []) as SessionWithRelations[]
-}
-
-export async function createManualSession(data: CreateManualSessionInput): Promise<Session> {
-  // Routes through save_session() RPC so daily_summaries and user_stats stay correct.
-  // The RPC does not expose an is_manual parameter (the DB column defaults to false);
-  // p_timer_mode is passed as null, which the RPC coerces to 'pomodoro' internally.
-  const { data: session, error } = await (supabase.rpc as unknown as RpcFnNullableMode)(
-    'save_session',
-    {
-      p_user_id:       data.user_id,
-      p_project_id:    data.project_id,
-      p_task_id:       data.task_id,
-      p_type:          'focus',
-      p_duration_mins: data.duration_mins,
-      p_started_at:    data.started_at,
-      p_ended_at:      data.ended_at,
-      p_timer_mode:    null,
-      p_notes:         data.notes,
-      p_local_date:    data.local_date,
-    }
-  )
-
-  if (error) throw error
-  if (!session) throw new Error('save_session returned no data')
-  return session
 }

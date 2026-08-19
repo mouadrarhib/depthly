@@ -1,8 +1,5 @@
 import { create } from 'zustand'
-
-import { saveSession } from '@/lib/supabase/queries/sessions'
-import { useAuthStore } from '@/store/authStore'
-import { formatPeriodKey } from '@/lib/utils/analytics'
+import { persist } from 'zustand/middleware'
 
 type TimerMode      = 'pomodoro' | 'custom' | 'free'
 type SessionType    = 'focus' | 'break'
@@ -42,44 +39,8 @@ export function showSaveToast(message: string) {
   }, 3000)
 }
 
-// Natural break completion has no React/mutation context to hook into (it's
-// triggered from useTimerEffects, not a component) — so it saves directly
-// through the RPC wrapper rather than the useMutation-based flow in
-// useSaveSession.ts. Break saves don't touch daily_summaries/user_stats (the
-// RPC only aggregates focus sessions), so skipping query-cache invalidation
-// here only means the recent-sessions list may lag until its next refetch.
-async function saveBreakSession(args: {
-  elapsed:            number
-  selectedProjectId:  string | null
-  selectedTaskId:     string | null
-  mode:               TimerMode
-}) {
-  const user = useAuthStore.getState().user
-  if (!user) return
-
-  const now       = new Date()
-  const startedAt = new Date(now.getTime() - args.elapsed * 1_000)
-
-  try {
-    await saveSession({
-      p_user_id:       user.id,
-      p_project_id:    args.selectedProjectId,
-      p_task_id:       args.selectedTaskId,
-      p_type:          'break',
-      p_duration_mins: Math.round(args.elapsed / 60),
-      p_started_at:    startedAt.toISOString(),
-      p_ended_at:      now.toISOString(),
-      p_timer_mode:    args.mode,
-      p_notes:         null,
-      p_local_date:    formatPeriodKey(now, 'daily'),
-    })
-    showSaveToast(`Break saved — ${Math.round(args.elapsed / 60)} minutes`)
-  } catch {
-    // Best-effort — a failed background break save isn't worth interrupting the user over.
-  }
-}
-
 interface TimerState {
+  activeRunId:       string | null
   isRunning:         boolean
   isPaused:          boolean
   mode:              TimerMode
@@ -114,9 +75,13 @@ interface TimerState {
   setNotes:           (notes: string) => void
   setAutoStartBreak:  (val: boolean) => void
   setAutoStartFocus:  (val: boolean) => void
+  restoreRun:         (run: { id: string; type: SessionType; timer_mode: 'pomodoro' | 'free'; target_seconds: number | null; status: string; accumulated_seconds: number; segment_started_at: string | null; project_id: string | null; task_id: string | null; title: string | null; notes: string | null }) => void
 }
 
-export const useTimerStore = create<TimerState>()((set, get) => ({
+export const TIMER_SETTINGS_STORAGE_KEY = 'depthly-timer-settings'
+
+export const useTimerStore = create<TimerState>()(persist((set, get) => ({
+  activeRunId:       null,
   isRunning:         false,
   isPaused:          false,
   mode:              'pomodoro',
@@ -164,11 +129,7 @@ export const useTimerStore = create<TimerState>()((set, get) => ({
 
   // Called when break finishes — returns to focus phase.
   endBreak: () => {
-    const { elapsed, selectedProjectId, selectedTaskId, mode, focusDuration, autoStartFocus } = get()
-
-    if (elapsed >= MIN_SESSION_SECONDS) {
-      void saveBreakSession({ elapsed, selectedProjectId, selectedTaskId, mode })
-    }
+    const { focusDuration, autoStartFocus } = get()
 
     set({
       sessionType: 'focus',
@@ -223,4 +184,28 @@ export const useTimerStore = create<TimerState>()((set, get) => ({
   setAutoStartBreak: (val) => set({ autoStartBreak: val }),
 
   setAutoStartFocus: (val) => set({ autoStartFocus: val }),
+
+  restoreRun: (run) => {
+    const elapsed = run.accumulated_seconds + (run.status === 'running' && run.segment_started_at
+      ? Math.max(0, Math.floor((Date.now() - new Date(run.segment_started_at).getTime()) / 1000)) : 0)
+    const restoredDuration = run.target_seconds ?? 0
+    set({ activeRunId: run.id, sessionType: run.type, mode: run.timer_mode,
+      duration: restoredDuration, elapsed, isRunning: run.status === 'running',
+      isPaused: run.status === 'paused', selectedProjectId: run.project_id,
+      selectedTaskId: run.task_id, sessionTitle: run.title ?? '', notes: run.notes ?? '',
+      ...(run.timer_mode !== 'free' && run.type === 'focus' ? { focusDuration: restoredDuration } : {}),
+      ...(run.timer_mode !== 'free' && run.type === 'break' ? { breakDuration: restoredDuration } : {}),
+    })
+  },
+}), {
+  name: TIMER_SETTINGS_STORAGE_KEY,
+  partialize: (state) => ({
+    mode: state.mode,
+    pomodoroPreset: state.pomodoroPreset,
+    focusDuration: state.focusDuration,
+    breakDuration: state.breakDuration,
+    duration: state.mode === 'free' ? 0 : state.focusDuration,
+    autoStartBreak: state.autoStartBreak,
+    autoStartFocus: state.autoStartFocus,
+  }),
 }))

@@ -19,7 +19,7 @@ import { ProgressRing } from '@/components/ui/ProgressRing'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useProfile, useDailySummary, useDailySummariesRange } from '@/hooks/useAnalytics'
 import { useGoals } from '@/hooks/useGoals'
-import { useSessionsPaginated, useDeleteSession } from '@/hooks/useSessions'
+import { useSessionsPaginated, useSetSessionExcluded } from '@/hooks/useSessions'
 import {
   formatMinutesToHours,
   formatPeriodKey,
@@ -121,7 +121,7 @@ export function HomePage() {
   const [deletingSession, setDeletingSession] = useState<SessionWithRelations | null>(null)
   const [viewingSession,  setViewingSession]  = useState<SessionWithRelations | null>(null)
   const [goalDialogOpen,  setGoalDialogOpen]  = useState(false)
-  const deleteSession = useDeleteSession()
+  const deleteSession = useSetSessionExcluded()
 
   const sessions       = sessionsData?.sessions ?? []
   const recentSessions = sessions.slice(0, 3)
@@ -154,7 +154,7 @@ export function HomePage() {
 
   function handleDeleteConfirm() {
     if (!deletingSession) return
-    deleteSession.mutate(deletingSession.id, {
+    deleteSession.mutate({ id: deletingSession.id, excluded: !deletingSession.excluded_at }, {
       onSuccess: () => setDeletingSession(null),
     })
   }
@@ -429,9 +429,9 @@ export function HomePage() {
         open={!!deletingSession}
         onClose={() => setDeletingSession(null)}
         onConfirm={handleDeleteConfirm}
-        title="Delete session?"
-        description="This session will be permanently deleted."
-        confirmLabel="Delete"
+        title="Exclude session?"
+        description="The record stays in your history but no longer counts toward your statistics."
+        confirmLabel="Exclude"
         isLoading={deleteSession.isPending}
         variant="danger"
       />

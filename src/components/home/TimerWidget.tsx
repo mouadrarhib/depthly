@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckSquare, FileText } from 'lucide-react'
 
@@ -30,10 +30,9 @@ export function TimerWidget() {
   const {
     elapsed, duration, mode, sessionType,
     isRunning, isPaused, sessionCount,
-    start, pause, resume,
   } = useTimerStore()
 
-  const { saveAndStop, isSessionLimitReached, toastMessage } = useSaveSession()
+  const { start, pause, resume, saveAndStop, isSessionLimitReached, toastMessage } = useSaveSession()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
 
   const toggleLog  = useUiStore((s) => s.toggleLog)
@@ -44,19 +43,13 @@ export function TimerWidget() {
   const remaining = isFree ? elapsed : Math.max(0, duration - elapsed)
   const ringColor = sessionType === 'focus' ? '#3DD68C' : 'var(--color-brand)'
   const isIdle    = !isRunning && !isPaused
-  // See TimerControls.tsx — idle-in-break (auto-start break off) must
-  // resume() to keep the break's duration/elapsed instead of start(),
-  // which would force sessionType back to focus.
   const isBreakIdle = isIdle && sessionType === 'break'
   const fontSz    = Math.round((isFree ? 48 : 72) * SCALE)
 
-  // Intercept start when monthly session limit is reached
-  useEffect(() => {
-    if (isRunning && sessionType === 'focus' && isSessionLimitReached && !upgradeOpen) {
-      useTimerStore.getState().pause()
-      setUpgradeOpen(true)
-    }
-  }, [isRunning, sessionType, isSessionLimitReached, upgradeOpen])
+  const handleStart = () => {
+    if (sessionType === 'focus' && isSessionLimitReached) { setUpgradeOpen(true); return }
+    start()
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
@@ -108,7 +101,7 @@ export function TimerWidget() {
       {/* Controls */}
       {isIdle ? (
         <button
-          onClick={isBreakIdle ? resume : start}
+          onClick={handleStart}
           style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             width: RING, height: 48, borderRadius: 14,

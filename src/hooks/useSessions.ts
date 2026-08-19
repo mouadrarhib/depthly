@@ -6,15 +6,14 @@ import {
   fetchSessionsByProject,
   fetchSessionsPaginated,
   fetchSessionsForExport,
-  updateSession,
-  deleteSession,
-  createManualSession,
+  updateSessionMetadata,
+  setSessionExcluded,
 } from '@/lib/supabase/queries/sessions'
 import type {
-  UpdateSessionInput,
-  CreateManualSessionInput,
+  SessionMetadataInput,
   ExportFilters,
   SessionTypeFilter,
+  SessionStatusFilter,
 } from '@/lib/supabase/queries/sessions'
 import {
   convertSessionsToCSV,
@@ -30,11 +29,11 @@ export function useSessionsByProject(projectId: string) {
   })
 }
 
-export function useSessionsPaginated(page: number, type: SessionTypeFilter = 'focus') {
+export function useSessionsPaginated(page: number, type: SessionTypeFilter = 'focus', status: SessionStatusFilter = 'active') {
   const userId = useAuthStore(s => s.user?.id ?? '')
   return useQuery({
-    queryKey: sessionKeys.paginated(userId, page, type),
-    queryFn:  () => fetchSessionsPaginated(userId, page, 20, type),
+    queryKey: [...sessionKeys.paginated(userId, page, type), status],
+    queryFn:  () => fetchSessionsPaginated(userId, page, 20, type, status),
     enabled:  !!userId,
   })
 }
@@ -42,8 +41,8 @@ export function useSessionsPaginated(page: number, type: SessionTypeFilter = 'fo
 export function useUpdateSession() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateSessionInput }) =>
-      updateSession(id, data),
+    mutationFn: ({ id, data }: { id: string; data: SessionMetadataInput }) =>
+      updateSessionMetadata(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['sessions'] })
       qc.invalidateQueries({ queryKey: ['analytics'] })
@@ -51,23 +50,18 @@ export function useUpdateSession() {
   })
 }
 
-export function useDeleteSession() {
+export function useSetSessionExcluded() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => deleteSession(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['sessions'] })
-    },
-  })
-}
-
-export function useCreateManualSession() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: CreateManualSessionInput) => createManualSession(data),
+    mutationFn: ({ id, excluded }: { id: string; excluded: boolean }) => setSessionExcluded(id, excluded),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['sessions'] })
       qc.invalidateQueries({ queryKey: ['analytics'] })
+      qc.invalidateQueries({ queryKey: ['profile'] })
+      qc.invalidateQueries({ queryKey: ['goals'] })
+      qc.invalidateQueries({ queryKey: ['projects'] })
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+      qc.invalidateQueries({ queryKey: ['leaderboard'] })
     },
   })
 }

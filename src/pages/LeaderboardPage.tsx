@@ -79,10 +79,10 @@ const IS_TIME_NAV = (n: NavItem): n is TimeNav =>
 async function fetchBestStreakLeaderboard(limit: number): Promise<StreakEntry[]> {
   const { data, error } = await supabase
     .from('public_profiles')
-    .select('id, display_name, avatar_url, profile_slug, current_streak, longest_streak')
+    .select('id, display_name, avatar_url, profile_slug, trusted_current_streak, trusted_longest_streak')
     .eq('is_public', true)
-    .gt('longest_streak', 0)
-    .order('longest_streak', { ascending: false })
+    .gt('trusted_longest_streak', 0)
+    .order('trusted_longest_streak', { ascending: false })
     .limit(limit)
 
   if (error) throw error
@@ -92,8 +92,8 @@ async function fetchBestStreakLeaderboard(limit: number): Promise<StreakEntry[]>
     display_name:   row.display_name,
     avatar_url:     row.avatar_url,
     profile_slug:   row.profile_slug,
-    current_streak: row.current_streak,
-    longest_streak: row.longest_streak,
+    current_streak: row.trusted_current_streak,
+    longest_streak: row.trusted_longest_streak,
   }))
 }
 
@@ -107,10 +107,10 @@ async function fetchBestStreakLeaderboard(limit: number): Promise<StreakEntry[]>
 async function fetchCurrentStreakLeaderboard(limit: number): Promise<StreakEntry[]> {
   const { data, error } = await supabase
     .from('public_profiles')
-    .select('id, display_name, avatar_url, profile_slug, current_streak, longest_streak, last_focus_date')
+    .select('id, display_name, avatar_url, profile_slug, trusted_current_streak, trusted_longest_streak, trusted_last_focus_date')
     .eq('is_public', true)
-    .gt('current_streak', 0)
-    .order('current_streak', { ascending: false })
+    .gt('trusted_current_streak', 0)
+    .order('trusted_current_streak', { ascending: false })
 
   if (error) throw error
   return (data ?? [])
@@ -119,8 +119,8 @@ async function fetchCurrentStreakLeaderboard(limit: number): Promise<StreakEntry
       display_name:   row.display_name,
       avatar_url:     row.avatar_url,
       profile_slug:   row.profile_slug,
-      current_streak: getEffectiveStreak(row.current_streak, row.last_focus_date),
-      longest_streak: row.longest_streak,
+      current_streak: getEffectiveStreak(row.trusted_current_streak, row.trusted_last_focus_date),
+      longest_streak: row.trusted_longest_streak,
     }))
     .filter((entry) => entry.current_streak > 0)
     .slice(0, limit)
