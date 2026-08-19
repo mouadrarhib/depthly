@@ -42,7 +42,7 @@ export function ClosingCtaSection() {
             lineHeight: 1.15,
           }}
         >
-          Start your first session
+          Start with one focused session
         </h2>
 
         <p
@@ -55,7 +55,8 @@ export function ClosingCtaSection() {
             maxWidth: 480,
           }}
         >
-          Free forever, no credit card, no team invites you didn&apos;t ask for.
+          Build your own rhythm first. Share progress or invite others when accountability would
+          help.
         </p>
 
         <div
@@ -66,18 +67,13 @@ export function ClosingCtaSection() {
           <Button asChild size="lg" style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}>
             <Link to={PATHS.signup}>Get started free</Link>
           </Button>
-          <Button
-            asChild
-            variant="ghost"
-            size="lg"
-            style={{ color: '#7A7890' }}
-          >
+          <Button asChild variant="ghost" size="lg" style={{ color: '#7A7890' }}>
             <a href="#pricing">View pricing</a>
           </Button>
         </div>
 
         <span data-reveal style={{ fontSize: 13, color: '#7A7890', marginTop: 16 }}>
-          Free forever&ensp;•&ensp;No credit card required
+          Free forever • No credit card required
         </span>
       </div>
     </section>

@@ -1,164 +1,90 @@
-import { Trophy } from 'lucide-react'
+import { Copy, Target, Trophy, Users } from 'lucide-react'
 
-import { StreakBadge } from '@/components/ui'
-
-const MEDAL_COLORS: Record<number, string> = {
-  1: '#F5A623',
-  2: '#C0C0C0',
-  3: '#CD7F32',
-}
-
-interface MockEntry {
-  rank: number
-  initial: string
-  avatarBg: string
-  name: string
-  hours: string
-  streakDays: number
-  isYou?: boolean
-}
-
-const ENTRIES: MockEntry[] = [
-  { rank: 1, initial: 'S', avatarBg: '#A78BFA', name: 'Sara K.', hours: '32h 40m', streakDays: 21 },
-  { rank: 2, initial: 'M', avatarBg: '#4B9EFF', name: 'Mouad R.', hours: '28h 15m', streakDays: 14, isYou: true },
-  { rank: 3, initial: 'J', avatarBg: '#3DD68C', name: 'Jonas T.', hours: '24h 02m', streakDays: 9 },
-  { rank: 4, initial: 'A', avatarBg: '#F472B6', name: 'Aya B.', hours: '19h 30m', streakDays: 7 },
+const ENTRIES = [
+  { rank: 1, initial: 'S', color: '#A78BFA', name: 'Sara', hours: '9h 40m', progress: 97 },
+  {
+    rank: 2,
+    initial: 'M',
+    color: '#4B9EFF',
+    name: 'Mouad',
+    hours: '8h 15m',
+    progress: 83,
+    you: true,
+  },
+  { rank: 3, initial: 'A', color: '#F472B6', name: 'Aya', hours: '6h 30m', progress: 65 },
+  { rank: 4, initial: 'J', color: '#3DD68C', name: 'Jonas', hours: '5h 05m', progress: 51 },
 ]
 
-/**
- * Static illustrative leaderboard — mirrors the real LeaderboardRow styling
- * (rank medal, avatar circle, name, weekly hours, streak badge), with a
- * static Everyone/Friends pill above it (same segmented-pill styling as
- * PricingSection's Monthly/Yearly toggle) purely to hint both views exist —
- * no click handling, no state, "Everyone" is always the shown-active pill.
- */
+const MEDALS: Record<number, string> = { 1: '#F5A623', 2: '#C0C0C0', 3: '#CD7F32' }
+
 export function LeaderboardMockup() {
   return (
-    <div className="mx-auto flex w-full flex-col" style={{ maxWidth: 460, gap: 14 }}>
-      <div className="flex justify-center">
-        <div
-          className="flex items-center gap-0.5 rounded-full"
-          style={{ backgroundColor: '#222228', padding: 4 }}
-        >
-          <span
-            className="rounded-full"
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              padding: '6px 18px',
-              backgroundColor: '#141417',
-              color: '#4B9EFF',
-              border: '1px solid rgba(75, 158, 255, 0.3)',
-            }}
-          >
-            Everyone
+    <div className="mx-auto w-full max-w-[460px] overflow-hidden rounded-[16px] border border-depth-border bg-depth-surface">
+      <div className="border-b border-depth-border p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="mb-2 flex items-center gap-2">
+              <Users size={14} className="text-brand" />
+              <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-brand">
+                Private group
+              </span>
+            </div>
+            <h3 className="text-[16px] font-medium text-ink-primary">Weekly focus circle</h3>
+            <p className="mt-1 text-[11px] text-ink-muted">Weekly · 4 members</p>
+          </div>
+          <span className="flex items-center gap-1.5 rounded-lg border border-depth-border bg-depth-raised px-2.5 py-2 text-[10px] text-ink-secondary">
+            <Copy size={12} /> Invite
           </span>
-          <span
-            className="rounded-full"
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              padding: '6px 18px',
-              color: '#3D3B4E',
-            }}
-          >
-            Friends
+        </div>
+        <div className="mt-4 flex items-center justify-between rounded-lg bg-depth-raised px-3 py-2">
+          <span className="flex items-center gap-2 text-[11px] text-ink-secondary">
+            <Target size={13} className="text-brand" /> 10h goal per member
           </span>
+          <span className="font-data text-[10px] text-ink-muted">2d 06:14:20</span>
         </div>
       </div>
-
-      <div
-        style={{
-          backgroundColor: '#141417',
-          border: '1px solid #2E2E38',
-          borderRadius: 14,
-          overflow: 'hidden',
-        }}
-      >
+      {ENTRIES.map((entry) => (
         <div
-          className="flex items-center justify-between"
-          style={{ padding: '14px 20px', borderBottom: '1px solid #2E2E38' }}
+          key={entry.rank}
+          className="grid grid-cols-[30px_1fr_auto] items-center gap-3 border-b border-depth-border px-4 py-3 last:border-0 sm:px-5"
         >
-          <span style={{ fontSize: 13, fontWeight: 500, color: '#E8E6F0' }}>This week</span>
-          <span className="font-data" style={{ fontSize: 11, color: '#7A7890' }}>
-            Resets in 2d 6h
+          <span className="font-data text-[12px] text-ink-muted">
+            {MEDALS[entry.rank] ? (
+              <Trophy size={15} style={{ color: MEDALS[entry.rank] }} />
+            ) : (
+              `#${entry.rank}`
+            )}
           </span>
-        </div>
-
-        {ENTRIES.map(({ rank, initial, avatarBg, name, hours, streakDays, isYou }, i) => (
-          <div
-            key={rank}
-            className="flex items-center gap-3"
-            style={{
-              padding: '12px 20px',
-              borderBottom: i < ENTRIES.length - 1 ? '1px solid #2E2E38' : 'none',
-            }}
-          >
-            {/* Rank */}
-            <span className="flex shrink-0 items-center" style={{ width: 26 }}>
-              {MEDAL_COLORS[rank] ? (
-                <Trophy size={16} style={{ color: MEDAL_COLORS[rank] }} />
-              ) : (
-                <span className="font-data" style={{ fontSize: 13, color: '#3D3B4E' }}>
-                  {rank}
-                </span>
-              )}
-            </span>
-
-            {/* Avatar */}
+          <div className="flex min-w-0 items-center gap-2.5">
             <span
-              className="flex shrink-0 items-center justify-center rounded-full"
-              style={{
-                width: 32,
-                height: 32,
-                backgroundColor: avatarBg,
-                color: '#FFFFFF',
-                fontSize: 13,
-                fontWeight: 600,
-              }}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white"
+              style={{ backgroundColor: entry.color }}
             >
-              {initial}
+              {entry.initial}
             </span>
-
-            {/* Name + streak */}
-            <span className="flex min-w-0 flex-1 flex-wrap items-center" style={{ gap: 8 }}>
-              <span
-                className="truncate"
-                style={{
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: isYou ? '#4B9EFF' : '#E8E6F0',
-                }}
+            <div className="min-w-0 flex-1">
+              <p
+                className={`truncate text-[12px] font-medium ${entry.you ? 'text-brand' : 'text-ink-primary'}`}
               >
-                {name}
-              </span>
-              {isYou ? (
-                <span
-                  className="shrink-0 rounded-full"
-                  style={{
-                    fontSize: 10,
-                    padding: '1px 7px',
-                    backgroundColor: 'rgba(75, 158, 255, 0.1)',
-                    color: '#4B9EFF',
-                  }}
-                >
-                  You
-                </span>
-              ) : null}
-              <span className="hidden sm:inline-flex">
-                <StreakBadge days={streakDays} />
-              </span>
-            </span>
-
-            {/* Weekly hours */}
-            <span
-              className="font-data shrink-0"
-              style={{ fontSize: 13, color: '#E8E6F0', fontWeight: 500 }}
-            >
-              {hours}
-            </span>
+                {entry.name}
+                {entry.you ? ' (You)' : ''}
+              </p>
+              <div className="mt-1 h-1 overflow-hidden rounded-full bg-depth-raised">
+                <div
+                  className="h-full rounded-full bg-brand"
+                  style={{ width: `${entry.progress}%` }}
+                />
+              </div>
+            </div>
           </div>
-        ))}
+          <div className="text-right">
+            <p className="font-data text-[12px] text-ink-primary">{entry.hours}</p>
+            <p className="font-data text-[9px] text-ink-muted">{entry.progress}% goal</p>
+          </div>
+        </div>
+      ))}
+      <div className="border-t border-depth-border px-4 py-3 text-center text-[10px] text-ink-muted">
+        Free members compete here without making their profiles public.
       </div>
     </div>
   )

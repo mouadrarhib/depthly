@@ -7,27 +7,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 gsap.registerPlugin(ScrollTrigger)
 
 /**
- * Landing page animation system (GSAP + ScrollTrigger).
- *
- * Opt-in via data attributes — components stay free of animation code:
- *   data-hero          — hero entrance (staggered fade-up, part of the
- *                        load sequence)
- *   data-reveal-group  — container whose [data-reveal] children fade-up
- *                        with a stagger. Groups already inside the initial
- *                        viewport join the load sequence (chained after the
- *                        hero) since their scroll trigger point is met on
- *                        mount and could never show a visible transition;
- *                        groups below the fold reveal on scroll.
- *   data-reveal        — an element revealed by its nearest group
- *   data-heatmap       — container whose [data-heat-cell] children pop in
- *   data-countup       — numeric text counted up from 0 (optional data-suffix)
- *
- * The load sequence waits for the app's LogoIntro splash (~3.7s overlay on
- * every load) to unmount — otherwise the entrance would play hidden
- * underneath it and the page would look settled when the splash lifts.
- *
- * Everything is skipped for users with prefers-reduced-motion: content
- * renders fully visible with no motion.
+ * One coordinated GSAP motion system for the public landing page.
+ * Hero content stays opaque so the value proposition remains readable on
+ * first paint. Supporting content reveals on load or as it enters the page.
  */
 export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
   useLayoutEffect(() => {
@@ -37,78 +19,110 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
     const mm = gsap.matchMedia()
 
     mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const nav = root.querySelector('[data-landing-nav]')
       const heroItems = root.querySelectorAll('[data-hero]')
+      const heroGrid = root.querySelector('[data-hero-grid]')
 
-      // Partition reveal groups: in-viewport ones join the load sequence,
-      // the rest get scroll triggers.
+      const entrance = gsap.timeline({ defaults: { ease: 'power3.out' } })
+      if (nav) {
+        entrance.fromTo(nav, { y: -14 }, { y: 0, duration: 0.55 })
+      }
+      if (heroItems.length) {
+        entrance.fromTo(
+          heroItems,
+          { y: 24 },
+          { y: 0, duration: 0.75, stagger: 0.09 },
+          nav ? 0.08 : 0
+        )
+      }
+      if (heroGrid) {
+        gsap.fromTo(
+          heroGrid,
+          { scale: 1.035, backgroundPosition: '0px 10px' },
+          { scale: 1, backgroundPosition: '0px 0px', duration: 1.8, ease: 'power2.out' }
+        )
+      }
+
+      // The five-step path gets its own clearly sequenced story animation:
+      // context first, then each stage from Focus through Focus together.
+      const focusPath = root.querySelector('[data-focus-path]')
+      if (focusPath) {
+        const pathHeader = focusPath.querySelector('[data-focus-path-header]')
+        const pathSteps = focusPath.querySelectorAll('[data-focus-step]')
+        const pathIcons = focusPath.querySelectorAll('[data-focus-step-icon]')
+        const pathTimeline = gsap.timeline({
+          scrollTrigger: { trigger: focusPath, start: 'top 78%', once: true },
+        })
+
+        if (pathHeader) {
+          pathTimeline.fromTo(
+            pathHeader,
+            { y: 42, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.7, ease: 'power3.out' }
+          )
+        }
+        if (pathSteps.length) {
+          pathTimeline.fromTo(
+            pathSteps,
+            { y: 52, opacity: 0, scale: 0.92, rotationX: -12 },
+            {
+              y: 0,
+              opacity: 1,
+              scale: 1,
+              rotationX: 0,
+              duration: 0.75,
+              ease: 'back.out(1.25)',
+              stagger: 0.16,
+            },
+            pathHeader ? '-=0.25' : 0
+          )
+        }
+        if (pathIcons.length) {
+          pathTimeline.fromTo(
+            pathIcons,
+            { scale: 0.35, rotation: -18 },
+            { scale: 1, rotation: 0, duration: 0.45, ease: 'back.out(1.8)', stagger: 0.16 },
+            pathHeader ? '-=0.95' : '-=0.7'
+          )
+        }
+      }
+
       const loadGroups: NodeListOf<Element>[] = []
       root.querySelectorAll<HTMLElement>('[data-reveal-group]').forEach((group) => {
         const items = group.querySelectorAll('[data-reveal]')
         if (!items.length) return
 
-        // Any group visible at all in the initial viewport joins the load
-        // sequence — its 'top 80%' scroll trigger would either fire on mount
-        // (no visible transition) or sit unfired until a tiny scroll.
         if (group.getBoundingClientRect().top < window.innerHeight) {
           loadGroups.push(items)
-        } else {
-          gsap.fromTo(
-            items,
-            { y: 30, opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.8,
-              ease: 'power3.out',
-              stagger: 0.1,
-              scrollTrigger: { trigger: group, start: 'top 80%', once: true },
-            },
-          )
+          return
         }
-      })
 
-      // Hide load-sequence elements up front (before first paint) so there
-      // is no flash while we wait for the splash to clear.
-      gsap.set(heroItems, { y: 26, opacity: 0 })
-      loadGroups.forEach((items) => gsap.set(items, { y: 30, opacity: 0 }))
-
-      const playLoadSequence = () => {
-        const tl = gsap.timeline()
-        if (heroItems.length) {
-          tl.to(heroItems, {
+        gsap.fromTo(
+          items,
+          { y: 36, opacity: 0, scale: 0.985 },
+          {
             y: 0,
             opacity: 1,
-            duration: 0.9,
+            scale: 1,
+            duration: 0.85,
             ease: 'power3.out',
-            stagger: 0.12,
-          })
-        }
-        // Chain each above-fold group shortly after the hero starts settling
-        loadGroups.forEach((items, i) => {
-          tl.to(
-            items,
-            { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out', stagger: 0.1 },
-            heroItems.length ? 0.55 + i * 0.2 : 0.1 + i * 0.2,
-          )
-        })
-      }
-
-      // Wait for the LogoIntro splash overlay to unmount before playing.
-      let observer: MutationObserver | undefined
-      if (document.querySelector('.logo-intro')) {
-        observer = new MutationObserver(() => {
-          if (!document.querySelector('.logo-intro')) {
-            observer?.disconnect()
-            observer = undefined
-            playLoadSequence()
+            stagger: 0.11,
+            scrollTrigger: { trigger: group, start: 'top 82%', once: true },
           }
-        })
-        observer.observe(document.body, { childList: true, subtree: true })
-      } else {
-        playLoadSequence()
-      }
+        )
+      })
 
-      // ── Heatmap cells pop in ─────────────────────────────────────────
+      loadGroups.forEach((items) => gsap.set(items, { y: 30, opacity: 0, scale: 0.99 }))
+
+      const supportingEntrance = gsap.timeline()
+      loadGroups.forEach((items, index) => {
+        supportingEntrance.to(
+          items,
+          { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: 'power3.out', stagger: 0.1 },
+          0.35 + index * 0.2
+        )
+      })
+
       root.querySelectorAll<HTMLElement>('[data-heatmap]').forEach((map) => {
         const cells = map.querySelectorAll('[data-heat-cell]')
         if (!cells.length) return
@@ -122,28 +136,25 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
             ease: 'back.out(1.7)',
             stagger: { each: 0.018, from: 'start' },
             scrollTrigger: { trigger: map, start: 'top 82%', once: true },
-          },
+          }
         )
       })
 
-      // ── Count-up numbers ─────────────────────────────────────────────
-      root.querySelectorAll<HTMLElement>('[data-countup]').forEach((el) => {
-        const end = Number(el.dataset.countup)
+      root.querySelectorAll<HTMLElement>('[data-countup]').forEach((element) => {
+        const end = Number(element.dataset.countup)
         if (Number.isNaN(end)) return
-        const suffix = el.dataset.suffix ?? ''
-        const proxy = { v: 0 }
+        const suffix = element.dataset.suffix ?? ''
+        const proxy = { value: 0 }
         gsap.to(proxy, {
-          v: end,
+          value: end,
           duration: 1.4,
           ease: 'power2.out',
-          scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+          scrollTrigger: { trigger: element, start: 'top 88%', once: true },
           onUpdate: () => {
-            el.textContent = `${Math.round(proxy.v)}${suffix}`
+            element.textContent = `${Math.round(proxy.value)}${suffix}`
           },
         })
       })
-
-      return () => observer?.disconnect()
     })
 
     return () => mm.revert()

@@ -16,9 +16,14 @@ import { PATHS } from '@/routes/paths'
 import { useAuthStore } from '@/store'
 
 const AVATAR_COLORS = [
-  '#4B9EFF', '#3DD68C', '#F5A623',
-  '#F25C5C', '#A78BFA', '#F472B6',
-  '#FB923C', '#34D399',
+  '#4B9EFF',
+  '#3DD68C',
+  '#F5A623',
+  '#F25C5C',
+  '#A78BFA',
+  '#F472B6',
+  '#FB923C',
+  '#34D399',
 ]
 
 function avatarColor(seed: string): string {
@@ -38,7 +43,9 @@ const navLinkStyle = { fontSize: 14, color: '#7A7890', textDecoration: 'none' } 
 
 /** Thin vertical divider — same style used between the logo and tagline. */
 const Divider = () => (
-  <span style={{ width: 0.5, height: 20, background: '#2E2E38', flexShrink: 0, display: 'block' }} />
+  <span
+    style={{ width: 0.5, height: 20, background: '#2E2E38', flexShrink: 0, display: 'block' }}
+  />
 )
 
 /**
@@ -61,10 +68,7 @@ export function LandingNav() {
   const avatarUrl = profile?.avatar_url ?? null
   const initial = displayName.charAt(0).toUpperCase() || '?'
 
-  const planLabel =
-    plan === 'pro' ? 'Pro' :
-    plan === 'founding' ? 'Founding' :
-    'Free'
+  const planLabel = plan === 'pro' ? 'Pro' : plan === 'founding' ? 'Founding' : 'Free'
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -72,6 +76,7 @@ export function LandingNav() {
 
   return (
     <header
+      data-landing-nav
       className="sticky top-0 z-50"
       style={{
         backgroundColor: 'rgba(13, 13, 16, 0.88)',
@@ -81,13 +86,17 @@ export function LandingNav() {
       }}
     >
       <div
-        className="mx-auto flex items-center justify-between px-5 md:px-8"
+        className="mx-auto flex items-center justify-between px-3 sm:px-5 md:px-8"
         style={{ maxWidth: 1100, height: 64 }}
       >
         <div className="flex items-center gap-8">
           {/* Lockup + tagline */}
-          <Link to={PATHS.home} className="flex items-center gap-3" style={{ textDecoration: 'none' }}>
-            <Logo size={26} withWordmark />
+          <Link
+            to={PATHS.home}
+            className="flex items-center gap-3"
+            style={{ textDecoration: 'none' }}
+          >
+            <Logo size={24} withWordmark />
             <span
               className="hidden md:inline"
               style={{
@@ -109,8 +118,12 @@ export function LandingNav() {
                 key={label}
                 href={href}
                 style={navLinkStyle}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#E8E6F0' }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#7A7890' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#E8E6F0'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#7A7890'
+                }}
               >
                 {label}
               </a>
@@ -122,7 +135,9 @@ export function LandingNav() {
         {user ? (
           <div className="flex items-center gap-4">
             <Button asChild size="sm" style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}>
-              <Link to={PATHS.dashboard} state={{ fromAuth: true }}>Go to app</Link>
+              <Link to={PATHS.dashboard} state={{ fromAuth: true }}>
+                Go to app
+              </Link>
             </Button>
 
             <Divider />
@@ -167,7 +182,12 @@ export function LandingNav() {
 
               <DropdownMenuContent align="end" style={{ minWidth: 200 }}>
                 <DropdownMenuLabel
-                  style={{ fontSize: 12, fontWeight: 400, color: '#7A7890', padding: '8px 8px 4px' }}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 400,
+                    color: '#7A7890',
+                    padding: '8px 8px 4px',
+                  }}
                 >
                   {user.email}
                 </DropdownMenuLabel>
@@ -181,7 +201,8 @@ export function LandingNav() {
                       fontSize: 11,
                       fontWeight: 600,
                       letterSpacing: '0.04em',
-                      background: plan === 'free' ? 'rgba(122,120,144,0.15)' : 'rgba(75,158,255,0.15)',
+                      background:
+                        plan === 'free' ? 'rgba(122,120,144,0.15)' : 'rgba(75,158,255,0.15)',
                       color: plan === 'free' ? '#7A7890' : '#4B9EFF',
                     }}
                   >
@@ -191,9 +212,7 @@ export function LandingNav() {
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onClick={() => navigate(PATHS.dashboard)}>
-                  Home
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate(PATHS.dashboard)}>Home</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate(PATHS.settings)}>
                   Settings
                 </DropdownMenuItem>
@@ -210,15 +229,19 @@ export function LandingNav() {
           <div className="flex items-center gap-2 md:gap-4">
             <Link
               to={PATHS.login}
-              className="px-2 py-1 text-sm font-medium transition-colors"
+              className="hidden px-2 py-1 text-sm font-medium transition-colors min-[360px]:inline-flex"
               style={{ color: '#7A7890', textDecoration: 'none' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#E8E6F0' }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#7A7890' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#E8E6F0'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#7A7890'
+              }}
             >
               Log in
             </Link>
             <Button asChild size="sm" style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}>
-              <Link to={PATHS.signup}>Get started</Link>
+              <Link to={PATHS.signup}>Start free</Link>
             </Button>
           </div>
         )}

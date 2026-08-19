@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { Clock, Flag, Flame, Globe, Kanban, Link2, SlidersHorizontal, TimerReset, TrendingUp, Users } from 'lucide-react'
+import { BarChart3, Clock, Globe, Image, Share2, ShieldCheck, Target, Users } from 'lucide-react'
 
 import { AnalyticsMockup } from '@/components/landing/AnalyticsMockup'
 import { ClosingCtaSection } from '@/components/landing/ClosingCtaSection'
@@ -12,7 +12,8 @@ import { LandingNav } from '@/components/landing/LandingNav'
 import { LeaderboardMockup } from '@/components/landing/LeaderboardMockup'
 import { OverviewSection } from '@/components/landing/OverviewSection'
 import { PricingSection } from '@/components/landing/PricingSection'
-import { TaskKanbanMockup } from '@/components/landing/TaskKanbanMockup'
+import { ProjectsSupportSection } from '@/components/landing/ProjectsSupportSection'
+import { ShareProgressMockup } from '@/components/landing/ShareProgressMockup'
 import { TimerMockup } from '@/components/landing/TimerMockup'
 import { FeatureBlock } from '@/components/landing/primitives'
 import { useLandingAnimations } from '@/components/landing/useLandingAnimations'
@@ -57,92 +58,90 @@ export function LandingPage() {
 
         <OverviewSection />
 
-        {/* Section A — Focus Timer (mockup left) */}
+        {/* 1 — Trusted focus timer */}
         <FeatureSection
-          eyebrow="Focus sessions"
-          title="Pick your rhythm"
-          subtext="Run structured Pomodoro intervals or a plain stopwatch for open-ended work. Set your own durations and goals, and let Depthly remember the rest."
+          eyebrow="Trusted focus"
+          title="Make every focused minute count"
+          subtext="Start a countdown or stopwatch and let Depthly track the session from the timer itself. When you finish, that trusted time becomes part of your progress."
           mockupSide="left"
           mockup={<TimerMockup />}
         >
           <FeatureBlock
-            Icon={TimerReset}
-            title="Timer or stopwatch"
-            description="Some days need 25 minutes. Some days need three hours with no clock in sight. Switch modes without losing your session."
+            Icon={Clock}
+            title="Your rhythm, accurately tracked"
+            description="Use a focused countdown or an open-ended stopwatch. Pause, resume, or recover the same active timer across tabs."
           />
           <FeatureBlock
-            Icon={SlidersHorizontal}
-            title="Fully customizable"
-            description="Set your own focus length, break length, and daily goal. Change it whenever your energy does."
+            Icon={ShieldCheck}
+            title="Trusted progress"
+            description="Completed timer sessions become verified progress, so your analytics and private rankings reflect time you actually focused."
           />
           <FeatureBlock
-            Icon={Flame}
-            title="Session tracking with streaks"
-            description="Every session saves itself. Miss a day and the streak resets, so there's a small reason to show up tomorrow."
+            Icon={Target}
+            title="Built for consistency"
+            description="Set your focus and break lengths, then return tomorrow with your history, goals, and streak ready to continue."
           />
         </FeatureSection>
 
-        {/* Section B — Projects & Tasks (mockup right) */}
+        {/* 2 — Daily goals and Analytics */}
         <FeatureSection
-          heading="Turn hours into actual progress"
-          body="Every session ties back to a real task. Track it in a flat list or drag it across a kanban board — your call, switch anytime."
+          heading="Turn a focused day into a visible habit"
+          body="Set a daily target, watch it fill as you work, and use Analytics to understand where your time went across days, weeks, months, and years."
           mockupSide="right"
-          mockup={<TaskKanbanMockup />}
-        >
-          <FeatureBlock
-            Icon={Kanban}
-            title="List or kanban"
-            description="See everything in one ordered list, or move cards through To Do, In Progress, and Done. Same tasks, two views."
-          />
-          <FeatureBlock
-            Icon={Flag}
-            title="Priority and due dates"
-            description="Flag what's urgent, set a due date, and overdue tasks tell you before you have to ask."
-          />
-          <FeatureBlock
-            Icon={Link2}
-            title="Tied to your sessions"
-            description="Pick a task when you start the timer. Your pomodoro count builds up on the task itself, not just in the void."
-          />
-        </FeatureSection>
-
-        {/* Section C — Analytics (mockup left) */}
-        <FeatureSection
-          heading="Where did today actually go?"
-          body="Track progress, spot patterns, and see it laid out day by day, week by week, without doing the math yourself."
-          mockupSide="left"
           mockup={<AnalyticsMockup />}
         >
           <FeatureBlock
-            Icon={Clock}
-            title="Daily focus tracking"
-            description="Today's total, right when you open the app. No digging."
+            Icon={Target}
+            title="A daily goal you can see"
+            description="Compare today's focused time with your target at a glance, including the real total when you go beyond it."
           />
           <FeatureBlock
-            Icon={TrendingUp}
-            title="Visualize your progress"
-            description="Heatmaps and trend lines across weeks, months, and years."
+            Icon={BarChart3}
+            title="Patterns, not guesswork"
+            description="See session totals, heatmaps, trends, streaks, and project breakdowns using the same trusted focus history."
           />
         </FeatureSection>
 
-        {/* Section D — Leaderboard & Streaks (mockup right) */}
+        {/* 3 — Share Progress */}
         <FeatureSection
-          heading="Nobody's watching you work. This is."
-          body="See where you rank against everyone else on Depthly, or narrow it down to people you actually know."
+          heading="Share the progress, not just a number"
+          body="Turn the Analytics view you are already looking at into a branded image, complete with its charts and goal progress. Preview it before you share or download."
+          mockupSide="left"
+          mockup={<ShareProgressMockup />}
+        >
+          <FeatureBlock
+            Icon={Image}
+            title="Your current Analytics view"
+            description="Share Daily, Weekly, Monthly, or Yearly progress with the same visual story you see inside Depthly."
+          />
+          <FeatureBlock
+            Icon={Share2}
+            title="Preview, then choose"
+            description="Use native sharing when available, or download and copy the image. Share Progress works on every plan within its Analytics window."
+          />
+        </FeatureSection>
+
+        {/* 4 — Private group leaderboards */}
+        <FeatureSection
+          heading="Bring your own focus circle"
+          body="Create an invite-only group for study partners, freelancer peers, or accountability friends. Everyone can join and compete privately, including Free members, without making their profile public."
           mockupSide="right"
           mockup={<LeaderboardMockup />}
         >
           <FeatureBlock
-            Icon={Globe}
-            title="Global rankings"
-            description="Ranked by day, week, month, year, or all time. Pick your window."
+            Icon={Users}
+            title="Private by membership"
+            description="Only group members see names, avatars, trusted focus time, session counts, and progress inside that group."
           />
           <FeatureBlock
-            Icon={Users}
-            title="Friends, not followers"
-            description="Send a request, they accept, and you're both on each other's board. No one-way following."
+            Icon={Globe}
+            title="Public competition stays optional"
+            description="Friends and global rankings are still available when you want them. Your private group never changes your public-profile setting."
           />
         </FeatureSection>
+
+        {/* 5 — Projects and tasks support the focus loop */}
+        <ProjectsSupportSection />
 
         <PricingSection />
 

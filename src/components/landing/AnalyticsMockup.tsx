@@ -1,4 +1,4 @@
-import { CalendarDays, Clock } from 'lucide-react'
+import { CalendarDays, Clock, Target } from 'lucide-react'
 import { Cell, Pie, PieChart } from 'recharts'
 
 import { formatMinutesToHours } from '@/lib/utils/analytics'
@@ -15,10 +15,8 @@ function cellColor(minutes: number): string {
 
 // Illustrative month — 28 days of fake focus minutes.
 const DAYS: number[] = [
-  45, 0, 130, 90, 200, 20, 0,
-  60, 150, 40, 0, 110, 190, 75,
-  0, 35, 220, 130, 55, 0, 95,
-  160, 70, 0, 140, 45, 185, 120,
+  45, 0, 130, 90, 200, 20, 0, 60, 150, 40, 0, 110, 190, 75, 0, 35, 220, 130, 55, 0, 95, 160, 70, 0,
+  140, 45, 185, 120,
 ]
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -63,9 +61,7 @@ function StatCard({
       <span
         className="font-data"
         style={{ fontSize: 26, fontWeight: 600, color: '#E8E6F0', letterSpacing: '-0.02em' }}
-        {...(countup !== undefined
-          ? { 'data-countup': countup, 'data-suffix': suffix ?? '' }
-          : {})}
+        {...(countup !== undefined ? { 'data-countup': countup, 'data-suffix': suffix ?? '' } : {})}
       >
         {value}
       </span>
@@ -85,6 +81,21 @@ export function AnalyticsMockup() {
       <div className="flex flex-col gap-4 sm:flex-row">
         <StatCard Icon={Clock} label="Today's focus" value="2h 30m" />
         <StatCard Icon={CalendarDays} label="Sessions" value="4" countup={4} />
+      </div>
+
+      <div className="rounded-[14px] border border-depth-border bg-depth-surface p-[18px]">
+        <div className="flex items-center justify-between gap-3">
+          <span className="flex items-center gap-2 text-[12px] text-ink-secondary">
+            <Target size={14} className="text-brand" /> Daily goal
+          </span>
+          <span className="font-data text-[12px] text-ink-primary">
+            2h 30m / 3h <span className="text-brand">· 83%</span>
+          </span>
+        </div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-depth-raised">
+          <div className="h-full w-[83%] rounded-full bg-brand" />
+        </div>
+        <p className="font-data mt-2 text-right text-[10px] text-ink-muted">30m to go</p>
       </div>
 
       <div
@@ -188,7 +199,10 @@ export function AnalyticsMockup() {
                 >
                   {project.name}
                 </span>
-                <span className="font-data" style={{ fontSize: 12, color: '#7A7890', flexShrink: 0 }}>
+                <span
+                  className="font-data"
+                  style={{ fontSize: 12, color: '#7A7890', flexShrink: 0 }}
+                >
                   {formatMinutesToHours(project.minutes)}
                 </span>
               </div>

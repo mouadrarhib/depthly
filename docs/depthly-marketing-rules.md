@@ -13,6 +13,13 @@ A living reference, built from real feedback across multiple Reddit posts and on
 
 ## 2. Positioning
 
+### Current product direction (Update 4)
+
+- **Personal deep focus is the core story.** The landing narrative is `Focus → Goals → Progress → Share → Compete together`. Students remain the primary acquisition audience, while public product copy explicitly includes freelancers and independent learners.
+- **Social accountability is optional.** Lead with trusted focus, daily goals, and personal Analytics; introduce sharing and invite-only groups only after that value is clear.
+- **Private groups are the primary competitive path.** A person can start alone, invite a private focus circle when useful, and participate for free without making their profile public. Study partners, freelancer peers, and accountability friends are all valid examples; Friends and global rankings remain secondary choices.
+- **Keep the historical lessons below as acquisition context, not the current hero positioning.** They explain why community loops matter without requiring Depthly to present itself as a social-first app.
+
 - **Stop describing Depthly as "timer + analytics + leaderboard."** That's a feature list, not a reason to care.
 - **Reframe as "the social layer for deep work."** The friends/leaderboard/accountability mechanic is the actual product, not a feature bolted onto a timer.
 - **Sell the outcome, not the feature.** "Build a deep-work habit with your friends" beats "focus timer with analytics." Validate the mechanic first, then write copy around what actually gets people to participate, don't write the tagline before you know it works.
@@ -55,11 +62,11 @@ A living reference, built from real feedback across multiple Reddit posts and on
 - **Don't take "you have no idea" or "gatekeeping" style comments as real feedback.** They're not actionable, they're dismissiveness. Respond briefly if at all, then move on.
 - **Real, good-faith questions deserve real, specific answers.** Describe concretely what's different (projects → tasks → time tracked per task → analytics across daily/weekly/monthly/yearly/lifetime → friends/leaderboard), don't argue in adjectives ("better," "smarter").
 - **A meaningful chunk of hostile Reddit engagement may not be from real, engaged people.** Reddit's own incentives favor negative engagement (it drives more activity), and bot/farm accounts add to the pile. Don't over-index on volume of negativity as a signal about the real target audience.
-- **Distinguish jabs from substance within a single comment.** Someone can say something contemptuous ("you must not have much experience") *and* raise a legitimate point ("is there real paid demand for this category") in the same message. Answer the substance, ignore the insult.
+- **Distinguish jabs from substance within a single comment.** Someone can say something contemptuous ("you must not have much experience") _and_ raise a legitimate point ("is there real paid demand for this category") in the same message. Answer the substance, ignore the insult.
 
 ## 7. Security (non-marketing, but earned the hard way)
 
-- **Row Level Security is row-level, not column-level.** A policy like `id = auth.uid() or is_public = true` on a table containing both public-safe fields and sensitive fields (billing IDs, subscription status) exposes *all* columns on public rows to anonymous requests.
+- **Row Level Security is row-level, not column-level.** A policy like `id = auth.uid() or is_public = true` on a table containing both public-safe fields and sensitive fields (billing IDs, subscription status) exposes _all_ columns on public rows to anonymous requests.
 - **Never expose a table with mixed sensitive/public columns directly to anon reads.** Create a narrow public view with only the safe columns, point public-facing features (leaderboard, public profiles) at the view, and restrict the base table to owner-only access.
 - **A stranger finding this and disclosing it privately, instead of posting it publicly, is a genuine favor.** Treat responsible disclosure with real gratitude, and run a full security diagnostic (RLS policies across every table, service role key exposure, webhook signature verification, write paths) rather than only patching the one issue reported.
 

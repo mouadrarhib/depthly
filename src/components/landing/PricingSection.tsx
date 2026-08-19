@@ -37,10 +37,11 @@ const TIERS: Tier[] = [
   {
     name: 'Free',
     features: [
-      'Focus timer & stopwatch',
-      'Up to 3 projects',
-      '50 sessions per month',
-      '7-day analytics window',
+      'Trusted timer & stopwatch',
+      'Up to 3 projects and 50 sessions per month',
+      '7-day Analytics + Share Progress',
+      'Join unlimited private groups',
+      'Create 1 group with up to 15 members',
     ],
     cta: 'Get started',
     price: () => ({ amount: '$0', note: 'forever' }),
@@ -50,10 +51,10 @@ const TIERS: Tier[] = [
     name: 'Pro',
     features: [
       'Unlimited projects & sessions',
-      'Full analytics history',
-      'Kanban boards',
-      'CSV export',
-      'Leaderboard appearance',
+      'Full Analytics history + CSV export',
+      'Public profile and global leaderboard visibility',
+      'Create up to 10 private groups',
+      'Up to 100 members per group',
     ],
     cta: 'Start free trial',
     highlighted: true,
@@ -91,7 +92,7 @@ export function PricingSection() {
         <SectionHeader
           eyebrow="Pricing"
           title="Start free. Upgrade if you need to."
-          subtext="Free covers most people. Pro is for when you outgrow it."
+          subtext="Use the personal focus core for free. Upgrade for more history, scale, and public visibility."
         />
 
         {/* Monthly / Yearly toggle — same segmented style as the timer mode selector */}
@@ -109,8 +110,8 @@ export function PricingSection() {
                   key={value}
                   value={value}
                   className={[
-                    'rounded-full text-[13px] font-medium px-[18px] py-[6px]',
-                    'transition-all shadow-none',
+                    'rounded-full px-[18px] py-[6px] text-[13px] font-medium',
+                    'shadow-none transition-all',
                     'data-[state=inactive]:bg-transparent data-[state=inactive]:text-[var(--color-text-faint)]',
                     'data-[state=active]:bg-[var(--color-surface-raised)] data-[state=active]:text-[var(--color-brand)]',
                     'data-[state=active]:border data-[state=active]:border-[rgba(75,158,255,0.3)]',
@@ -213,7 +214,10 @@ export function PricingSection() {
                     ) : null}
                   </div>
                   {sub ? (
-                    <div className="font-data" style={{ fontSize: 12, color: '#7A7890', marginTop: 6 }}>
+                    <div
+                      className="font-data"
+                      style={{ fontSize: 12, color: '#7A7890', marginTop: 6 }}
+                    >
                       {sub}
                     </div>
                   ) : null}

@@ -21,9 +21,7 @@ const COLUMNS: { heading: string; links: FooterLink[] }[] = [
   },
   {
     heading: 'Company',
-    links: [
-      { label: 'Contact', kind: 'mailto', email: CONTACT_EMAIL },
-    ],
+    links: [{ label: 'Contact', kind: 'mailto', email: CONTACT_EMAIL }],
   },
   {
     heading: 'Legal',
@@ -59,13 +57,13 @@ export function LandingFooter() {
   }
 
   return (
-    <footer className="px-5 md:px-8" style={{ borderTop: '1px solid #2E2E38' }}>
+    <footer data-reveal-group className="px-5 md:px-8" style={{ borderTop: '1px solid #2E2E38' }}>
       <div
         className="mx-auto flex flex-col gap-12 md:flex-row md:justify-between"
         style={{ maxWidth: 1100, paddingTop: 56, paddingBottom: 40 }}
       >
         {/* Lockup + tagline */}
-        <div className="flex flex-col gap-3">
+        <div data-reveal className="flex flex-col gap-3">
           <Link to={PATHS.home} style={{ textDecoration: 'none' }}>
             <Logo size={26} withWordmark />
           </Link>
@@ -73,7 +71,7 @@ export function LandingFooter() {
         </div>
 
         {/* Link columns */}
-        <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 md:gap-16">
+        <div data-reveal className="grid grid-cols-2 gap-10 sm:grid-cols-3 md:gap-16">
           {COLUMNS.map(({ heading, links }) => (
             <div key={heading} className="flex flex-col gap-3">
               <span style={{ fontSize: 13, fontWeight: 500, color: '#E8E6F0' }}>{heading}</span>
@@ -123,6 +121,7 @@ export function LandingFooter() {
       </div>
 
       <div
+        data-reveal
         className="mx-auto text-center"
         style={{
           maxWidth: 1100,

@@ -81,7 +81,11 @@
   /* ── Global resets ──────────────────────────────────────────────────── */
   html {
     scroll-behavior: smooth;
-    overflow-x: hidden;
+    /* `hidden` turns the other axis into `auto`, which made body a second
+       vertical scroll container when GSAP-translated landing sections
+       briefly extended beyond their layout boxes. `clip` prevents horizontal
+       overflow without creating a nested scroll owner. */
+    overflow-x: clip;
     -webkit-text-size-adjust: 100%;
   }
 
@@ -91,7 +95,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-family: 'Inter', system-ui, sans-serif;
-    overflow-x: hidden;
+    overflow-x: clip;
     min-height: 100dvh;
   }
 
