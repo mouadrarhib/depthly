@@ -11,39 +11,43 @@ import {
   updateProject,
   deleteProject,
 } from '@/lib/supabase/queries/projects'
-import type { CreateProjectInput, UpdateProjectInput } from '@/lib/supabase/queries/projects'
+import type {
+  CreateProjectInput,
+  Project,
+  UpdateProjectInput,
+} from '@/lib/supabase/queries/projects'
 
 export function useProjects() {
-  const userId = useAuthStore(s => s.user?.id ?? '')
+  const userId = useAuthStore((s) => s.user?.id ?? '')
   return useQuery({
     queryKey: projectKeys.active,
-    queryFn:  () => fetchProjects(userId),
-    enabled:  !!userId,
+    queryFn: () => fetchProjects(userId),
+    enabled: !!userId,
   })
 }
 
 export function useArchivedProjects() {
-  const userId = useAuthStore(s => s.user?.id ?? '')
+  const userId = useAuthStore((s) => s.user?.id ?? '')
   return useQuery({
     queryKey: projectKeys.archived,
-    queryFn:  () => fetchArchivedProjects(userId),
-    enabled:  !!userId,
+    queryFn: () => fetchArchivedProjects(userId),
+    enabled: !!userId,
   })
 }
 
 export function useProject(id: string) {
   return useQuery({
     queryKey: projectKeys.detail(id),
-    queryFn:  () => fetchProjectById(id),
-    enabled:  !!id,
+    queryFn: () => fetchProjectById(id),
+    enabled: !!id,
   })
 }
 
 export function useProjectStats(id: string) {
   return useQuery({
     queryKey: projectKeys.stats(id),
-    queryFn:  () => getProjectStats(id),
-    enabled:  !!id,
+    queryFn: () => getProjectStats(id),
+    enabled: !!id,
   })
 }
 
@@ -60,8 +64,7 @@ export function useCreateProject() {
 export function useUpdateProject() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateProjectInput }) =>
-      updateProject(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateProjectInput }) => updateProject(id, data),
     onSuccess: (_result, { id }) => {
       qc.invalidateQueries({ queryKey: projectKeys.active })
       qc.invalidateQueries({ queryKey: projectKeys.detail(id) })
@@ -75,6 +78,7 @@ export function useDeleteProject() {
     mutationFn: (id: string) => deleteProject(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: projectKeys.active })
+      qc.invalidateQueries({ queryKey: projectKeys.archived })
     },
   })
 }
@@ -83,9 +87,72 @@ export function useArchiveProject() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => updateProject(id, { is_archived: true }),
-    onSuccess: (_result, _id) => {
+    onMutate: async (id) => {
+      await Promise.all([
+        qc.cancelQueries({ queryKey: projectKeys.active }),
+        qc.cancelQueries({ queryKey: projectKeys.archived }),
+      ])
+      const active = qc.getQueryData<Project[]>(projectKeys.active)
+      const archived = qc.getQueryData<Project[]>(projectKeys.archived)
+      const project = active?.find((item) => item.id === id)
+
+      if (project) {
+        qc.setQueryData<Project[]>(projectKeys.active, (current = []) =>
+          current.filter((item) => item.id !== id)
+        )
+        qc.setQueryData<Project[]>(projectKeys.archived, (current = []) => [
+          { ...project, is_archived: true },
+          ...current,
+        ])
+      }
+
+      return { active, archived }
+    },
+    onError: (_error, _id, context) => {
+      if (context?.active) qc.setQueryData(projectKeys.active, context.active)
+      if (context?.archived) qc.setQueryData(projectKeys.archived, context.archived)
+    },
+    onSettled: (_result, _error, id) => {
       qc.invalidateQueries({ queryKey: projectKeys.active })
       qc.invalidateQueries({ queryKey: projectKeys.archived })
+      qc.invalidateQueries({ queryKey: projectKeys.detail(id) })
+    },
+  })
+}
+
+export function useUnarchiveProject() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => updateProject(id, { is_archived: false }),
+    onMutate: async (id) => {
+      await Promise.all([
+        qc.cancelQueries({ queryKey: projectKeys.active }),
+        qc.cancelQueries({ queryKey: projectKeys.archived }),
+      ])
+      const active = qc.getQueryData<Project[]>(projectKeys.active)
+      const archived = qc.getQueryData<Project[]>(projectKeys.archived)
+      const project = archived?.find((item) => item.id === id)
+
+      if (project) {
+        qc.setQueryData<Project[]>(projectKeys.archived, (current = []) =>
+          current.filter((item) => item.id !== id)
+        )
+        qc.setQueryData<Project[]>(projectKeys.active, (current = []) => [
+          { ...project, is_archived: false },
+          ...current,
+        ])
+      }
+
+      return { active, archived }
+    },
+    onError: (_error, _id, context) => {
+      if (context?.active) qc.setQueryData(projectKeys.active, context.active)
+      if (context?.archived) qc.setQueryData(projectKeys.archived, context.archived)
+    },
+    onSettled: (_result, _error, id) => {
+      qc.invalidateQueries({ queryKey: projectKeys.active })
+      qc.invalidateQueries({ queryKey: projectKeys.archived })
+      qc.invalidateQueries({ queryKey: projectKeys.detail(id) })
     },
   })
 }

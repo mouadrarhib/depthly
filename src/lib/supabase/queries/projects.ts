@@ -23,6 +23,7 @@ export type ProjectStats = {
   total_tasks: number
   completed_tasks: number
   session_count: number
+  last_focused_at: string | null
 }
 
 export async function fetchProjects(userId: string): Promise<Project[]> {
@@ -52,22 +53,14 @@ export async function fetchArchivedProjects(userId: string): Promise<Project[]> 
 }
 
 export async function fetchProjectById(id: string): Promise<Project> {
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', id)
-    .single()
+  const { data, error } = await supabase.from('projects').select('*').eq('id', id).single()
 
   if (error) throw error
   return data
 }
 
 export async function createProject(input: CreateProjectInput): Promise<Project> {
-  const { data, error } = await supabase
-    .from('projects')
-    .insert(input)
-    .select()
-    .single()
+  const { data, error } = await supabase.from('projects').insert(input).select().single()
 
   if (error) throw error
   return data
@@ -86,10 +79,7 @@ export async function updateProject(id: string, input: UpdateProjectInput): Prom
 }
 
 export async function deleteProject(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('projects')
-    .delete()
-    .eq('id', id)
+  const { error } = await supabase.from('projects').delete().eq('id', id)
 
   if (error) throw error
 }
@@ -98,27 +88,25 @@ export async function getProjectStats(projectId: string): Promise<ProjectStats> 
   const [sessionsResult, tasksResult] = await Promise.all([
     supabase
       .from('sessions')
-      .select('duration_mins')
+      .select('duration_mins, started_at')
       .is('excluded_at', null)
       .eq('project_id', projectId)
       .eq('type', 'focus'),
-    supabase
-      .from('tasks')
-      .select('status')
-      .eq('project_id', projectId),
+    supabase.from('tasks').select('status').eq('project_id', projectId),
   ])
 
   if (sessionsResult.error) throw sessionsResult.error
   if (tasksResult.error) throw tasksResult.error
 
-  const total_focus_minutes = sessionsResult.data.reduce(
-    (sum, s) => sum + s.duration_mins,
-    0,
-  )
+  const total_focus_minutes = sessionsResult.data.reduce((sum, s) => sum + s.duration_mins, 0)
   const total_tasks = tasksResult.data.length
-  const completed_tasks = tasksResult.data.filter(t => t.status === 'done').length
+  const completed_tasks = tasksResult.data.filter((t) => t.status === 'done').length
 
   const session_count = sessionsResult.data.length
+  const last_focused_at = sessionsResult.data.reduce<string | null>(
+    (latest, session) => (!latest || session.started_at > latest ? session.started_at : latest),
+    null
+  )
 
-  return { total_focus_minutes, total_tasks, completed_tasks, session_count }
+  return { total_focus_minutes, total_tasks, completed_tasks, session_count, last_focused_at }
 }
