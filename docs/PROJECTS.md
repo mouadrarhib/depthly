@@ -58,6 +58,7 @@ routes; each segment shows its project count.
 
 - **Grid layout**: 1 column (mobile) → 2 (sm) → 3 (lg), gap-5
 - **Sort modes**: "Last used" (default) and "Alphabetical", presented as a labeled segmented control. Sorting is client-side on the selected collection. Last-used nulls sort to the end with an alphabetical fallback.
+- **Search**: Filters the currently selected Active or Archived collection by project name using a case-insensitive substring match. Search is client-side, includes a single clear action, and shows a dedicated no-results state without changing the selected status or sort mode. The field sits beside the status control on desktop and uses a full row on narrow mobile screens.
 - **Loading state**: 6 animated skeleton cards while `useProjects` is fetching.
 - **Empty state**: Centered message + "New Project" button.
 - **Create**: Opens `ProjectModal` in create mode.
@@ -65,6 +66,7 @@ routes; each segment shows its project count.
 - **Archive / restore**: Optimistically moves the project between the Active and Archived collections. Restoring respects the active-project plan limit.
 - **Delete**: Opens `ConfirmDialog`, then calls `useDeleteProject`.
 - **Navigate to detail**: The whole card is an accessible button target that navigates to `/projects/:id`; the actions menu remains independently interactive.
+- **Projects guide**: A contextual driver.js walkthrough auto-starts once per user after the global Quick Guide has been completed. It is replayable from Help while on `/projects`.
 
 Stats for each card are fetched individually per-project via `useProjectStats` inside a `ProjectCardWrapper` component (so each card loads its own stats independently).
 
@@ -201,7 +203,7 @@ All hooks are in `src/hooks/useProjects.ts`. They use TanStack Query and read `u
 - **Query key:** `['projects', 'archived']` (`projectKeys.archived`)
 - **Query fn:** `fetchArchivedProjects(userId)` — only archived projects
 - **Enabled:** `!!userId`
-- Note: Currently not used by any page component (archive list page not yet built).
+- Used by `ProjectsPage` for the Archived collection and project restoration flow.
 
 ### `useProject(id)`
 
@@ -348,6 +350,18 @@ Sorting is **client-side** on the already-fetched list in `ProjectsPage`:
 
 The database query in `fetchProjects` also returns data ordered by `last_used_at`, so the default sort costs no extra work.
 
+### Project search
+
+Search state is local to `ProjectsPage`; no additional database query or
+migration is required. The page trims the query, normalizes it to lowercase,
+filters the currently selected collection by project name, and then applies the
+selected sort mode to the results. Clearing the query immediately restores the
+full Active or Archived collection.
+
+The input uses `type="text"` with `inputMode="search"` so browsers display the
+appropriate keyboard without adding a second native clear button beside the
+custom accessible `Clear project search` control.
+
 ### Last-used synchronization
 
 Migration `019_sync_project_last_used.sql` adds a session trigger that recomputes
@@ -372,3 +386,42 @@ lifecycle introduced in migration 015.
 - **Session task join not wired up**: `ProjectSessionsList` always shows "No task" in the task name column. The comment in the source notes "task join added in Phase 4 when tasks are built" — this was deferred.
 - **`sort_order` column unused**: The `projects` table has a `sort_order` column (float) but the current UI ignores it entirely — sort order is computed client-side from `last_used_at` and name.
 - **Create/edit/delete still refetch**: Archive and restore are optimistic; create, edit, and delete continue to invalidate and refetch.
+
+---
+
+## 9. Contextual Projects Guide
+
+The shared tour architecture, persistence rules, responsive behavior, and QA
+checklist are documented in [`docs/TOURS.md`](TOURS.md). This section records
+the Projects-specific integration.
+
+`useProjectsTour()` is mounted by `ProjectsPage` after the Active and Archived
+queries finish. It waits until the global onboarding Quick Guide has been seen,
+then starts once per user after a short render-settling delay. Navigating away
+before that delay completes cancels the start.
+
+For a visible project collection, the guide contains three steps:
+
+1. **Create a project** — targets the New Project button.
+2. **Open the workspace** — targets the first visible project card and explains tasks, sessions, and connected focus time.
+3. **Manage the project** — targets the first card's actions menu and explains edit, archive/restore, and delete.
+
+If the current collection is empty, only the creation step is shown so driver.js
+never targets an element that does not exist. The guide uses mobile-specific
+popover placement below 768px.
+
+The Topbar Help menu conditionally shows **Projects guide** only on the exact
+`/projects` route. Manual replay checks the currently rendered grid to decide
+whether to build the one-step or three-step version; it does not fetch project
+data from the Topbar.
+
+| File | Responsibility |
+|---|---|
+| `src/lib/onboarding/projectTourSteps.ts` | Builds the responsive one-step or three-step driver.js sequence. |
+| `src/hooks/useProjectsTour.ts` | Seen state, auto-start gating, replay runner, and cleanup. |
+| `src/pages/ProjectsPage.tsx` | Mounts the guide and exposes the New Project target. |
+| `src/components/projects/ProjectCard.tsx` | Exposes card and actions-menu targets. |
+| `src/components/layout/Topbar.tsx` | Adds the route-specific Projects guide replay entry. |
+
+**Seen flag:** `localStorage['depthly_projects_tour_seen_{userId}']`. Closing the
+guide early counts as seen, matching the global Quick Guide behavior.

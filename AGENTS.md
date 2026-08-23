@@ -178,6 +178,7 @@ Read the relevant doc before touching a feature:
 - Home:        docs/HOME.md
 - Timer:       docs/timer.md
 - Projects:    docs/PROJECTS.md
+- Tours:       docs/TOURS.md
 - Tasks:       docs/TASKS.md
 - Landing:     docs/LANDING.md
 - Leaderboard: docs/LEADERBOARD.md

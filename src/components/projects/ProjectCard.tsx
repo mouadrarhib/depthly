@@ -64,6 +64,7 @@ export function ProjectCard({
 
   return (
     <article
+      data-project-tour="project-card"
       className="group relative overflow-hidden rounded-xl border border-depth-border bg-depth-surface transition-[transform,box-shadow,border-color] duration-150 focus-within:ring-2 focus-within:ring-brand focus-within:ring-offset-2 focus-within:ring-offset-depth-bg hover:-translate-y-0.5 hover:border-depth-raised hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
       style={{ borderTopWidth: 3, borderTopColor: project.color }}
     >
@@ -87,6 +88,7 @@ export function ProjectCard({
 
           <DropdownMenu>
             <DropdownMenuTrigger
+              data-project-tour="project-actions"
               className="pointer-events-auto relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-ink-secondary transition-colors hover:bg-depth-raised hover:text-ink-primary"
               aria-label={`Project actions for ${project.name}`}
             >

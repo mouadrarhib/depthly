@@ -171,9 +171,12 @@ Clicking "Delete account" opens an inline modal (not a separate file) built on s
 
 ## Onboarding tour
 
+See [`docs/TOURS.md`](TOURS.md) for the complete shared tour architecture,
+contextual Projects guide, persistence keys, targets, and verification checklist.
+
 A driver.js walkthrough of the sidebar plus the topbar's stat row (Home → Today's Stats → Timer → Projects → Sessions → Analytics → Leaderboard → Billing → Settings). Auto-starts once per user. User-facing copy calls this the "quick guide" — code identifiers (`runOnboardingTour`, `tourSteps.ts`, `data-tour`, etc.) keep the "tour"/"onboarding" naming and are unaffected by that.
 
-Replayable two ways: AccountSection's "Quick guide" card above ("Show me the quick guide"), and a `CircleHelp` icon in the Topbar (right side, opens a one-item menu: "Quick guide"). Both call the same `clearOnboardingTourSeen()` + `runOnboardingTour()` pair.
+Replayable two ways: AccountSection's "Quick guide" card above ("Show me the quick guide"), and a `CircleHelp` icon in the Topbar. The Help menu always includes "Quick guide"; on the exact `/projects` route it also includes the separate contextual "Projects guide" documented in `docs/PROJECTS.md`. The two global replay controls call the same `clearOnboardingTourSeen()` + `runOnboardingTour()` pair.
 
 **Step placement:** `getTourSteps(isMobile: boolean)` picks `side`/`align` per viewport for most sidebar nav-item steps (Projects, Sessions, Analytics, Leaderboard, Billing, Settings) — `'right'/'start'` on desktop, `'bottom'/'center'` on mobile. The open mobile drawer is a fixed 240px wide (not full-viewport — `Sidebar.tsx`'s `width: expanded ? 240 : 60`), which leaves under ~190px to its right on most phones, less than driver.js's own popover (250-300px wide); `'right'` has no room to render there, so driver.js falls back to an unpredictable/overlapping position instead. `runOnboardingTour()` computes `isMobile` once via the same `(max-width: 767px)` query `Sidebar.tsx` uses and passes it into `getTourSteps()`. Home, Timer, and Today's Stats always use `side: 'bottom'` regardless of viewport — Home and Timer are the two rows right under the branding header, cramped on the right even on desktop. `align` differs per target: `'center'` for Home/Timer and the mobile nav-item steps (arrow lands on the label, not the icon), `'end'` for Today's Stats (it sits at the right edge of the topbar, so `'start'`/`'center'` would push the popover off-screen).
 

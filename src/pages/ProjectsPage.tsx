@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Archive, Plus } from 'lucide-react'
+import { Archive, Plus, Search, X } from 'lucide-react'
 
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,7 @@ import {
   useUnarchiveProject,
 } from '@/hooks/useProjects'
 import { useProjectLimit } from '@/hooks/usePlanLimits'
+import { useProjectsTour } from '@/hooks/useProjectsTour'
 import { PATHS } from '@/routes/paths'
 import type { Tables } from '@/types/database'
 
@@ -92,6 +93,7 @@ export function ProjectsPage() {
 
   const [view, setView] = useState<ProjectView>('active')
   const [sortBy, setSortBy] = useState<SortBy>('last_used')
+  const [searchQuery, setSearchQuery] = useState('')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [deletingProject, setDeletingProject] = useState<Project | null>(null)
@@ -107,6 +109,7 @@ export function ProjectsPage() {
   const projects = view === 'active' ? activeProjects : archivedProjects
   const isLoading = view === 'active' ? activeLoading : archivedLoading
   const hasAnyProjects = activeProjects.length > 0 || archivedProjects.length > 0
+  useProjectsTour(projects.length > 0, activeLoading || archivedLoading)
 
   function handleNewProject() {
     if (isAtLimit) setUpgradeOpen(true)
@@ -118,7 +121,14 @@ export function ProjectsPage() {
     else unarchiveProject.mutate(projectId)
   }
 
-  const sorted = [...projects].sort((a, b) => {
+  const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase()
+  const filteredProjects = normalizedSearchQuery
+    ? projects.filter((project) =>
+        project.name.toLocaleLowerCase().includes(normalizedSearchQuery),
+      )
+    : projects
+
+  const sorted = [...filteredProjects].sort((a, b) => {
     if (sortBy === 'alphabetical') return a.name.localeCompare(b.name)
     if (!a.last_used_at && !b.last_used_at) return a.name.localeCompare(b.name)
     if (!a.last_used_at) return 1
@@ -144,7 +154,7 @@ export function ProjectsPage() {
             ) : null}
           </div>
 
-          <Button variant="primary" onClick={handleNewProject}>
+          <Button data-project-tour="new-project" variant="primary" onClick={handleNewProject}>
             <Plus size={16} />
             New Project
           </Button>
@@ -159,31 +169,60 @@ export function ProjectsPage() {
 
       {!activeLoading && !archivedLoading && hasAnyProjects ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div
-            className="flex items-center rounded-lg border border-depth-border bg-depth-surface p-1"
-            aria-label="Project status"
-          >
-            {(
-              [
-                ['active', 'Active', activeProjects.length],
-                ['archived', 'Archived', archivedProjects.length],
-              ] as const
-            ).map(([value, label, count]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setView(value)}
-                aria-pressed={view === value}
-                className={`flex h-7 items-center gap-2 rounded-md px-3 text-xs font-medium transition-colors ${
-                  view === value
-                    ? 'bg-depth-raised text-ink-primary'
-                    : 'text-ink-secondary hover:text-ink-primary'
-                }`}
-              >
-                {label}
-                <span className="font-data text-[10px] text-ink-muted">{count}</span>
-              </button>
-            ))}
+          <div className="flex w-full flex-wrap items-center gap-3 md:w-auto">
+            <div
+              className="flex items-center rounded-lg border border-depth-border bg-depth-surface p-1"
+              aria-label="Project status"
+            >
+              {(
+                [
+                  ['active', 'Active', activeProjects.length],
+                  ['archived', 'Archived', archivedProjects.length],
+                ] as const
+              ).map(([value, label, count]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setView(value)}
+                  aria-pressed={view === value}
+                  className={`flex h-7 items-center gap-2 rounded-md px-3 text-xs font-medium transition-colors ${
+                    view === value
+                      ? 'bg-depth-raised text-ink-primary'
+                      : 'text-ink-secondary hover:text-ink-primary'
+                  }`}
+                >
+                  {label}
+                  <span className="font-data text-[10px] text-ink-muted">{count}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="relative min-w-0 basis-full md:w-56 md:basis-auto">
+              <Search
+                size={14}
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-secondary"
+              />
+              <input
+                type="text"
+                inputMode="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search projects..."
+                aria-label="Search projects"
+                className="h-9 w-full rounded-lg border border-depth-border bg-depth-surface pl-9 pr-8 text-xs text-ink-primary outline-none transition-colors placeholder:text-ink-muted focus:border-brand"
+              />
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear project search"
+                  className="absolute right-2 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded text-ink-secondary transition-colors hover:bg-depth-raised hover:text-ink-primary"
+                >
+                  <X size={13} />
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -241,6 +280,21 @@ export function ProjectsPage() {
           </div>
           <Button variant="ghost" onClick={() => setView('active')}>
             View active projects
+          </Button>
+        </div>
+      ) : null}
+
+      {!isLoading && projects.length > 0 && sorted.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
+          <Search size={26} className="text-ink-muted" />
+          <div>
+            <p className="text-sm font-medium text-ink-primary">No matching projects</p>
+            <p className="mt-1 text-sm text-ink-secondary">
+              Try a different project name.
+            </p>
+          </div>
+          <Button variant="ghost" onClick={() => setSearchQuery('')}>
+            Clear search
           </Button>
         </div>
       ) : null}

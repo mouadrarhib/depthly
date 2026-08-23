@@ -6,6 +6,8 @@ import { useAuthStore, useIntroStore, useUiStore } from '@/store'
 import { getTourSteps } from '@/lib/onboarding/tourSteps'
 import '@/lib/onboarding/onboarding.css'
 
+const ONBOARDING_FINISHED_EVENT = 'depthly:onboarding-tour-finished'
+
 function tourSeenKey(userId: string): string {
   return `depthly_onboarding_seen_${userId}`
 }
@@ -94,6 +96,7 @@ export async function runOnboardingTour(userId: string): Promise<void> {
     },
     onDestroyed: () => {
       localStorage.setItem(tourSeenKey(userId), 'true')
+      window.dispatchEvent(new Event(ONBOARDING_FINISHED_EVENT))
       if (isMobileViewport()) useUiStore.getState().setSidebarOpen(wasSidebarOpen)
     },
   })

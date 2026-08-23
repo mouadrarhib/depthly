@@ -321,6 +321,7 @@ Detailed, code-accurate implementation references live in [`docs/`](docs) — re
 | [DASHBOARD.md](docs/DASHBOARD.md) | Dashboard layout and data composition |
 | [timer.md](docs/timer.md) | Timer architecture, state, RPC |
 | [PROJECTS.md](docs/PROJECTS.md) | Project data model and UI |
+| [TOURS.md](docs/TOURS.md) | Global Quick Guide and contextual product tours |
 | [TASKS.md](docs/TASKS.md) | Task list/Kanban, ordering columns |
 | [ANALYTICS.md](docs/ANALYTICS.md) | Daily/Weekly/Monthly/Yearly views, data sources |
 | [LEADERBOARD.md](docs/LEADERBOARD.md) | Ranking logic, public profiles, follows |

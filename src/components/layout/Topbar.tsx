@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { CircleHelp, Flame, Clock, CheckCircle } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { supabase }    from '@/lib/supabase/client'
 import { useAuthStore, useUiStore } from '@/store'
 import { useTodayStats }  from '@/hooks/useTodayStats'
 import { usePlan }        from '@/hooks/usePlan'
 import { clearOnboardingTourSeen, runOnboardingTour } from '@/hooks/useOnboardingTour'
+import { clearProjectsTourSeen, runProjectsTour } from '@/hooks/useProjectsTour'
 import { PATHS }          from '@/routes/paths'
 import { Avatar }         from '@/components/ui/Avatar'
 import {
@@ -32,7 +33,13 @@ const Divider = () => (
 )
 
 // ── Help button (opens onboarding-tour replay menu) ─────────────────────────
-function HelpButton({ onReplayTour }: { onReplayTour: () => void }) {
+function HelpButton({
+  onReplayTour,
+  onReplayProjectsTour,
+}: {
+  onReplayTour: () => void
+  onReplayProjectsTour?: () => void
+}) {
   const [hovered, setHovered] = useState(false)
 
   return (
@@ -64,6 +71,14 @@ function HelpButton({ onReplayTour }: { onReplayTour: () => void }) {
         <DropdownMenuItem onClick={onReplayTour}>
           Quick guide
         </DropdownMenuItem>
+        {onReplayProjectsTour ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onReplayProjectsTour}>
+              Projects guide
+            </DropdownMenuItem>
+          </>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -74,6 +89,8 @@ export function Topbar() {
   const userId        = useAuthStore((s) => s.user?.id)
   const toggleSidebar = useUiStore((s) => s.toggleSidebar)
   const navigate      = useNavigate()
+  const { pathname }  = useLocation()
+  const isProjectsPage = pathname === PATHS.projects
 
   const { streak, focusMinutes, sessions, avatarUrl, displayName } = useTodayStats()
   const { plan } = usePlan()
@@ -86,6 +103,13 @@ export function Topbar() {
     if (!userId) return
     clearOnboardingTourSeen(userId)
     void runOnboardingTour(userId)
+  }
+
+  const handleReplayProjectsTour = () => {
+    if (!userId) return
+    clearProjectsTourSeen(userId)
+    const hasVisibleProjects = document.querySelector('[data-project-tour="project-card"]') !== null
+    void runProjectsTour(userId, hasVisibleProjects)
   }
 
   const name = displayName ?? user?.email?.split('@')[0] ?? '?'
@@ -150,7 +174,10 @@ export function Topbar() {
         <Divider />
 
         {/* Help — replay onboarding tour */}
-        <HelpButton onReplayTour={handleReplayTour} />
+        <HelpButton
+          onReplayTour={handleReplayTour}
+          onReplayProjectsTour={isProjectsPage ? handleReplayProjectsTour : undefined}
+        />
 
         {/* Avatar → dropdown */}
         <DropdownMenu>
