@@ -5,11 +5,11 @@
 
 // Auth
 export interface User {
-  id:         string
-  email:      string
+  id: string
+  email: string
   created_at: string
   avatar_url?: string
-  full_name?:  string
+  full_name?: string
 }
 
 // Shared utility types
@@ -23,6 +23,8 @@ export type NonNullable<T> = T extends null | undefined ? never : T
 
 /** API response wrapper */
 export interface ApiResponse<T> {
-  data:  T | null
+  data: T | null
   error: string | null
 }
+
+export type { AnalyticsProjectScope } from './app'

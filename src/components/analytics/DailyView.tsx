@@ -2,41 +2,53 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Clock, BarChart2, Calendar, Lock } from 'lucide-react'
 import {
-  BarChart, Bar, XAxis, YAxis,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Cell,
 } from 'recharts'
 
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
-import { ProjectBreakdownCard, type ProjectEntry } from '@/components/analytics/ProjectBreakdownCard'
+import {
+  ProjectBreakdownCard,
+  type ProjectEntry,
+} from '@/components/analytics/ProjectBreakdownCard'
 import { useDailySummary, useSessionsForDay, useDailySummariesRange } from '@/hooks/useAnalytics'
 import { useGoals } from '@/hooks/useGoals'
 import { useGoalCelebration } from '@/hooks/useGoalCelebration'
 import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
-import { formatPeriodKey, formatMinutesToHours, getGoalProgress, getDaysInWeek } from '@/lib/utils/analytics'
+import {
+  formatPeriodKey,
+  formatMinutesToHours,
+  getGoalProgress,
+  getDaysInWeek,
+} from '@/lib/utils/analytics'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { ConfettiBurst } from '@/components/ui/ConfettiBurst'
 import { GoalHistoryRow } from '@/components/goals/GoalHistoryRow'
 import { GoalDialog } from '@/components/goals/GoalDialog'
 import { PATHS } from '@/routes/paths'
+import type { AnalyticsProjectScope } from '@/types/app'
 
-interface DailyViewProps {
+interface DailyViewProps extends AnalyticsProjectScope {
   date: Date
 }
 
 interface HourSlot {
-  hour:        number
-  minutes:     number
-  color:       string
+  hour: number
+  minutes: number
+  color: string
   projectName: string
 }
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function formatHour(h: number): string {
-  if (h === 0)  return '12 AM'
-  if (h < 12)   return `${h} AM`
+  if (h === 0) return '12 AM'
+  if (h < 12) return `${h} AM`
   if (h === 12) return '12 PM'
   return `${h - 12} PM`
 }
@@ -45,17 +57,17 @@ function formatHour(h: number): string {
 
 const card: React.CSSProperties = {
   backgroundColor: '#141417',
-  border:          '1px solid #2E2E38',
-  borderRadius:    14,
-  padding:         12,
+  border: '1px solid #2E2E38',
+  borderRadius: 14,
+  padding: 12,
 }
 
 // ─── card header ─────────────────────────────────────────────────────────────
 
 interface CardHeaderProps {
-  icon:       React.ReactNode
-  title:      string
-  subtitle?:  string
+  icon: React.ReactNode
+  title: string
+  subtitle?: string
 }
 function CardHeader({ icon, title, subtitle }: CardHeaderProps) {
   return (
@@ -64,9 +76,7 @@ function CardHeader({ icon, title, subtitle }: CardHeaderProps) {
         {icon}
         <span style={{ fontSize: 13, fontWeight: 600, color: '#E8E6F0' }}>{title}</span>
       </div>
-      {subtitle && (
-        <p style={{ fontSize: 12, color: '#7A7890', marginTop: 2 }}>{subtitle}</p>
-      )}
+      {subtitle && <p style={{ fontSize: 12, color: '#7A7890', marginTop: 2 }}>{subtitle}</p>}
       <div style={{ height: 1, backgroundColor: '#2E2E38', margin: '8px 0' }} />
     </>
   )
@@ -78,12 +88,21 @@ function StatCardSkeleton() {
   return (
     <div style={card}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div className="bg-depth-raised animate-pulse" style={{ width: 26, height: 26, borderRadius: 6 }} />
-        <div className="bg-depth-raised animate-pulse rounded" style={{ height: 13, width: 90 }} />
+        <div
+          className="animate-pulse bg-depth-raised"
+          style={{ width: 26, height: 26, borderRadius: 6 }}
+        />
+        <div className="animate-pulse rounded bg-depth-raised" style={{ height: 13, width: 90 }} />
       </div>
-      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 1, margin: '12px 0' }} />
-      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 11, width: 70, marginBottom: 8 }} />
-      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 44, width: 110 }} />
+      <div
+        className="animate-pulse rounded bg-depth-raised"
+        style={{ height: 1, margin: '12px 0' }}
+      />
+      <div
+        className="animate-pulse rounded bg-depth-raised"
+        style={{ height: 11, width: 70, marginBottom: 8 }}
+      />
+      <div className="animate-pulse rounded bg-depth-raised" style={{ height: 44, width: 110 }} />
     </div>
   )
 }
@@ -92,11 +111,17 @@ function TimelineCardSkeleton() {
   return (
     <div style={card}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div className="bg-depth-raised animate-pulse" style={{ width: 26, height: 26, borderRadius: 6 }} />
-        <div className="bg-depth-raised animate-pulse rounded" style={{ height: 13, width: 110 }} />
+        <div
+          className="animate-pulse bg-depth-raised"
+          style={{ width: 26, height: 26, borderRadius: 6 }}
+        />
+        <div className="animate-pulse rounded bg-depth-raised" style={{ height: 13, width: 110 }} />
       </div>
-      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 1, margin: '12px 0' }} />
-      <div className="bg-depth-raised animate-pulse rounded" style={{ height: 140 }} />
+      <div
+        className="animate-pulse rounded bg-depth-raised"
+        style={{ height: 1, margin: '12px 0' }}
+      />
+      <div className="animate-pulse rounded bg-depth-raised" style={{ height: 140 }} />
     </div>
   )
 }
@@ -104,7 +129,7 @@ function TimelineCardSkeleton() {
 // ─── custom tooltip for timeline ─────────────────────────────────────────────
 
 interface TimelineTooltipProps {
-  active?:  boolean
+  active?: boolean
   payload?: Array<{ value: number; payload: HourSlot }>
 }
 
@@ -112,12 +137,14 @@ function TimelineTooltip({ active, payload }: TimelineTooltipProps) {
   if (!active || !payload?.length || payload[0].value === 0) return null
   const slot = payload[0].payload
   return (
-    <div style={{
-      backgroundColor: '#141417',
-      border:          '1px solid #2E2E38',
-      borderRadius:    8,
-      padding:         '8px 12px',
-    }}>
+    <div
+      style={{
+        backgroundColor: '#141417',
+        border: '1px solid #2E2E38',
+        borderRadius: 8,
+        padding: '8px 12px',
+      }}
+    >
       <div style={{ fontSize: 12, color: '#7A7890' }}>{formatHour(slot.hour)}</div>
       {slot.projectName && (
         <div style={{ fontSize: 13, color: '#E8E6F0', marginTop: 2 }}>{slot.projectName}</div>
@@ -131,11 +158,11 @@ function TimelineTooltip({ active, payload }: TimelineTooltipProps) {
 
 // ─── main component ───────────────────────────────────────────────────────────
 
-export function DailyView({ date }: DailyViewProps) {
+export function DailyView({ date, projectId, projectLabel }: DailyViewProps) {
   const dateKey = formatPeriodKey(date, 'daily')
 
-  const { data: summary,  isLoading: loadingSummary  } = useDailySummary(dateKey)
-  const { data: sessions, isLoading: loadingSessions } = useSessionsForDay(dateKey)
+  const { data: summary, isLoading: loadingSummary } = useDailySummary(dateKey)
+  const { data: sessions, isLoading: loadingSessions } = useSessionsForDay(dateKey, projectId)
   const {
     data: goals,
     isLoading: loadingGoals,
@@ -143,9 +170,9 @@ export function DailyView({ date }: DailyViewProps) {
     refetch: refetchGoals,
   } = useGoals()
 
-  const weekDays    = getDaysInWeek(date)
-  const mondayKey   = formatPeriodKey(weekDays[0], 'daily')
-  const sundayKey   = formatPeriodKey(weekDays[6], 'daily')
+  const weekDays = getDaysInWeek(date)
+  const mondayKey = formatPeriodKey(weekDays[0], 'daily')
+  const sundayKey = formatPeriodKey(weekDays[6], 'daily')
   const { data: weekSummaries } = useDailySummariesRange(mondayKey, sundayKey)
 
   const isLoading = loadingSummary || loadingSessions
@@ -156,31 +183,38 @@ export function DailyView({ date }: DailyViewProps) {
 
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - windowDays)
-  const cutoffKey   = formatPeriodKey(cutoff, 'daily')
+  const cutoffKey = formatPeriodKey(cutoff, 'daily')
   const showOverlay = !isPro && dateKey < cutoffKey
 
-  const focusMinutes = summary?.focus_minutes ?? 0
-  const sessionCount = summary?.session_count ?? 0
+  const isProjectFiltered = projectId !== undefined
+  const overallFocusMinutes = summary?.focus_minutes ?? 0
+  const focusMinutes = isProjectFiltered
+    ? (sessions ?? []).reduce((total, session) => total + session.duration_mins, 0)
+    : overallFocusMinutes
+  const sessionCount = isProjectFiltered ? (sessions?.length ?? 0) : (summary?.session_count ?? 0)
   const isToday = dateKey === formatPeriodKey(new Date(), 'daily')
 
   const { shouldCelebrate } = useGoalCelebration(
-    focusMinutes,
+    overallFocusMinutes,
     goals?.daily_goal_minutes ?? null,
-    isToday,
+    isToday
   )
 
   // Build project totals and hour slots from sessions
   const projectMap = new Map<string, Omit<ProjectEntry, 'pct'>>()
   const hourSlots: HourSlot[] = Array.from({ length: 24 }, (_, hour) => ({
-    hour, minutes: 0, color: '#222228', projectName: '',
+    hour,
+    minutes: 0,
+    color: '#222228',
+    projectName: '',
   }))
 
   for (const s of sessions ?? []) {
     // project totals
-    const pid   = s.project_id ?? '__none__'
-    const name  = s.projects?.name  ?? 'No project'
+    const pid = s.project_id ?? '__none__'
+    const name = s.projects?.name ?? 'No project'
     const color = s.projects?.color ?? '#7A7890'
-    const cur   = projectMap.get(pid)
+    const cur = projectMap.get(pid)
     if (cur) cur.minutes += s.duration_mins
     else projectMap.set(pid, { name, color, minutes: s.duration_mins })
 
@@ -188,21 +222,23 @@ export function DailyView({ date }: DailyViewProps) {
     const h = new Date(s.started_at).getHours()
     hourSlots[h].minutes += s.duration_mins
     if (hourSlots[h].color === '#222228' && s.projects) {
-      hourSlots[h].color       = s.projects.color
+      hourSlots[h].color = s.projects.color
       hourSlots[h].projectName = s.projects.name
     }
   }
 
   const pieData: ProjectEntry[] = [...projectMap.values()]
     .sort((a, b) => b.minutes - a.minutes)
-    .map((p) => ({ ...p, pct: focusMinutes > 0 ? Math.round((p.minutes / focusMinutes) * 100) : 0 }))
+    .map((p) => ({
+      ...p,
+      pct: focusMinutes > 0 ? Math.round((p.minutes / focusMinutes) * 100) : 0,
+    }))
   const hasSessions = pieData.length > 0
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ position: 'relative' }}>
-
-      {/*
+        {/*
         Two independent flex columns, not a row-synchronized grid. Every
         card hugs its own content EXCEPT Daily Goal (left) and Focus Time
         by Project (right), which carry flex: 1 so they absorb whatever
@@ -213,263 +249,391 @@ export function DailyView({ date }: DailyViewProps) {
         cards, not Daily Timeline. Don't add grow/stretch to Focus Time,
         Focus Sessions, or Daily Timeline.
       */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-
-        {/* Left column: Focus Time, Focus Sessions, Daily Goal */}
-        <div className="flex flex-col gap-3 sm:flex-1">
-
-        {isLoading ? <StatCardSkeleton /> : (
-          <div style={card}>
-            <CardHeader
-              icon={<Clock size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Focus Time"
-            />
-            <div style={{ color: '#7A7890', fontSize: 12 }}>Total Minutes</div>
-            <div
-              className="font-data"
-              style={{ fontSize: 40, fontWeight: 600, color: '#E8E6F0', marginTop: 4, lineHeight: 1.1 }}
-            >
-              {formatMinutesToHours(focusMinutes)}
-            </div>
-          </div>
-        )}
-
-        {isLoading ? <StatCardSkeleton /> : (
-          <div style={card}>
-            <CardHeader
-              icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Focus Sessions"
-            />
-            <div style={{ color: '#7A7890', fontSize: 12 }}>Total Sessions</div>
-            <div
-              className="font-data"
-              style={{ fontSize: 40, fontWeight: 600, color: '#E8E6F0', marginTop: 4, lineHeight: 1.1 }}
-            >
-              {sessionCount}
-            </div>
-          </div>
-        )}
-
-        {isLoading || loadingGoals ? <StatCardSkeleton /> : (
-          (() => {
-            if (goalsError) {
-              return (
-                <div style={{ ...card, flex: '1 1 auto' }}>
-                  <CardHeader
-                    icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-                    title="Daily Goal"
-                  />
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', gap: 8 }}>
-                    <span style={{ fontSize: 13, color: '#7A7890' }}>Goal unavailable</span>
-                    <button
-                      type="button"
-                      onClick={() => { void refetchGoals() }}
-                      style={{ fontSize: 13, color: '#4B9EFF', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                    >
-                      Try again →
-                    </button>
-                  </div>
-                </div>
-              )
-            }
-
-            const dailyGoal = goals?.daily_goal_minutes ?? null
-            if (dailyGoal === null) {
-              return (
-                <div style={{ ...card, flex: '1 1 auto' }}>
-                  <CardHeader
-                    icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-                    title="Daily Goal"
-                  />
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', gap: 8 }}>
-                    <span style={{ fontSize: 13, color: '#7A7890' }}>No goal set</span>
-                    <button
-                      type="button"
-                      onClick={() => setGoalDialogOpen(true)}
-                      style={{ fontSize: 13, color: '#4B9EFF', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                    >
-                      Set goal →
-                    </button>
-                  </div>
-                </div>
-              )
-            }
-            const goal = getGoalProgress(focusMinutes, dailyGoal)
-            const ringColor = goal.isComplete ? '#3DD68C' : '#4B9EFF'
-            return (
-              <div style={{ ...card, flex: '1 1 auto' }}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+          {/* Left column: Focus Time, Focus Sessions, Daily Goal */}
+          <div className="flex flex-col gap-3 sm:flex-1">
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <div style={card}>
                 <CardHeader
-                  icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-                  title="Daily Goal"
+                  icon={<Clock size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+                  title="Focus Time"
                 />
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                  <div style={{ position: 'relative' }}>
-                    <ProgressRing
-                      progress={goal.percentage / 100}
-                      size={64}
-                      strokeWidth={5}
-                      color={ringColor}
-                    >
-                      <span
-                        className="font-data"
-                        style={{ fontSize: 16, fontWeight: 600, color: '#E8E6F0' }}
-                      >
-                        {goal.percentage}%
-                      </span>
-                    </ProgressRing>
-                    <ConfettiBurst trigger={shouldCelebrate} />
-                  </div>
-                  {goal.isComplete ? (
-                    <span style={{ fontSize: 11, color: '#3DD68C' }}>Goal reached! 🎉</span>
-                  ) : (
-                    <span style={{ fontSize: 11, color: '#3D3B4E' }}>{goal.remaining} min to go</span>
-                  )}
-                  <span className="font-data" style={{ fontSize: 12, color: '#7A7890', textAlign: 'center' }}>
-                    {formatMinutesToHours(focusMinutes)} / {formatMinutesToHours(dailyGoal)} goal — {goal.percentage}%
-                  </span>
-                  {!isToday ? (
-                    <span style={{ fontSize: 11, color: '#3D3B4E', textAlign: 'center' }}>
-                      Compared with your current daily goal
-                    </span>
-                  ) : null}
-                </div>
-
-                <div style={{ marginTop: 16 }}>
-                  <div style={{
-                    fontSize:      11,
-                    color:         '#3D3B4E',
-                    textAlign:     'center',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                    marginBottom:  8,
-                  }}>
-                    This week
-                  </div>
-                  <GoalHistoryRow weekDays={weekDays} summaries={weekSummaries ?? []} />
+                <div style={{ color: '#7A7890', fontSize: 12 }}>Total Minutes</div>
+                <div
+                  className="font-data"
+                  style={{
+                    fontSize: 40,
+                    fontWeight: 600,
+                    color: '#E8E6F0',
+                    marginTop: 4,
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {formatMinutesToHours(focusMinutes)}
                 </div>
               </div>
-            )
-          })()
-        )}
+            )}
 
-        </div>
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <div style={card}>
+                <CardHeader
+                  icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+                  title="Focus Sessions"
+                />
+                <div style={{ color: '#7A7890', fontSize: 12 }}>Total Sessions</div>
+                <div
+                  className="font-data"
+                  style={{
+                    fontSize: 40,
+                    fontWeight: 600,
+                    color: '#E8E6F0',
+                    marginTop: 4,
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {sessionCount}
+                </div>
+              </div>
+            )}
 
-        {/* Right column: Focus Time by Project, Daily Timeline — sized to
+            {isLoading || loadingGoals ? (
+              <StatCardSkeleton />
+            ) : (
+              (() => {
+                if (goalsError) {
+                  return (
+                    <div style={{ ...card, flex: '1 1 auto' }}>
+                      <CardHeader
+                        icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+                        title={isProjectFiltered ? 'Overall Daily Goal' : 'Daily Goal'}
+                      />
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          padding: '12px 0',
+                          gap: 8,
+                        }}
+                      >
+                        <span style={{ fontSize: 13, color: '#7A7890' }}>Goal unavailable</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void refetchGoals()
+                          }}
+                          style={{
+                            fontSize: 13,
+                            color: '#4B9EFF',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 0,
+                          }}
+                        >
+                          Try again →
+                        </button>
+                      </div>
+                    </div>
+                  )
+                }
+
+                const dailyGoal = goals?.daily_goal_minutes ?? null
+                if (dailyGoal === null) {
+                  return (
+                    <div style={{ ...card, flex: '1 1 auto' }}>
+                      <CardHeader
+                        icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+                        title={isProjectFiltered ? 'Overall Daily Goal' : 'Daily Goal'}
+                      />
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          padding: '12px 0',
+                          gap: 8,
+                        }}
+                      >
+                        <span style={{ fontSize: 13, color: '#7A7890' }}>No goal set</span>
+                        <button
+                          type="button"
+                          onClick={() => setGoalDialogOpen(true)}
+                          style={{
+                            fontSize: 13,
+                            color: '#4B9EFF',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 0,
+                          }}
+                        >
+                          Set goal →
+                        </button>
+                      </div>
+                    </div>
+                  )
+                }
+                const goal = getGoalProgress(overallFocusMinutes, dailyGoal)
+                const ringColor = goal.isComplete ? '#3DD68C' : '#4B9EFF'
+                return (
+                  <div style={{ ...card, flex: '1 1 auto' }}>
+                    <CardHeader
+                      icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
+                      title={isProjectFiltered ? 'Overall Daily Goal' : 'Daily Goal'}
+                    />
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                    >
+                      <div style={{ position: 'relative' }}>
+                        <ProgressRing
+                          progress={goal.percentage / 100}
+                          size={64}
+                          strokeWidth={5}
+                          color={ringColor}
+                        >
+                          <span
+                            className="font-data"
+                            style={{ fontSize: 16, fontWeight: 600, color: '#E8E6F0' }}
+                          >
+                            {goal.percentage}%
+                          </span>
+                        </ProgressRing>
+                        <ConfettiBurst trigger={shouldCelebrate} />
+                      </div>
+                      {goal.isComplete ? (
+                        <span style={{ fontSize: 11, color: '#3DD68C' }}>Goal reached! 🎉</span>
+                      ) : (
+                        <span style={{ fontSize: 11, color: '#3D3B4E' }}>
+                          {goal.remaining} min to go
+                        </span>
+                      )}
+                      <span
+                        className="font-data"
+                        style={{ fontSize: 12, color: '#7A7890', textAlign: 'center' }}
+                      >
+                        {formatMinutesToHours(overallFocusMinutes)} /{' '}
+                        {formatMinutesToHours(dailyGoal)} goal — {goal.percentage}%
+                      </span>
+                      {!isToday ? (
+                        <span style={{ fontSize: 11, color: '#3D3B4E', textAlign: 'center' }}>
+                          Compared with your current daily goal
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div style={{ marginTop: 16 }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: '#3D3B4E',
+                          textAlign: 'center',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.08em',
+                          marginBottom: 8,
+                        }}
+                      >
+                        This week
+                      </div>
+                      <GoalHistoryRow weekDays={weekDays} summaries={weekSummaries ?? []} />
+                    </div>
+                  </div>
+                )
+              })()
+            )}
+          </div>
+
+          {/* Right column: Focus Time by Project, Daily Timeline — sized to
             60% width vs the left column's 40%, matching the previous
             1fr/2fr proportions, but with no height coupling to the left
             column whatsoever. */}
-        <div className="flex flex-col gap-3 sm:flex-[2]">
-
-        <ProjectBreakdownCard
-          pieData={pieData}
-          isLoading={isLoading}
-          emptyText="No focus sessions for this day."
-          style={{ flex: '1 1 auto' }}
-        />
-
-        {isLoading ? <TimelineCardSkeleton /> : (
-          <div style={card}>
-            <CardHeader
-              icon={<Calendar size={16} style={{ color: '#4B9EFF', flexShrink: 0 }} />}
-              title="Daily Timeline"
+          <div className="flex flex-col gap-3 sm:flex-[2]">
+            <ProjectBreakdownCard
+              pieData={pieData}
+              isLoading={isLoading}
+              title={isProjectFiltered ? `${projectLabel} Focus` : 'Focus Time by Project'}
+              subtitle={
+                isProjectFiltered ? `Focused time logged for ${projectLabel} this day` : undefined
+              }
+              emptyText={
+                isProjectFiltered
+                  ? `No focus sessions for ${projectLabel} this day.`
+                  : 'No focus sessions for this day.'
+              }
+              style={{ flex: '1 1 auto' }}
             />
 
-            {hasSessions ? (
-              <>
-                <div style={{ position: 'relative' }}>
-                  {/* Faint hour gridlines so the timeline reads as a full
-                      24-hour scale even when only one hour has data. */}
-                  <div
-                    aria-hidden
-                    style={{
-                      position:       'absolute',
-                      inset:          0,
-                      pointerEvents:  'none',
-                      backgroundImage:
-                        'repeating-linear-gradient(to right, rgba(122,120,144,0.14) 0, rgba(122,120,144,0.14) 1px, transparent 1px, transparent calc(100% / 24))',
-                    }}
-                  />
-                  <ResponsiveContainer width="100%" height={140}>
-                    <BarChart data={hourSlots} barCategoryGap="20%">
-                      <XAxis
-                        dataKey="hour"
-                        tickFormatter={formatHour}
-                        interval={2}
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 9, fill: '#3D3B4E' }}
-                      />
-                      <YAxis hide />
-                      <RechartsTooltip
-                        content={<TimelineTooltip />}
-                        cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-                      />
-                      <Bar dataKey="minutes" radius={[4, 4, 0, 0]}>
-                        {hourSlots.map((slot, i) => (
-                          <Cell key={i} fill={slot.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+            {isLoading ? (
+              <TimelineCardSkeleton />
+            ) : (
+              <div style={card}>
+                <CardHeader
+                  icon={<Calendar size={16} style={{ color: '#4B9EFF', flexShrink: 0 }} />}
+                  title="Daily Timeline"
+                />
 
-                {/* Project legend */}
-                {pieData.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 20px', marginTop: 12 }}>
-                    {pieData.map((entry) => (
-                      <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{
-                          width: 8, height: 8, borderRadius: '50%',
-                          backgroundColor: entry.color, flexShrink: 0,
-                        }} />
-                        <span style={{ fontSize: 12, color: '#7A7890' }}>{entry.name}</span>
+                {hasSessions ? (
+                  <>
+                    <div style={{ position: 'relative' }}>
+                      {/* Faint hour gridlines so the timeline reads as a full
+                      24-hour scale even when only one hour has data. */}
+                      <div
+                        aria-hidden
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          pointerEvents: 'none',
+                          backgroundImage:
+                            'repeating-linear-gradient(to right, rgba(122,120,144,0.14) 0, rgba(122,120,144,0.14) 1px, transparent 1px, transparent calc(100% / 24))',
+                        }}
+                      />
+                      <ResponsiveContainer width="100%" height={140}>
+                        <BarChart data={hourSlots} barCategoryGap="20%">
+                          <XAxis
+                            dataKey="hour"
+                            tickFormatter={formatHour}
+                            interval={2}
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fontSize: 9, fill: '#3D3B4E' }}
+                          />
+                          <YAxis hide />
+                          <RechartsTooltip
+                            content={<TimelineTooltip />}
+                            cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                          />
+                          <Bar dataKey="minutes" radius={[4, 4, 0, 0]}>
+                            {hourSlots.map((slot, i) => (
+                              <Cell key={i} fill={slot.color} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Project legend */}
+                    {pieData.length > 0 && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '8px 20px',
+                          marginTop: 12,
+                        }}
+                      >
+                        {pieData.map((entry) => (
+                          <div
+                            key={entry.name}
+                            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <span
+                              style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                backgroundColor: entry.color,
+                                flexShrink: 0,
+                              }}
+                            />
+                            <span style={{ fontSize: 12, color: '#7A7890' }}>{entry.name}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+                  </>
+                ) : (
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '32px 0',
+                      fontSize: 13,
+                      color: '#7A7890',
+                    }}
+                  >
+                    No sessions recorded for this day
                   </div>
                 )}
-              </>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '32px 0', fontSize: 13, color: '#7A7890' }}>
-                No sessions recorded for this day
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── No-sessions notice for the selected day ── */}
+        {!isLoading && focusMinutes === 0 && sessionCount === 0 && (
+          <div style={{ textAlign: 'center', padding: '32px 0' }}>
+            <p style={{ fontSize: 13, color: '#7A7890' }}>No sessions on this day</p>
+            {dateKey === formatPeriodKey(new Date(), 'daily') && (
+              <Link
+                to={PATHS.timer}
+                style={{
+                  fontSize: 13,
+                  color: '#4B9EFF',
+                  marginTop: 6,
+                  display: 'block',
+                  textDecoration: 'none',
+                }}
+              >
+                Start a session →
+              </Link>
             )}
           </div>
         )}
 
-        </div>
-
-      </div>
-
-      {/* ── No-sessions notice for the selected day ── */}
-      {!isLoading && focusMinutes === 0 && sessionCount === 0 && (
-        <div style={{ textAlign: 'center', padding: '32px 0' }}>
-          <p style={{ fontSize: 13, color: '#7A7890' }}>No sessions on this day</p>
-          {dateKey === formatPeriodKey(new Date(), 'daily') && (
-            <Link
-              to={PATHS.timer}
-              style={{ fontSize: 13, color: '#4B9EFF', marginTop: 6, display: 'block', textDecoration: 'none' }}
+        {showOverlay && (
+          <>
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backdropFilter: 'blur(4px)',
+                pointerEvents: 'none',
+                zIndex: 1,
+                borderRadius: 14,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 12,
+                zIndex: 2,
+              }}
             >
-              Start a session →
-            </Link>
-          )}
-        </div>
-      )}
-
-      {showOverlay && (
-        <>
-          <div style={{ position: 'absolute', inset: 0, backdropFilter: 'blur(4px)', pointerEvents: 'none', zIndex: 1, borderRadius: 14 }} />
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, zIndex: 2 }}>
-            <Lock size={20} color="#7A7890" />
-            <span style={{ fontSize: 14, color: '#E8E6F0', fontWeight: 500 }}>Unlock full history</span>
-            <button
-              onClick={() => setUpgradeOpen(true)}
-              style={{ background: '#4B9EFF', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
-            >
-              Upgrade to Pro
-            </button>
-          </div>
-        </>
-      )}
+              <Lock size={20} color="#7A7890" />
+              <span style={{ fontSize: 14, color: '#E8E6F0', fontWeight: 500 }}>
+                Unlock full history
+              </span>
+              <button
+                onClick={() => setUpgradeOpen(true)}
+                style={{
+                  background: '#4B9EFF',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                Upgrade to Pro
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="analytics" />

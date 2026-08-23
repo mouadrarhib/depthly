@@ -45,15 +45,16 @@ export async function fetchDailySummariesRange(
 
 export async function fetchSessionsForDay(
   userId: string,
-  date: string
+  date: string,
+  projectId?: string | null
 ): Promise<SessionWithProject[]> {
   // Parse date as LOCAL midnight so the range spans the full local calendar day,
   // not a UTC-midnight-to-UTC-midnight window (which shifts by the user's offset).
   const [y, m, d] = date.split('-').map(Number)
   const startOfDay = new Date(y, m - 1, d)
-  const endOfDay   = new Date(y, m - 1, d + 1)
+  const endOfDay = new Date(y, m - 1, d + 1)
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('sessions')
     .select('*, projects(name, color)')
     .eq('user_id', userId)
@@ -62,6 +63,9 @@ export async function fetchSessionsForDay(
     .gte('started_at', startOfDay.toISOString())
     .lt('started_at', endOfDay.toISOString())
     .order('started_at', { ascending: true })
+
+  query = applyProjectFilter(query, projectId)
+  const { data, error } = await query
 
   if (error) throw error
   return (data ?? []) as SessionWithProject[]
@@ -77,14 +81,26 @@ export type SessionProjectSliceWithDate = SessionProjectSlice & {
   started_at: string
 }
 
+function applyProjectFilter<T>(query: T, projectId: string | null | undefined): T {
+  if (projectId === undefined) return query
+  const filterable = query as T & {
+    eq: (column: 'project_id', value: string) => T
+    is: (column: 'project_id', value: null) => T
+  }
+  return projectId === null
+    ? filterable.is('project_id', null)
+    : filterable.eq('project_id', projectId)
+}
+
 export async function fetchSessionsForYear(
   userId: string,
-  year: number
+  year: number,
+  projectId?: string | null
 ): Promise<SessionProjectSliceWithDate[]> {
   const startOfYear = new Date(year, 0, 1)
-  const endOfYear   = new Date(year + 1, 0, 1)
+  const endOfYear = new Date(year + 1, 0, 1)
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('sessions')
     .select('duration_mins, project_id, started_at, projects(name, color)')
     .eq('user_id', userId)
@@ -93,6 +109,9 @@ export async function fetchSessionsForYear(
     .gte('started_at', startOfYear.toISOString())
     .lt('started_at', endOfYear.toISOString())
 
+  query = applyProjectFilter(query, projectId)
+  const { data, error } = await query
+
   if (error) throw error
   return (data ?? []) as SessionProjectSliceWithDate[]
 }
@@ -100,7 +119,8 @@ export async function fetchSessionsForYear(
 export async function fetchSessionsForWeek(
   userId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  projectId?: string | null
 ): Promise<SessionProjectSliceWithDate[]> {
   // Parse both bounds as LOCAL midnight so the range spans full local
   // calendar days, not a UTC-midnight-to-UTC-midnight window — same
@@ -108,9 +128,9 @@ export async function fetchSessionsForWeek(
   const [sy, sm, sd] = startDate.split('-').map(Number)
   const [ey, em, ed] = endDate.split('-').map(Number)
   const startOfRange = new Date(sy, sm - 1, sd)
-  const endOfRange   = new Date(ey, em - 1, ed + 1)
+  const endOfRange = new Date(ey, em - 1, ed + 1)
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('sessions')
     .select('duration_mins, project_id, started_at, projects(name, color)')
     .eq('user_id', userId)
@@ -119,22 +139,29 @@ export async function fetchSessionsForWeek(
     .gte('started_at', startOfRange.toISOString())
     .lt('started_at', endOfRange.toISOString())
 
+  query = applyProjectFilter(query, projectId)
+  const { data, error } = await query
+
   if (error) throw error
   return (data ?? []) as SessionProjectSliceWithDate[]
 }
 
 export async function fetchSessionsAllTime(
-  userId: string
-): Promise<SessionProjectSlice[]> {
-  const { data, error } = await supabase
+  userId: string,
+  projectId?: string | null
+): Promise<SessionProjectSliceWithDate[]> {
+  let query = supabase
     .from('sessions')
-    .select('duration_mins, project_id, projects(name, color)')
+    .select('duration_mins, project_id, started_at, projects(name, color)')
     .eq('user_id', userId)
     .eq('type', 'focus')
     .is('excluded_at', null)
 
+  query = applyProjectFilter(query, projectId)
+  const { data, error } = await query
+
   if (error) throw error
-  return (data ?? []) as SessionProjectSlice[]
+  return (data ?? []) as SessionProjectSliceWithDate[]
 }
 
 export async function fetchUserStats(
@@ -171,11 +198,7 @@ export async function fetchUserStatsRange(
 }
 
 export async function fetchProfile(userId: string): Promise<Profile | null> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .maybeSingle()
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
 
   if (error) throw error
   if (!data) return null

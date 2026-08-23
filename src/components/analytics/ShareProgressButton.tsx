@@ -3,19 +3,31 @@ import { toCanvas } from 'html-to-image'
 import { Clipboard, Download, Share2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
 import { formatPeriodKey, getPeriodLabel } from '@/lib/utils/analytics'
 
 type Period = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
-async function captureAnalytics(node: HTMLElement, period: Period, date: Date): Promise<Blob> {
+async function captureAnalytics(
+  node: HTMLElement,
+  period: Period,
+  date: Date,
+  projectLabel?: string
+): Promise<Blob> {
   await document.fonts.ready
   const source = await toCanvas(node, {
     backgroundColor: '#0D0D10',
     cacheBust: true,
     pixelRatio: 1.5,
-    filter: (element) => !(element instanceof HTMLElement && element.dataset.shareExclude === 'true'),
+    filter: (element) =>
+      !(element instanceof HTMLElement && element.dataset.shareExclude === 'true'),
   })
 
   const frameWidth = 928
@@ -43,7 +55,8 @@ async function captureAnalytics(node: HTMLElement, period: Period, date: Date): 
   context.fillText('DEPTHLY', 88, 105)
   context.fillStyle = '#7A7890'
   context.font = '500 22px Inter'
-  context.fillText(`${getPeriodLabel(date, period)} analytics`, 88, 145)
+  const captureLabel = `${getPeriodLabel(date, period)} analytics${projectLabel ? ` · ${projectLabel}` : ''}`
+  context.fillText(captureLabel.slice(0, 62), 88, 145)
 
   const frame = { x: 76, y: 184, width: frameWidth, height: drawHeight }
   const drawX = frame.x + (frame.width - drawWidth) / 2
@@ -70,16 +83,24 @@ async function captureAnalytics(node: HTMLElement, period: Period, date: Date): 
   context.textAlign = 'right'
   context.fillText('getdepthly.com', 992, output.height - 62)
 
-  return new Promise((resolve, reject) => output.toBlob(
-    (blob) => blob ? resolve(blob) : reject(new Error('Could not create image')),
-    'image/png',
-  ))
+  return new Promise((resolve, reject) =>
+    output.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('Could not create image'))),
+      'image/png'
+    )
+  )
 }
 
-export function ShareProgressButton({ period, date, targetRef }: {
+export function ShareProgressButton({
+  period,
+  date,
+  targetRef,
+  projectLabel,
+}: {
   period: Period
   date: Date
   targetRef: RefObject<HTMLDivElement>
+  projectLabel?: string
 }) {
   const { windowDays, isPro } = useAnalyticsWindow()
   const [open, setOpen] = useState(false)
@@ -89,7 +110,8 @@ export function ShareProgressButton({ period, date, targetRef }: {
   const [isGenerating, setIsGenerating] = useState(false)
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - windowDays)
-  const locked = !isPro && date < new Date(cutoff.getFullYear(), cutoff.getMonth(), cutoff.getDate())
+  const locked =
+    !isPro && date < new Date(cutoff.getFullYear(), cutoff.getMonth(), cutoff.getDate())
   const periodKey = formatPeriodKey(date, period)
 
   useEffect(() => {
@@ -100,58 +122,114 @@ export function ShareProgressButton({ period, date, targetRef }: {
     setError(null)
     setBlob(null)
     setPreview(null)
-    captureAnalytics(targetRef.current, period, date)
+    captureAnalytics(targetRef.current, period, date, projectLabel)
       .then((image) => {
         if (!active) return
         objectUrl = URL.createObjectURL(image)
         setBlob(image)
         setPreview(objectUrl)
       })
-      .catch(() => { if (active) setError('Could not capture this analytics view.') })
-      .finally(() => { if (active) setIsGenerating(false) })
-    return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl) }
-  }, [date, open, period, targetRef])
+      .catch(() => {
+        if (active) setError('Could not capture this analytics view.')
+      })
+      .finally(() => {
+        if (active) setIsGenerating(false)
+      })
+    return () => {
+      active = false
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [date, open, period, projectLabel, targetRef])
 
-  const imageFile = () => blob ? new File([blob], `depthly-${periodKey}.png`, { type: 'image/png' }) : null
+  const projectSlug = projectLabel
+    ?.toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+  const imageFile = () =>
+    blob
+      ? new File([blob], `depthly-${periodKey}${projectSlug ? `-${projectSlug}` : ''}.png`, {
+          type: 'image/png',
+        })
+      : null
   const download = () => {
-    const image = imageFile(); if (!image) return
+    const image = imageFile()
+    if (!image) return
     const url = URL.createObjectURL(image)
-    const link = document.createElement('a'); link.href = url; link.download = image.name; link.click()
+    const link = document.createElement('a')
+    link.href = url
+    link.download = image.name
+    link.click()
     URL.revokeObjectURL(url)
   }
   const share = async () => {
-    const image = imageFile(); if (!image) return
+    const image = imageFile()
+    if (!image) return
     try {
-      if (navigator.canShare?.({ files: [image] })) await navigator.share({ title: 'My Depthly analytics', files: [image] })
+      if (navigator.canShare?.({ files: [image] }))
+        await navigator.share({ title: 'My Depthly analytics', files: [image] })
       else download()
     } catch (cause) {
-      if ((cause as DOMException).name !== 'AbortError') setError('Sharing failed. Download the image instead.')
+      if ((cause as DOMException).name !== 'AbortError')
+        setError('Sharing failed. Download the image instead.')
     }
   }
   const copy = async () => {
-    if (!blob || !('ClipboardItem' in window)) { download(); return }
-    try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]) }
-    catch { setError('Copy is unavailable. Download the image instead.') }
+    if (!blob || !('ClipboardItem' in window)) {
+      download()
+      return
+    }
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+    } catch {
+      setError('Copy is unavailable. Download the image instead.')
+    }
   }
 
-  return <>
-    <Button variant="ghost" size="sm" disabled={locked} onClick={() => setOpen(true)} className="gap-2">
-      <Share2 className="h-4 w-4" />Share Progress
-    </Button>
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-md border-depth-border bg-depth-surface">
-        <DialogHeader><DialogTitle className="text-ink-primary">Share this analytics view</DialogTitle></DialogHeader>
-        {preview ? <img src={preview} alt="Captured Depthly analytics interface" className="mx-auto max-h-[58vh] rounded-[14px] border border-depth-border" /> :
-          <div className="flex h-80 items-center justify-center rounded-[14px] bg-depth-raised text-[13px] text-ink-muted">
-            {isGenerating ? 'Capturing charts and analytics…' : 'No preview available'}
-          </div>}
-        {error ? <p className="text-[12px] text-red-400">{error}</p> : null}
-        <DialogFooter>
-          <Button variant="ghost" onClick={copy} disabled={!blob} className="gap-2"><Clipboard className="h-4 w-4" />Copy</Button>
-          <Button variant="ghost" onClick={download} disabled={!blob} className="gap-2"><Download className="h-4 w-4" />Download</Button>
-          <Button variant="primary" onClick={share} disabled={!blob} className="gap-2"><Share2 className="h-4 w-4" />Share</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  </>
+  return (
+    <>
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={locked}
+        onClick={() => setOpen(true)}
+        className="gap-2"
+      >
+        <Share2 className="h-4 w-4" />
+        Share Progress
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md border-depth-border bg-depth-surface">
+          <DialogHeader>
+            <DialogTitle className="text-ink-primary">Share this analytics view</DialogTitle>
+          </DialogHeader>
+          {preview ? (
+            <img
+              src={preview}
+              alt="Captured Depthly analytics interface"
+              className="mx-auto max-h-[58vh] rounded-[14px] border border-depth-border"
+            />
+          ) : (
+            <div className="flex h-80 items-center justify-center rounded-[14px] bg-depth-raised text-[13px] text-ink-muted">
+              {isGenerating ? 'Capturing charts and analytics…' : 'No preview available'}
+            </div>
+          )}
+          {error ? <p className="text-[12px] text-red-400">{error}</p> : null}
+          <DialogFooter>
+            <Button variant="ghost" onClick={copy} disabled={!blob} className="gap-2">
+              <Clipboard className="h-4 w-4" />
+              Copy
+            </Button>
+            <Button variant="ghost" onClick={download} disabled={!blob} className="gap-2">
+              <Download className="h-4 w-4" />
+              Download
+            </Button>
+            <Button variant="primary" onClick={share} disabled={!blob} className="gap-2">
+              <Share2 className="h-4 w-4" />
+              Share
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
 }

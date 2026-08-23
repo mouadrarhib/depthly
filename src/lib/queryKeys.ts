@@ -1,21 +1,21 @@
 export const projectKeys = {
-  all:      ['projects'] as const,
-  active:   ['projects', 'active'] as const,
+  all: ['projects'] as const,
+  active: ['projects', 'active'] as const,
   archived: ['projects', 'archived'] as const,
-  detail:   (id: string) => ['projects', id] as const,
-  stats:    (id: string) => ['projects', id, 'stats'] as const,
+  detail: (id: string) => ['projects', id] as const,
+  stats: (id: string) => ['projects', id, 'stats'] as const,
 }
 
 export const sessionKeys = {
   paginated: (userId: string, page: number, type: string = 'focus') =>
-             ['sessions', 'paginated', userId, page, type] as const,
+    ['sessions', 'paginated', userId, page, type] as const,
   byProject: (id: string) => ['sessions', 'project', id] as const,
 }
 
 export const taskKeys = {
-  all:         ['tasks'] as const,
-  byProject:   (projectId: string) => ['tasks', 'project', projectId] as const,
-  detail:      (id: string) => ['tasks', id] as const,
+  all: ['tasks'] as const,
+  byProject: (projectId: string) => ['tasks', 'project', projectId] as const,
+  detail: (id: string) => ['tasks', id] as const,
   sessionMins: (projectId: string) => ['tasks', 'session-mins', projectId] as const,
 }
 
@@ -24,32 +24,28 @@ export const goalKeys = {
 }
 
 export const leaderboardKeys = {
-  global:       (period: string, key: string) =>
-                ['leaderboard', 'global', period, key] as const,
-  allTime:      () =>
-                ['leaderboard', 'all-time'] as const,
-  friends:      (userId: string, period: string, key: string) =>
-                ['leaderboard', 'friends', userId, period, key] as const,
-  userRank:     (userId: string, period: string, key: string) =>
-                ['leaderboard', 'rank', userId, period, key] as const,
-  friendsRank:  (userId: string, period: string, key: string) =>
-                ['leaderboard', 'friends-rank', userId, period, key] as const,
-  search:       (query: string) =>
-                ['leaderboard', 'search', query] as const,
+  global: (period: string, key: string) => ['leaderboard', 'global', period, key] as const,
+  allTime: () => ['leaderboard', 'all-time'] as const,
+  friends: (userId: string, period: string, key: string) =>
+    ['leaderboard', 'friends', userId, period, key] as const,
+  userRank: (userId: string, period: string, key: string) =>
+    ['leaderboard', 'rank', userId, period, key] as const,
+  friendsRank: (userId: string, period: string, key: string) =>
+    ['leaderboard', 'friends-rank', userId, period, key] as const,
+  search: (query: string) => ['leaderboard', 'search', query] as const,
   friendshipStatus: (userId: string, otherUserId: string) =>
-                ['leaderboard', 'friendship-status', userId, otherUserId] as const,
-  pendingRequests:  (userId: string) =>
-                ['leaderboard', 'pending-requests', userId] as const,
+    ['leaderboard', 'friendship-status', userId, otherUserId] as const,
+  pendingRequests: (userId: string) => ['leaderboard', 'pending-requests', userId] as const,
   pendingRequestsCount: (userId: string) =>
-                ['leaderboard', 'pending-requests-count', userId] as const,
+    ['leaderboard', 'pending-requests-count', userId] as const,
 }
 
 export const groupLeaderboardKeys = {
-  all:     ['group-leaderboards'] as const,
-  list:    () => ['group-leaderboards', 'list'] as const,
-  detail:  (id: string) => ['group-leaderboards', 'detail', id] as const,
+  all: ['group-leaderboards'] as const,
+  list: () => ['group-leaderboards', 'list'] as const,
+  detail: (id: string) => ['group-leaderboards', 'detail', id] as const,
   ranking: (id: string) => ['group-leaderboards', 'ranking', id] as const,
-  invite:  (code: string) => ['group-leaderboards', 'invite', code] as const,
+  invite: (code: string) => ['group-leaderboards', 'invite', code] as const,
 }
 
 export const billingKeys = {
@@ -58,26 +54,24 @@ export const billingKeys = {
 
 export const settingsKeys = {
   preferences: (userId: string) => ['settings', 'preferences', userId] as const,
-  profile:     (userId: string) => ['settings', 'profile', userId] as const,
+  profile: (userId: string) => ['settings', 'profile', userId] as const,
 }
 
 export const analyticsKeys = {
-  profile:        (userId: string) =>
-                  ['analytics', 'profile', userId] as const,
-  daily:          (userId: string, date: string) =>
-                  ['analytics', 'daily', userId, date] as const,
-  dailyRange:     (userId: string, start: string, end: string) =>
-                  ['analytics', 'daily-range', userId, start, end] as const,
-  sessionsForDay: (userId: string, date: string) =>
-                  ['analytics', 'sessions-day', userId, date] as const,
-  sessionsForYear: (userId: string, year: number) =>
-                  ['analytics', 'sessions-year', userId, year] as const,
-  sessionsForWeek: (userId: string, startDate: string, endDate: string) =>
-                  ['analytics', 'sessions-week', userId, startDate, endDate] as const,
-  sessionsAllTime: (userId: string) =>
-                  ['analytics', 'sessions-all-time', userId] as const,
-  userStats:      (userId: string, type: string, key: string) =>
-                  ['analytics', 'stats', userId, type, key] as const,
+  profile: (userId: string) => ['analytics', 'profile', userId] as const,
+  daily: (userId: string, date: string) => ['analytics', 'daily', userId, date] as const,
+  dailyRange: (userId: string, start: string, end: string) =>
+    ['analytics', 'daily-range', userId, start, end] as const,
+  sessionsForDay: (userId: string, date: string, projectScope = 'all') =>
+    ['analytics', 'sessions-day', userId, date, projectScope] as const,
+  sessionsForYear: (userId: string, year: number, projectScope = 'all') =>
+    ['analytics', 'sessions-year', userId, year, projectScope] as const,
+  sessionsForWeek: (userId: string, startDate: string, endDate: string, projectScope = 'all') =>
+    ['analytics', 'sessions-week', userId, startDate, endDate, projectScope] as const,
+  sessionsAllTime: (userId: string, projectScope = 'all') =>
+    ['analytics', 'sessions-all-time', userId, projectScope] as const,
+  userStats: (userId: string, type: string, key: string) =>
+    ['analytics', 'stats', userId, type, key] as const,
   userStatsRange: (userId: string, type: string, keys: string[]) =>
-                  ['analytics', 'stats-range', userId, type, ...keys] as const,
+    ['analytics', 'stats-range', userId, type, ...keys] as const,
 }
