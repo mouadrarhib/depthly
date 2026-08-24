@@ -31,12 +31,12 @@ export const useSaveToastStore = create<SaveToastState>()(() => ({
   message: null,
 }))
 
-export function showSaveToast(message: string) {
+export function showSaveToast(message: string, duration = 3000) {
   clearTimeout(toastClearTimer)
   useSaveToastStore.setState({ message })
   toastClearTimer = setTimeout(() => {
     useSaveToastStore.setState({ message: null })
-  }, 3000)
+  }, duration)
 }
 
 interface TimerState {
@@ -47,6 +47,8 @@ interface TimerState {
   sessionType:       SessionType
   elapsed:           number
   duration:          number
+  clockBaseElapsed:  number
+  clockStartedAt:    number | null
   pomodoroPreset:    PomodoroPreset
   focusDuration:     number
   breakDuration:     number
@@ -88,6 +90,8 @@ export const useTimerStore = create<TimerState>()(persist((set, get) => ({
   sessionType:       'focus',
   elapsed:           0,
   duration:          PRESETS['25/5'].focus,
+  clockBaseElapsed:  0,
+  clockStartedAt:    null,
   pomodoroPreset:    '25/5',
   focusDuration:     PRESETS['25/5'].focus,
   breakDuration:     PRESETS['25/5'].break,
@@ -99,15 +103,46 @@ export const useTimerStore = create<TimerState>()(persist((set, get) => ({
   autoStartBreak:    false,
   autoStartFocus:    false,
 
-  start: () => set({ isRunning: true, isPaused: false, elapsed: 0, sessionType: 'focus' }),
+  start: () => set({
+    isRunning: true,
+    isPaused: false,
+    elapsed: 0,
+    clockBaseElapsed: 0,
+    clockStartedAt: Date.now(),
+    sessionType: 'focus',
+  }),
 
-  pause: () => set({ isRunning: false, isPaused: true }),
+  pause: () => set((state) => {
+    const elapsed = state.clockStartedAt === null
+      ? state.elapsed
+      : state.clockBaseElapsed + Math.max(0, Math.floor((Date.now() - state.clockStartedAt) / 1000))
+    return { isRunning: false, isPaused: true, elapsed, clockBaseElapsed: elapsed, clockStartedAt: null }
+  }),
 
-  resume: () => set({ isRunning: true, isPaused: false }),
+  resume: () => set((state) => ({
+    isRunning: true,
+    isPaused: false,
+    clockBaseElapsed: state.elapsed,
+    clockStartedAt: Date.now(),
+  })),
 
-  stop: () => set((s) => ({ isRunning: false, isPaused: false, elapsed: 0, sessionType: 'focus', duration: s.focusDuration })),
+  stop: () => set((s) => ({
+    isRunning: false,
+    isPaused: false,
+    elapsed: 0,
+    clockBaseElapsed: 0,
+    clockStartedAt: null,
+    sessionType: 'focus',
+    duration: s.focusDuration,
+  })),
 
-  reset: () => set({ isRunning: false, isPaused: false, elapsed: 0 }),
+  reset: () => set({
+    isRunning: false,
+    isPaused: false,
+    elapsed: 0,
+    clockBaseElapsed: 0,
+    clockStartedAt: null,
+  }),
 
   // Transitions into the break phase. `auto` distinguishes why this was
   // called: true means it's the automatic transition right after a focus
@@ -121,6 +156,8 @@ export const useTimerStore = create<TimerState>()(persist((set, get) => ({
     set({
       sessionType: 'break',
       elapsed:     0,
+      clockBaseElapsed: 0,
+      clockStartedAt: auto && !autoStartBreak ? null : Date.now(),
       duration:    breakDuration,
       isRunning:   auto ? autoStartBreak : true,
       isPaused:    false,
@@ -134,6 +171,8 @@ export const useTimerStore = create<TimerState>()(persist((set, get) => ({
     set({
       sessionType: 'focus',
       elapsed:     0,
+      clockBaseElapsed: 0,
+      clockStartedAt: autoStartFocus ? Date.now() : null,
       duration:    focusDuration,
       isRunning:   autoStartFocus,
       isPaused:    false,
@@ -142,16 +181,36 @@ export const useTimerStore = create<TimerState>()(persist((set, get) => ({
 
   skipBreak: () => {
     const { focusDuration } = get()
-    set({ isRunning: false, isPaused: false, elapsed: 0, sessionType: 'focus', duration: focusDuration })
+    set({
+      isRunning: false,
+      isPaused: false,
+      elapsed: 0,
+      clockBaseElapsed: 0,
+      clockStartedAt: null,
+      sessionType: 'focus',
+      duration: focusDuration,
+    })
   },
 
-  tick: () => set((s) => ({ elapsed: s.elapsed + 1 })),
+  // Derive elapsed time from a wall-clock anchor. Browser intervals may be
+  // delayed while a tab is backgrounded or the device sleeps; incrementing by
+  // one per callback makes the display drift behind the server-authoritative
+  // timer and then jump when Pause synchronizes it.
+  tick: () => set((state) => {
+    if (!state.isRunning || state.clockStartedAt === null) return state
+    return {
+      elapsed: state.clockBaseElapsed
+        + Math.max(0, Math.floor((Date.now() - state.clockStartedAt) / 1000)),
+    }
+  }),
 
   setMode: (mode) => {
     const { focusDuration } = get()
     set({
       mode,
       elapsed:     0,
+      clockBaseElapsed: 0,
+      clockStartedAt: null,
       isRunning:   false,
       isPaused:    false,
       sessionType: 'focus',
@@ -167,6 +226,8 @@ export const useTimerStore = create<TimerState>()(persist((set, get) => ({
       breakDuration:  brk,
       duration:       focus,
       elapsed:        0,
+      clockBaseElapsed: 0,
+      clockStartedAt: null,
       isRunning:      false,
       isPaused:       false,
       sessionType:    'focus',
@@ -189,9 +250,13 @@ export const useTimerStore = create<TimerState>()(persist((set, get) => ({
     const elapsed = run.accumulated_seconds + (run.status === 'running' && run.segment_started_at
       ? Math.max(0, Math.floor((Date.now() - new Date(run.segment_started_at).getTime()) / 1000)) : 0)
     const restoredDuration = run.target_seconds ?? 0
+    const clockStartedAt = run.status === 'running' && run.segment_started_at
+      ? new Date(run.segment_started_at).getTime()
+      : null
     set({ activeRunId: run.id, sessionType: run.type, mode: run.timer_mode,
       duration: restoredDuration, elapsed, isRunning: run.status === 'running',
-      isPaused: run.status === 'paused', selectedProjectId: run.project_id,
+      isPaused: run.status === 'paused', clockBaseElapsed: run.accumulated_seconds,
+      clockStartedAt, selectedProjectId: run.project_id,
       selectedTaskId: run.task_id, sessionTitle: run.title ?? '', notes: run.notes ?? '',
       ...(run.timer_mode !== 'free' && run.type === 'focus' ? { focusDuration: restoredDuration } : {}),
       ...(run.timer_mode !== 'free' && run.type === 'break' ? { breakDuration: restoredDuration } : {}),

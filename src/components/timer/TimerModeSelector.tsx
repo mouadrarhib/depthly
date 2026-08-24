@@ -10,13 +10,15 @@ const MODES: { value: TimerMode; label: string }[] = [
 ]
 
 export function TimerModeSelector() {
-  const { mode, isRunning, stop, setMode } = useTimerStore()
+  const { mode, isRunning, isPaused, stop, setMode } = useTimerStore()
+  const isActive = isRunning || isPaused
 
   return (
     <Tabs
       value={mode}
       onValueChange={(v) => {
         if (v === mode) return
+        if (isActive) return
         stop()
         setMode(v as TimerMode)
       }}
@@ -29,7 +31,7 @@ export function TimerModeSelector() {
           <TabsTrigger
             key={value}
             value={value}
-            disabled={isRunning}
+            disabled={isActive}
             className={[
               'rounded-full text-[13px] font-medium px-[18px] py-[6px]',
               'transition-all shadow-none',

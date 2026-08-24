@@ -13,6 +13,9 @@ export function useActiveTimerRealtime() {
 
     const syncTimerSettings = (event: StorageEvent) => {
       if (event.key === TIMER_SETTINGS_STORAGE_KEY) {
+        // Persisted settings include the idle display duration. Do not let a
+        // different tab overwrite the target of a server-authoritative run.
+        if (useTimerStore.getState().activeRunId) return
         void useTimerStore.persist.rehydrate()
       }
     }

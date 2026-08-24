@@ -1,26 +1,18 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { cancelTimerRun, fetchActiveTimerRun, finishTimerRun, pauseTimerRun, resumeTimerRun, startTimerRun } from '@/lib/supabase/queries/sessions'
-import { useAuthStore } from '@/store'
-import { MIN_SESSION_SECONDS, showSaveToast, useSaveToastStore, useTimerStore } from '@/store/timerStore'
+import { cancelTimerRun, finishTimerRun, pauseTimerRun, resumeTimerRun, startTimerRun } from '@/lib/supabase/queries/sessions'
+import { timerKeys } from '@/lib/queryKeys'
+import { MIN_SESSION_SECONDS, showSaveToast, useTimerStore } from '@/store/timerStore'
 import { useSessionMonthLimit } from '@/hooks/usePlanLimits'
-
-const TIMER_QUERY_KEY = ['timer', 'active'] as const
 
 export function useSaveSession() {
   const qc = useQueryClient()
-  const userId = useAuthStore((s) => s.user?.id ?? '')
   const { isAtLimit } = useSessionMonthLimit()
-  const toastMessage = useSaveToastStore((s) => s.message)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const activeQuery = useQuery({ queryKey: [...TIMER_QUERY_KEY, userId], queryFn: () => fetchActiveTimerRun(userId), enabled: !!userId, staleTime: 15_000 })
-
-  useEffect(() => { if (activeQuery.data) useTimerStore.getState().restoreRun(activeQuery.data) }, [activeQuery.data])
-
   const refreshAfterFinish = useCallback(() => {
     for (const key of [['sessions'], ['analytics'], ['profile'], ['goals'], ['projects'], ['tasks'], ['leaderboard'], ['group-leaderboards']]) qc.invalidateQueries({ queryKey: key })
-    qc.invalidateQueries({ queryKey: TIMER_QUERY_KEY })
+    qc.invalidateQueries({ queryKey: timerKeys.all })
   }, [qc])
 
   const action = useMutation({
@@ -87,5 +79,5 @@ export function useSaveSession() {
   const cancelActiveTimer = useCallback(() => runAction('cancel'), [runAction])
 
   return { start, pause, resume, saveSession, saveAndStop, cancelActiveTimer, isSaving: action.isPending,
-    isSessionLimitReached: isAtLimit, toastMessage, errorMessage }
+    isSessionLimitReached: isAtLimit, errorMessage }
 }

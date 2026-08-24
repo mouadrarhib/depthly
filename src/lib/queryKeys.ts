@@ -13,6 +13,11 @@ export const sessionKeys = {
   byProject: (id: string) => ['sessions', 'project', id] as const,
 }
 
+export const timerKeys = {
+  all: ['timer'] as const,
+  active: (userId: string) => ['timer', 'active', userId] as const,
+}
+
 export const taskKeys = {
   all: ['tasks'] as const,
   byProject: (projectId: string) => ['tasks', 'project', projectId] as const,

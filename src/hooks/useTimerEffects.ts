@@ -1,6 +1,10 @@
 import { useEffect, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
-import { useTimerStore } from '@/store/timerStore'
+import { fetchActiveTimerRun } from '@/lib/supabase/queries/sessions'
+import { timerKeys } from '@/lib/queryKeys'
+import { useAuthStore } from '@/store/authStore'
+import { showSaveToast, useTimerStore } from '@/store/timerStore'
 import { useSaveSession } from '@/hooks/useSaveSession'
 import { useActiveTimerRealtime } from '@/hooks/useActiveTimerRealtime'
 
@@ -33,8 +37,24 @@ function formatTitle(seconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
+function formatRecoveryTime(seconds: number, roundUp = false): string {
+  if (seconds < 60) return `${seconds}s`
+  const minutes = roundUp ? Math.ceil(seconds / 60) : Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  const remainder = minutes % 60
+  return remainder === 0 ? `${hours}h` : `${hours}h ${remainder}m`
+}
+
 export function useTimerEffects() {
   useActiveTimerRealtime()
+  const userId = useAuthStore((state) => state.user?.id ?? '')
+  const activeRunQuery = useQuery({
+    queryKey: timerKeys.active(userId),
+    queryFn: () => fetchActiveTimerRun(userId),
+    enabled: !!userId,
+    staleTime: 15_000,
+  })
   const {
     isRunning,
     isPaused,
@@ -49,6 +69,35 @@ export function useTimerEffects() {
 
   const focusDoneRef = useRef(false)
   const breakDoneRef = useRef(false)
+  const restoredRunRef = useRef<string | null>(null)
+
+  // Restore the server-authoritative run once at the app-layout boundary.
+  // Keeping this query here avoids every TimerControls/TimerWidget instance
+  // independently restoring the same run. The notice explains why time may
+  // have advanced while localhost, the browser, or the device was closed.
+  useEffect(() => {
+    const run = activeRunQuery.data
+    if (!run || restoredRunRef.current === run.id) return
+
+    const state = useTimerStore.getState()
+    const isRecovery = state.activeRunId !== run.id
+    state.restoreRun(run)
+    restoredRunRef.current = run.id
+
+    if (!isRecovery) return
+    const restored = useTimerStore.getState()
+    const phase = run.type === 'focus' ? 'focus timer' : 'break timer'
+    if (run.status === 'paused') {
+      showSaveToast(`Your paused ${phase} was restored — ${formatRecoveryTime(restored.elapsed)} elapsed`, 6000)
+      return
+    }
+    if (run.target_seconds === null) {
+      showSaveToast(`Your ${phase} continued while the app was closed — ${formatRecoveryTime(restored.elapsed)} elapsed`, 6000)
+      return
+    }
+    const remaining = Math.max(0, run.target_seconds - restored.elapsed)
+    showSaveToast(`Your ${phase} continued while the app was closed — ${formatRecoveryTime(remaining, true)} remaining`, 6000)
+  }, [activeRunQuery.data])
 
   // Reset guards when a fresh timer starts (elapsed → 0)
   useEffect(() => {

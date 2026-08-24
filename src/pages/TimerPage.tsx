@@ -1,6 +1,5 @@
 import React from 'react'
 
-import { useSaveSession } from '@/hooks/useSaveSession'
 import { TimerFullscreen } from '@/components/timer/TimerFullscreen'
 import { TimerModeSelector } from '@/components/timer/TimerModeSelector'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
@@ -217,8 +216,6 @@ function BottomActionRow() {
 // ── Timer page ─────────────────────────────────────────────────────────────
 
 export function TimerPage() {
-  const { saveAndStop } = useSaveSession()
-
   return (
     <>
       {/* Main centered area — fills the full available space */}
@@ -229,7 +226,7 @@ export function TimerPage() {
 
         <TimerDisplay />
 
-        <TimerControls onStop={saveAndStop} />
+        <TimerControls />
 
         <BottomActionRow />
       </div>

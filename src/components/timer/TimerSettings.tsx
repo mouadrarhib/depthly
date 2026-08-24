@@ -58,9 +58,11 @@ function ToggleRow({ id, checked, onChange, label }: ToggleRowProps) {
 function TypePills({
   value,
   onChange,
+  disabled,
 }: {
   value:    'timer' | 'free'
   onChange: (v: 'timer' | 'free') => void
+  disabled: boolean
 }) {
   const pills: { v: 'timer' | 'free'; label: string }[] = [
     { v: 'timer', label: 'Timer' },
@@ -75,12 +77,15 @@ function TypePills({
         <button
           key={v}
           onClick={() => onChange(v)}
+          disabled={disabled}
           className="transition-all"
           style={{
             padding:    '5px 14px',
             fontSize:   13,
             fontWeight: 500,
             borderRadius: 999,
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            opacity: disabled ? 0.45 : 1,
             ...(value === v
               ? { background: 'var(--color-surface-raised)', color: 'var(--color-text)', border: '1px solid rgba(75,158,255,0.3)' }
               : { background: 'transparent', color: 'var(--color-text-faint)', border: '1px solid transparent' }),
@@ -133,6 +138,8 @@ export function TimerSettings() {
     breakDuration,
     autoStartBreak,
     autoStartFocus,
+    isRunning,
+    isPaused,
     setMode,
     setPreset,
     setAutoStartBreak,
@@ -141,8 +148,10 @@ export function TimerSettings() {
 
   const focusMins = Math.floor(focusDuration / 60)
   const breakMins = Math.floor(breakDuration / 60)
+  const timerLocked = isRunning || isPaused
 
   const handleFocusChange = (val: number) => {
+    if (timerLocked) return
     useTimerStore.setState((s) => ({
       focusDuration: val * 60,
       ...(!s.isRunning && s.sessionType === 'focus' ? { duration: val * 60 } : {}),
@@ -150,6 +159,7 @@ export function TimerSettings() {
   }
 
   const handleBreakChange = (val: number) => {
+    if (timerLocked) return
     useTimerStore.setState((s) => ({
       breakDuration: val * 60,
       ...(!s.isRunning && s.sessionType === 'break' ? { duration: val * 60 } : {}),
@@ -159,6 +169,7 @@ export function TimerSettings() {
   const timerType: 'timer' | 'free' = mode === 'free' ? 'free' : 'timer'
 
   const handleTypeChange = (v: 'timer' | 'free') => {
+    if (timerLocked) return
     const next: TimerMode = v === 'free' ? 'free' : (mode === 'free' ? 'pomodoro' : mode)
     setMode(next)
   }
@@ -199,7 +210,7 @@ export function TimerSettings() {
           {/* Timer Type */}
           <div>
             <SectionLabel>Timer Type</SectionLabel>
-            <TypePills value={timerType} onChange={handleTypeChange} />
+            <TypePills value={timerType} onChange={handleTypeChange} disabled={timerLocked} />
           </div>
 
           {/* Focus Duration */}
@@ -210,7 +221,7 @@ export function TimerSettings() {
                 <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
                   {focusMins} minutes
                 </span>
-                <Stepper value={focusMins} min={1} max={240} onChange={handleFocusChange} />
+                <Stepper value={focusMins} min={1} max={240} disabled={timerLocked} onChange={handleFocusChange} />
               </div>
             </div>
           </div>
@@ -224,7 +235,7 @@ export function TimerSettings() {
                   <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
                     {breakMins} minutes
                   </span>
-                  <Stepper value={breakMins} min={1} max={60} onChange={handleBreakChange} />
+                  <Stepper value={breakMins} min={1} max={60} disabled={timerLocked} onChange={handleBreakChange} />
                 </div>
               </div>
             </div>
@@ -257,10 +268,13 @@ export function TimerSettings() {
                 {PRESET_OPTIONS.map((preset) => (
                   <button
                     key={preset}
-                    onClick={() => setPreset(preset)}
+                    onClick={() => { if (!timerLocked) setPreset(preset) }}
+                    disabled={timerLocked}
                     className="transition-all"
                     style={{
                       padding: '4px 12px', fontSize: 12, fontWeight: 500, borderRadius: 999,
+                      cursor: timerLocked ? 'not-allowed' : 'pointer',
+                      opacity: timerLocked ? 0.45 : 1,
                       ...(pomodoroPreset === preset
                         ? { background: 'var(--color-surface-overlay)', color: 'var(--color-brand)', border: '1px solid rgba(75,158,255,0.4)' }
                         : { background: 'transparent', color: 'var(--color-text-faint)', border: '1px solid var(--color-border)' }),

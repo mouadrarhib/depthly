@@ -71,6 +71,8 @@ TimerPage
 | `sessionType` | `'focus' \| 'break'` | `'focus'` | Whether counting focus or break |
 | `elapsed` | `number` | `0` | Seconds elapsed in current phase |
 | `duration` | `number` | `1500` | Target duration in seconds (0 in free mode) |
+| `clockBaseElapsed` | `number` | `0` | Server-confirmed accumulated seconds at the current clock anchor |
+| `clockStartedAt` | `number \| null` | `null` | Millisecond wall-clock anchor for the running segment |
 | `pomodoroPreset` | `'25/5' \| '50/10' \| '90/20' \| 'custom'` | `'25/5'` | Active preset |
 | `focusDuration` | `number` | `1500` | Focus phase length in seconds |
 | `breakDuration` | `number` | `300` | Break phase length in seconds |
@@ -103,7 +105,7 @@ const PRESETS = {
 | `startBreak()` | Called by `useSaveSession.onSuccess` — sets `sessionType: 'break', elapsed: 0, duration: breakDuration, isRunning: true` (always auto-starts) |
 | `endBreak()` | Called by `useTimerEffects` when break completes — sets `sessionType: 'focus', elapsed: 0, duration: focusDuration, isRunning: autoStartFocus` |
 | `skipBreak()` | Immediately goes idle in focus mode — same as `stop()` but called from the Skip Break button |
-| `tick()` | Increments `elapsed` by 1. Called every second by `useTimerEffects` |
+| `tick()` | Recomputes `elapsed = clockBaseElapsed + (Date.now() - clockStartedAt)`; interval throttling cannot cause drift |
 | `setMode(mode)` | Stops and resets; sets `duration: 0` for free mode |
 | `setPreset(preset)` | Stops and resets; updates both durations from PRESETS |
 | `setSelectedProject(id)` | Sets project; clears task |
@@ -122,6 +124,8 @@ useTimerStore.setState((s) => ({
   ...(!s.isRunning && s.sessionType === 'focus' ? { duration: val * 60 } : {}),
 }))
 ```
+
+Mode, preset, and duration controls are disabled for both running and paused server runs. This prevents local targets from diverging from `active_timer_runs.target_seconds`. Cross-tab settings rehydration is also ignored while an active run exists.
 
 ---
 
@@ -149,9 +153,7 @@ Both are persisted to localStorage via `persist` middleware under the key `'ui-p
 
 **File:** `src/hooks/useTimerEffects.ts`
 
-Runs all timer side effects. Called **once, globally, from `AppLayout`** — not per timer page.
-
-**This wasn't always the case, and it was a real bug:** `TimerPage` and `TimerWidget` used to each call `useTimerEffects()` independently (plus their own identical save-guard `useEffect`, duplicated between the two). Since only one of those two components is ever mounted at a time, navigating to *any other page* (Settings, Billing, Projects, …) unmounted whichever one was active, tearing down its `setInterval` — the visible countdown froze, and a session that would have naturally completed while the user was elsewhere didn't save or transition to break until they navigated back to a page that happened to remount the hook. Moving the single `useTimerEffects()` call up to `AppLayout` (which stays mounted across all in-app navigation) and folding the save-guard effect into the hook itself fixed this — the timer, its completion beep/save, and the break transition now all keep running regardless of which page is visible.
+Runs all timer side effects. Called **once, globally, from `AppLayout`** — not per timer page. It also owns the single initial `active_timer_runs` query, restores the server-authoritative run, and shows a recovery notice explaining that a running timer continued while the app was closed (or that a paused timer was restored).
 
 | Effect | Trigger | What it does |
 |---|---|---|
@@ -159,7 +161,8 @@ Runs all timer side effects. Called **once, globally, from `AppLayout`** — not
 | Guard reset | `elapsed === 0` | Resets `focusDoneRef` and `breakDoneRef` so sounds/transitions fire again on the next session |
 | Focus completion | `sessionType=focus, elapsed >= duration, isRunning` | Fires once per session: plays A5 beep (880 Hz, 0.6s), then calls `saveSession()` (from its own `useSaveSession()` instance) to save and — via that mutation's `onSuccess` — transition into break |
 | Break completion | `sessionType=break, elapsed >= duration, isRunning` | Fires once per break: plays softer E5 beep (660 Hz, 0.4s), then calls `useTimerStore.getState().endBreak()` — which saves the break via `saveBreakSession()` if it ran ≥ 60s |
-| Tick interval | `isRunning && !isPaused` | `setInterval(tick, 1000)` — cleared on pause/stop |
+| Active-run restore | Authenticated app load | Fetches the user's `active_timer_runs` row once, restores it, and explains recovered elapsed/remaining time through the global `TimerStatusToast` |
+| Tick interval | `isRunning && !isPaused` | Calls `tick()` every second; `tick()` derives elapsed time from the wall-clock anchor rather than incrementing by one, so background throttling and device sleep cannot make the display drift |
 
 Sound is produced via the Web Audio API (no audio files):
 
@@ -181,36 +184,19 @@ function playBeep(freq = 880, duration = 0.6) {
 
 **File:** `src/hooks/useSaveSession.ts`
 
-TanStack Query mutation wrapping the `save_session` Supabase RPC. Returns two save functions, not one:
+TanStack Query mutation wrapping the trusted timer lifecycle RPCs from migration 015:
 
 ```ts
-const { saveSession, saveAndStop, isSaving, isSessionLimitReached, toastMessage } = useSaveSession()
+const { start, pause, resume, saveSession, saveAndStop, cancelActiveTimer, isSaving } = useSaveSession()
 ```
 
-- **`saveSession()`** — natural completion path. Called from `useTimerEffects` (mounted once in `AppLayout`, not per timer page — see §4) when a focus session's countdown hits `0`. Always `p_type: 'focus'`. Note this means `useTimerEffects` holds its own separate `useSaveSession()` instance from whatever `TimerPage`/`TimerWidget` use for `saveAndStop()` — two independent mutations, not a shared one, since they're triggered by mutually exclusive code paths (natural completion vs. the manual Stop button).
-- **`saveAndStop()`** — manual **Stop** button path. Handles both `sessionType`s: resets the timer immediately, then saves in the background if `elapsed >= MIN_SESSION_SECONDS` (60s) — shorter sessions are dropped silently for breaks, or shown a "Session too short to save" toast for focus. Skips saving if a `saveSession()` call is already in flight, so a session is never double-saved.
-- Both funnel through the same `useMutation`; on success both invalidate `['sessions']` and `['analytics']` query keys. `saveSession()`'s per-call success handler also calls `useTimerStore.getState().startBreak()` to transition into the break phase (skipped if the user stopped the timer manually while the save was in flight). Both increment `sessionCount` in the store (UI-only counter for "N sessions today") for focus saves.
-- `isSessionLimitReached` reflects the free-plan monthly session cap (`useSessionMonthLimit`) — focus-session saves are blocked while at limit; break saves are never blocked by it.
-- There is no `onError` handler on the mutation — a failed save (network error, auth lapse) is silently swallowed. See [Known Limitations](#10-known-limitations--future-work).
-
-**Payload sent to RPC** (shape shared by both `saveSession()` and `saveAndStop()`; `p_type`/`p_notes` differ by call site):
-
-| Field | Source |
-|---|---|
-| `p_user_id` | `authStore.user.id` |
-| `p_project_id` | `timerStore.selectedProjectId` |
-| `p_task_id` | `timerStore.selectedTaskId` |
-| `p_type` | `timerStore.sessionType` — always `'focus'` from `saveSession()`; `'focus'` or `'break'` from `saveAndStop()` |
-| `p_duration_mins` | `Math.round(elapsed / 60)` |
-| `p_started_at` | `new Date(now - elapsed * 1000).toISOString()` |
-| `p_ended_at` | `new Date().toISOString()` |
-| `p_timer_mode` | `timerStore.mode` |
-| `p_notes` | `[sessionTitle, notes].filter(Boolean).join('\n\n')` or `null` if both are empty — break sessions from `saveAndStop()` always pass `null` |
-| `p_local_date` | `formatPeriodKey(now, 'daily')` — client's local `YYYY-MM-DD`, used by the RPC for `daily_summaries`/streak bookkeeping instead of deriving the date from `p_started_at` in UTC |
-
-State is read from `useTimerStore.getState()` at call time (not from stale render values).
-
-**Break sessions completed naturally** (countdown reaches `0` without the user stopping) don't go through this hook at all — `timerStore.endBreak()` calls `saveBreakSession()` directly (a bare async RPC call, no `useMutation`/query-cache context, since it's triggered from `useTimerEffects` rather than a component). It skips cache invalidation entirely; the recent-sessions list just lags until its next natural refetch. See `src/store/timerStore.ts`.
+- **Start** calls `start_timer_run()` with the selected phase, target, timezone, project, task, title, and notes. The returned row supplies the authoritative start timestamp.
+- **Pause / Resume** call `pause_timer_run()` and `resume_timer_run()`. Each response replaces local elapsed/anchor state with the server values.
+- **Natural completion / Stop** call `finish_timer_run()`. Postgres calculates the final duration from accumulated server segments, saves the session, updates aggregates, and deletes the active run atomically.
+- **Cancel / short session** calls `cancel_timer_run()` and clears the active run without saving.
+- Errors are surfaced through the global timer status toast. Successful completion invalidates sessions, analytics, profiles, goals, projects, tasks, and leaderboard caches.
+- The active-run query is intentionally not inside this hook. `useTimerEffects()` owns restoration once at the stable `AppLayout` boundary, preventing duplicate restore effects from TimerPage, TimerWidget, and fullscreen controls.
+- `TimerPage` lets `TimerControls` own its own Stop mutation, so the same mutation that sends Stop also disables the button. Countdown controls are disabled once elapsed reaches the target while the natural finish RPC is pending.
 
 ---
 
@@ -370,82 +356,34 @@ Buttons disabled at min/max boundaries.
 
 **File:** `src/pages/TimerPage.tsx`
 
-Root of the timer feature. Wires all components and handles the session-save trigger.
+Root of the timer feature. It composes the mode selector, phase selector, display, controls, settings, notes/todo panels, and fullscreen view. Natural completion and restore logic intentionally live in the single global `useTimerEffects()` instance rather than this route component.
 
-**Session save guard:**
-
-```ts
-useEffect(() => {
-  if (elapsed === 0) { savedRef.current = false; return }
-
-  if (
-    mode !== 'free'       &&
-    sessionType === 'focus' &&   // only focus sessions are saved
-    duration > 0          &&
-    isRunning             &&
-    elapsed >= duration   &&
-    !savedRef.current
-  ) {
-    savedRef.current = true
-    saveSession()
-  }
-}, [elapsed, duration, mode, sessionType, isRunning, saveSession])
-```
-
-`savedRef` prevents double-saves when `elapsed` continues ticking past `duration` while the async save is in flight.
+`TimerControls` owns its Start/Pause/Resume/Stop mutation. The route does not create a second Stop mutation, ensuring that the button's pending state matches the request it triggered.
 
 **SessionDots:** Two 8px circles, brand-colored when active, `surface-overlay` when inactive. Hidden in free mode.
 
-**BottomActionRow:** Configure, Fullscreen, Log (disabled), Todo (disabled).
+**BottomActionRow:** Configure, Fullscreen, Log, and Todo.
 
 ---
 
-## 7. Database — save_session RPC
+## 7. Database — trusted timer RPCs
 
-**File:** `supabase/migrations/002_save_session_rpc.sql`, superseded by `supabase/migrations/006_save_session_local_date.sql`
+**File:** `supabase/migrations/015_trusted_sessions.sql`
 
-`SECURITY DEFINER` function — runs with owner privileges so it can write to `daily_summaries` and `user_stats` (which have no client INSERT policies).
+`active_timer_runs` stores one authenticated run per user. PostgreSQL timestamps each running segment, so closing localhost, refreshing, backgrounding the browser, or switching devices does not lose or pause elapsed time.
 
-**Signature:**
+The client uses these `SECURITY DEFINER` RPCs:
 
-```sql
-create or replace function public.save_session(
-  p_user_id       uuid,
-  p_project_id    uuid,
-  p_task_id       uuid,
-  p_type          session_type,       -- 'focus' | 'break'
-  p_duration_mins integer,
-  p_started_at    timestamptz,
-  p_ended_at      timestamptz,
-  p_timer_mode    text,               -- accepts 'pomodoro' | 'custom' | 'free'
-  p_notes         text,
-  p_local_date    date                -- client's local YYYY-MM-DD (migration 006)
-) returns public.sessions
-```
+- `start_timer_run()` creates the running row with a server timestamp.
+- `pause_timer_run()` adds `now() - segment_started_at` to `accumulated_seconds` and clears the segment timestamp.
+- `resume_timer_run()` starts a new server-timestamped segment.
+- `cancel_timer_run()` deletes the active row without saving a session.
+- `finish_timer_run()` calculates the final duration, inserts the immutable session, updates focus aggregates atomically, and deletes the run.
+- `update_session_metadata()` changes only title, notes, project, and task after saving.
 
-`p_local_date` is supplied by the client instead of being derived from `p_started_at`. The original version computed the session's date as `(p_started_at at time zone 'UTC')::date`, which desynced from the client's "today" for any non-UTC timezone (evening sessions west of UTC could land on tomorrow's UTC date, silently vanishing from "today" stats until the next day).
+Direct authenticated session inserts and the legacy `save_session()` path are revoked. Realtime publication from migration 016 synchronizes changes across open tabs/devices.
 
-**What it does atomically (focus sessions only — break sessions are stored but skipped for aggregates):**
-
-1. Inserts row into `sessions` (`'custom'` mode is coerced to `'pomodoro'` for the enum column)
-2. Upserts `daily_summaries` — adds `duration_mins` + increments `session_count`
-3. Marks `daily_summaries.daily_goal_met = true` if `focus_minutes >= goals.daily_goal_minutes`
-4. Upserts `user_stats` for all four periods:
-   - `daily` → `YYYY-MM-DD`
-   - `weekly` → `IYYY-WIW` (ISO week)
-   - `monthly` → `YYYY-MM`
-   - `yearly` → `YYYY`
-5. Updates `profiles`:
-   - `total_focus_minutes += p_duration_mins`
-   - `total_sessions += 1`
-   - `current_streak`: same day → no change; consecutive day → +1; gap → reset to 1
-   - `longest_streak = max(longest_streak, current_streak)`
-   - `last_focus_date = today`
-6. Increments `tasks.actual_pomodoros` if `p_task_id` is not null
-
-Returns the inserted `sessions` row.
-
-**To deploy:** Run `002_save_session_rpc.sql` then `006_save_session_local_date.sql` in Supabase Dashboard → SQL Editor (both are `create or replace`, safe to run in order on a fresh DB; existing DBs only need 006).
+**To deploy:** Apply migrations through `020_count_all_sessions.sql` in order.
 
 ---
 
@@ -499,10 +437,6 @@ Font rule: all countdown times and duration values use `.font-data` → JetBrain
 
 | Item | Notes |
 |---|---|
-| `autoStartBreak` setting | Stored in `timerStore` and exposed in settings UI, but currently ignored — break always auto-starts after focus |
-| Break sessions skip cache invalidation | Breaks completed naturally save via `timerStore.saveBreakSession()` (called from `endBreak()`), which calls the RPC directly and doesn't invalidate any query keys — the recent-sessions list lags until its next natural refetch. Breaks stopped manually go through `useSaveSession().saveAndStop()` instead, which does invalidate |
 | `timer_mode_type` enum | DB enum is `('pomodoro', 'free')` — `'custom'` mode is coerced to `'pomodoro'` at the RPC level |
-| No error UI for failed saves | If `save_session` throws (network error, auth lapse), the error is silently swallowed. Should show a toast |
-| Log / Todo buttons | In `BottomActionRow` — wired up as `disabled` placeholders for future manual session logging and task quick-add |
 | Settings not persisted to DB | Timer preferences (focus/break duration, auto-start flags) live only in Zustand — they reset if the user clears localStorage. Should sync to `user_preferences` table |
 | `sessionCount` is UI-only | The "N sessions today" counter increments in memory and resets on page refresh. Should be seeded from the DB on load |

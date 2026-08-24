@@ -32,7 +32,7 @@ export function TimerWidget() {
     isRunning, isPaused, sessionCount,
   } = useTimerStore()
 
-  const { start, pause, resume, saveAndStop, isSessionLimitReached, toastMessage } = useSaveSession()
+  const { start, pause, resume, saveAndStop, isSessionLimitReached } = useSaveSession()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
 
   const toggleLog  = useUiStore((s) => s.toggleLog)
@@ -44,6 +44,7 @@ export function TimerWidget() {
   const ringColor = sessionType === 'focus' ? '#3DD68C' : 'var(--color-brand)'
   const isIdle    = !isRunning && !isPaused
   const isBreakIdle = isIdle && sessionType === 'break'
+  const hasCompleted = !isFree && duration > 0 && elapsed >= duration
   const fontSz    = Math.round((isFree ? 48 : 72) * SCALE)
 
   const handleStart = () => {
@@ -129,13 +130,13 @@ export function TimerWidget() {
         </button>
       ) : isPaused ? (
         <div style={{ display: 'flex', gap: 8 }}>
-          <Btn onClick={resume} variant="blue">Resume</Btn>
-          <Btn onClick={saveAndStop} variant="red">Stop</Btn>
+          <Btn onClick={resume} variant="blue" disabled={hasCompleted}>Resume</Btn>
+          <Btn onClick={saveAndStop} variant="red" disabled={hasCompleted}>Stop</Btn>
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 8 }}>
-          <Btn onClick={pause}        variant="neutral">Pause</Btn>
-          <Btn onClick={saveAndStop} variant="red">Stop</Btn>
+          <Btn onClick={pause} variant="neutral" disabled={hasCompleted}>Pause</Btn>
+          <Btn onClick={saveAndStop} variant="red" disabled={hasCompleted}>Stop</Btn>
         </div>
       )}
 
@@ -172,7 +173,6 @@ export function TimerWidget() {
 
       <TimerNotesPanel />
       <TimerTodoPanel />
-      <SaveToast message={toastMessage} />
     </div>
   )
 }
@@ -200,20 +200,23 @@ const VARIANT_STYLES: Record<BtnVariant, {
 }
 
 function Btn({
-  onClick, variant, children,
+  onClick, variant, children, disabled = false,
 }: {
   onClick: () => void
   variant: BtnVariant
   children: React.ReactNode
+  disabled?: boolean
 }) {
   const v = VARIANT_STYLES[variant]
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         height: 44, minWidth: 100, padding: '0 18px', borderRadius: 12,
-        fontSize: 14, fontWeight: 600, cursor: 'pointer',
+        fontSize: 14, fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
         transition: 'all 0.15s',
         background: v.bg, border: `1px solid ${v.border}`, color: v.color,
       }}
@@ -269,45 +272,5 @@ function ChipBtn({
     >
       {children}
     </button>
-  )
-}
-
-// ── Save toast — fixed, auto-fading confirmation for background saves ─────
-// (Same shape as TimerControls' — TimerWidget renders its own Stop buttons
-// rather than <TimerControls>, so it needs its own toast host.)
-
-function SaveToast({ message }: { message: string | null }) {
-  if (!message) return null
-
-  return (
-    <>
-      <style>{`
-        @keyframes timerWidgetToastFade {
-          0%, 80% { opacity: 1; }
-          100% { opacity: 0; }
-        }
-      `}</style>
-      <div
-        style={{
-          position:      'fixed',
-          bottom:        32,
-          left:          '50%',
-          transform:     'translateX(-50%)',
-          background:    'var(--color-surface-raised)',
-          border:        '1px solid var(--color-border)',
-          borderRadius:  10,
-          padding:       '10px 18px',
-          fontSize:      13,
-          fontWeight:    500,
-          color:         'var(--color-text)',
-          boxShadow:     '0 8px 24px rgba(0,0,0,0.35)',
-          zIndex:        200,
-          pointerEvents: 'none',
-          animation:     'timerWidgetToastFade 3s ease forwards',
-        }}
-      >
-        {message}
-      </div>
-    </>
   )
 }

@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils/cn'
 
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
+import { TimerStatusToast } from '@/components/timer/TimerStatusToast'
 
 export function AppLayout() {
   useAuth()
@@ -70,6 +71,7 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+      <TimerStatusToast />
     </div>
   )
 }
