@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, List, Columns, Lock, Crown, Circle, Clock, CheckCircle } from 'lucide-react'
+import { ChevronLeft, List, Columns, Lock, Crown, Circle, Clock, CheckCircle, MoreHorizontal } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/Spinner'
@@ -13,12 +13,26 @@ import { TaskKanbanView } from '@/components/tasks/TaskKanbanView'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ProjectSessionsList } from '@/components/projects/ProjectSessionsList'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useProject, useProjectStats, useArchiveProject, useUpdateProject } from '@/hooks/useProjects'
 import { useDeleteTask, useTaskSessionMins } from '@/hooks/useTasks'
 import { usePlan } from '@/hooks/usePlan'
 import { useTimerStore, showSaveToast } from '@/store/timerStore'
 import { PATHS } from '@/routes/paths'
 import type { Task } from '@/lib/supabase/queries/tasks'
+
+function formatFocusDuration(minutes: number): string {
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  if (hours === 0) return `${remainingMinutes}m`
+  if (remainingMinutes === 0) return `${hours}h`
+  return `${hours}h ${remainingMinutes}m`
+}
 
 export function ProjectDetailPage() {
   const { id = '' }  = useParams<{ id: string }>()
@@ -100,8 +114,21 @@ export function ProjectDetailPage() {
     navigate(PATHS.timer)
   }
 
+  function handleArchiveToggle() {
+    if (isArchived) {
+      updateProject.mutate(
+        { id, data: { is_archived: false } },
+        { onSuccess: () => navigate(PATHS.projects) },
+      )
+    } else {
+      archiveProject.mutate(id, {
+        onSuccess: () => navigate(PATHS.projects),
+      })
+    }
+  }
+
   return (
-    <div className="flex flex-col gap-6 p-4 sm:p-8">
+    <div className="flex flex-col gap-5 p-1 sm:gap-6 sm:p-8">
 
       {/* Back button */}
       <button
@@ -114,24 +141,23 @@ export function ProjectDetailPage() {
       </button>
 
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-3">
+      <div className="flex items-start justify-between gap-3 sm:items-center sm:gap-4">
+        <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
           <span
             className="shrink-0 rounded-full"
             style={{ width: 14, height: 14, backgroundColor: project.color }}
           />
           {project.icon && (
-            <span style={{ fontSize: 22, lineHeight: 1 }}>{project.icon}</span>
+            <span className="text-xl leading-none sm:text-[22px]">{project.icon}</span>
           )}
           <h1
-            className="truncate font-medium text-ink-primary"
-            style={{ fontSize: 28 }}
+            className="min-w-0 truncate text-xl font-medium leading-tight text-ink-primary sm:text-[28px]"
           >
             {project.name}
           </h1>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="hidden shrink-0 items-center gap-2 sm:flex">
           <Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)}>
             Edit
           </Button>
@@ -139,60 +165,76 @@ export function ProjectDetailPage() {
             variant="outline"
             size="sm"
             isLoading={isArchivePending}
-            onClick={() => {
-              if (isArchived) {
-                updateProject.mutate(
-                  { id: project.id, data: { is_archived: false } },
-                  { onSuccess: () => navigate(PATHS.projects) },
-                )
-              } else {
-                archiveProject.mutate(project.id, {
-                  onSuccess: () => navigate(PATHS.projects),
-                })
-              }
-            }}
+            onClick={handleArchiveToggle}
           >
             {isArchived ? 'Unarchive' : 'Archive'}
           </Button>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            disabled={isArchivePending}
+            aria-label="Project actions"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-depth-border bg-depth-surface text-ink-secondary transition-colors hover:bg-depth-raised hover:text-ink-primary sm:hidden"
+          >
+            <MoreHorizontal size={18} />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem onSelect={() => setIsEditOpen(true)}>Edit project</DropdownMenuItem>
+            <DropdownMenuItem onSelect={handleArchiveToggle}>
+              {isArchived ? 'Unarchive project' : 'Archive project'}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Stats row */}
-      <div className="flex gap-8">
-        <div className="flex flex-col gap-0.5">
-          <span className="font-data text-2xl text-ink-primary">
-            {statsLoading ? '—' : focusHours + 'h'}
+      <div className="grid grid-cols-3 divide-x divide-depth-border rounded-xl border border-depth-border bg-depth-surface sm:flex sm:gap-8 sm:divide-x-0 sm:border-0 sm:bg-transparent">
+        <div className="flex min-w-0 flex-col items-center gap-0.5 px-2 py-3 sm:items-start sm:p-0">
+          <span className="font-data whitespace-nowrap text-lg text-ink-primary sm:text-2xl">
+            {statsLoading ? '—' : (
+              <>
+                <span className="sm:hidden">{formatFocusDuration(stats!.total_focus_minutes)}</span>
+                <span className="hidden sm:inline">{focusHours}h</span>
+              </>
+            )}
           </span>
-          <span className="text-xs text-ink-muted">total focus</span>
+          <span className="text-[11px] text-ink-secondary sm:text-xs sm:text-ink-muted">
+            <span className="sm:hidden">Focus</span>
+            <span className="hidden sm:inline">total focus</span>
+          </span>
         </div>
 
-        <div className="flex flex-col gap-0.5">
-          <span className="font-data text-2xl text-ink-primary">
+        <div className="flex min-w-0 flex-col items-center gap-0.5 px-2 py-3 sm:items-start sm:p-0">
+          <span className="font-data whitespace-nowrap text-lg text-ink-primary sm:text-2xl">
             {statsLoading ? '—' : tasksCompleted}
           </span>
-          <span className="text-xs text-ink-muted">tasks completed</span>
+          <span className="text-[11px] text-ink-secondary sm:text-xs sm:text-ink-muted">
+            <span className="sm:hidden">Completed</span>
+            <span className="hidden sm:inline">tasks completed</span>
+          </span>
         </div>
 
-        <div className="flex flex-col gap-0.5">
-          <span className="font-data text-2xl text-ink-primary">
+        <div className="flex min-w-0 flex-col items-center gap-0.5 px-2 py-3 sm:items-start sm:p-0">
+          <span className="font-data whitespace-nowrap text-lg text-ink-primary sm:text-2xl">
             {statsLoading ? '—' : stats!.session_count}
           </span>
-          <span className="text-xs text-ink-muted">sessions</span>
+          <span className="text-[11px] text-ink-secondary sm:text-xs sm:text-ink-muted">Sessions</span>
         </div>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="tasks">
-        <TabsList className="border border-depth-border bg-depth-raised">
+        <TabsList className="flex w-full border border-depth-border bg-depth-raised sm:inline-flex sm:w-auto">
           <TabsTrigger
             value="tasks"
-            className="data-[state=active]:bg-depth-bg data-[state=active]:text-ink-primary text-ink-muted"
+            className="flex-1 text-ink-muted data-[state=active]:bg-depth-bg data-[state=active]:text-ink-primary sm:flex-none"
           >
             Tasks
           </TabsTrigger>
           <TabsTrigger
             value="sessions"
-            className="data-[state=active]:bg-depth-bg data-[state=active]:text-ink-primary text-ink-muted"
+            className="flex-1 text-ink-muted data-[state=active]:bg-depth-bg data-[state=active]:text-ink-primary sm:flex-none"
           >
             Sessions
           </TabsTrigger>
@@ -203,18 +245,18 @@ export function ProjectDetailPage() {
 
           {/* Tab toolbar — hidden when lock screen is active */}
           {taskView !== 'kanban-locked' && (
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between gap-2">
 
               {/* View toggle */}
-              <div className="flex items-center gap-1 rounded-lg border border-depth-border p-1">
+              <div className="flex min-w-0 flex-1 items-center gap-1 rounded-lg border border-depth-border p-1 sm:flex-none">
                 <button
                   type="button"
                   onClick={() => setTaskView('list')}
                   aria-label="List view"
-                  className="flex items-center rounded-md text-sm font-medium transition-colors"
+                  className="flex flex-1 items-center justify-center rounded-md text-sm font-medium transition-colors sm:flex-none"
                   style={{
                     gap:             6,
-                    padding:         '6px 12px',
+                    padding:         '6px 10px',
                     backgroundColor: taskView === 'list' ? '#222228' : 'transparent',
                     color:           taskView === 'list' ? '#E8E6F0' : '#7A7890',
                   }}
@@ -229,10 +271,10 @@ export function ProjectDetailPage() {
                     else setTaskView('kanban-locked')
                   }}
                   aria-label="Kanban view"
-                  className="flex items-center rounded-md text-sm font-medium transition-colors"
+                  className="flex flex-1 items-center justify-center rounded-md text-sm font-medium transition-colors sm:flex-none"
                   style={{
                     gap:             6,
-                    padding:         '6px 12px',
+                    padding:         '6px 10px',
                     backgroundColor: taskView === 'kanban' ? '#222228' : 'transparent',
                     color:           taskView === 'kanban' ? '#E8E6F0' : '#7A7890',
                   }}
@@ -341,7 +383,7 @@ export function ProjectDetailPage() {
               </div>
 
               {/* Static kanban preview — fully visible, no blur */}
-              <div style={{ display: 'flex', gap: 16, width: '100%', marginBottom: 28 }}>
+              <div className="mb-7 flex w-full flex-col gap-4 sm:flex-row">
 
                 {/* To Do */}
                 <div style={{

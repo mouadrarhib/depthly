@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Clock, MoreHorizontal, Timer } from 'lucide-react'
+import { Check, Clock, ListTodo, MoreHorizontal, Timer } from 'lucide-react'
 
 import {
   DropdownMenu,
@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { Button } from '@/components/ui/button'
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
 import {
   useTasks,
@@ -80,7 +81,7 @@ export function FilterPill({ label, active, onClick, color }: FilterPillProps) {
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-1.5 rounded-full border px-3 py-1
+      className="flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1
                  text-xs font-medium transition-colors"
       style={{
         borderColor:     active ? '#4B9EFF' : '#2E2E38',
@@ -362,8 +363,8 @@ export function TaskListView({ projectId, onOpenTask, onEditTask, onCreateTask }
     <div className="flex flex-col gap-4">
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-stretch gap-4">
-        <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-3 rounded-xl border border-depth-border bg-depth-surface p-3 sm:flex-row sm:flex-wrap sm:items-stretch sm:gap-4 sm:border-0 sm:bg-transparent sm:p-0">
+        <div className="flex min-w-0 flex-col gap-1.5">
           <span
             style={{
               fontSize:      11,
@@ -375,7 +376,7 @@ export function TaskListView({ projectId, onOpenTask, onEditTask, onCreateTask }
           >
             Status
           </span>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible sm:pb-0">
             <FilterPill label="All" active={statusFilter === 'all'} onClick={() => setStatusFilter('all')} />
             {STATUS_ORDER.map(s => (
               <FilterPill
@@ -389,9 +390,9 @@ export function TaskListView({ projectId, onOpenTask, onEditTask, onCreateTask }
           </div>
         </div>
 
-        <div className="w-px self-stretch bg-depth-border" />
+        <div className="hidden w-px self-stretch bg-depth-border sm:block" />
 
-        <div className="flex flex-col gap-1.5">
+        <div className="flex min-w-0 flex-col gap-1.5 border-t border-depth-border pt-3 sm:border-t-0 sm:pt-0">
           <span
             style={{
               fontSize:      11,
@@ -403,7 +404,7 @@ export function TaskListView({ projectId, onOpenTask, onEditTask, onCreateTask }
           >
             Priority
           </span>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible sm:pb-0">
             <FilterPill label="All" active={priorityFilter === 'all'} onClick={() => setPriorityFilter('all')} />
             {(['urgent', 'high', 'medium', 'low'] as const).map(p => (
               <FilterPill
@@ -420,18 +421,25 @@ export function TaskListView({ projectId, onOpenTask, onEditTask, onCreateTask }
 
       {/* Empty states */}
       {isEmpty && (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed
-                        border-depth-border py-12 text-center">
-          <p className="text-sm text-ink-muted">No tasks yet</p>
+        <div className="flex flex-col items-center gap-4 rounded-xl border border-depth-border
+                        bg-depth-surface px-5 py-10 text-center sm:border-dashed sm:bg-transparent sm:py-12">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-depth-raised text-ink-secondary sm:hidden">
+            <ListTodo size={20} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-ink-primary sm:font-normal sm:text-ink-muted">No tasks yet</p>
+            <p className="mt-1 max-w-xs text-xs leading-relaxed text-ink-secondary sm:hidden">
+              Add the first task to turn this project into an actionable workspace.
+            </p>
+          </div>
           {onCreateTask && (
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              size="sm"
               onClick={onCreateTask}
-              className="rounded-md bg-brand px-3 py-1.5 text-sm font-medium
-                         text-white transition-opacity hover:opacity-90"
             >
               Create task
-            </button>
+            </Button>
           )}
         </div>
       )}

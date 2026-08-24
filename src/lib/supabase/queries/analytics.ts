@@ -59,7 +59,6 @@ export async function fetchSessionsForDay(
     .select('*, projects(name, color)')
     .eq('user_id', userId)
     .eq('type', 'focus')
-    .is('excluded_at', null)
     .gte('started_at', startOfDay.toISOString())
     .lt('started_at', endOfDay.toISOString())
     .order('started_at', { ascending: true })
@@ -105,7 +104,6 @@ export async function fetchSessionsForYear(
     .select('duration_mins, project_id, started_at, projects(name, color)')
     .eq('user_id', userId)
     .eq('type', 'focus')
-    .is('excluded_at', null)
     .gte('started_at', startOfYear.toISOString())
     .lt('started_at', endOfYear.toISOString())
 
@@ -135,7 +133,6 @@ export async function fetchSessionsForWeek(
     .select('duration_mins, project_id, started_at, projects(name, color)')
     .eq('user_id', userId)
     .eq('type', 'focus')
-    .is('excluded_at', null)
     .gte('started_at', startOfRange.toISOString())
     .lt('started_at', endOfRange.toISOString())
 
@@ -155,7 +152,6 @@ export async function fetchSessionsAllTime(
     .select('duration_mins, project_id, started_at, projects(name, color)')
     .eq('user_id', userId)
     .eq('type', 'focus')
-    .is('excluded_at', null)
 
   query = applyProjectFilter(query, projectId)
   const { data, error } = await query

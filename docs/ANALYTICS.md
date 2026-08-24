@@ -704,7 +704,7 @@ async function fetchSessionsAllTime(
 
 Same minimal column selection and `type = 'focus'` filter as `fetchSessionsForYear`, but with no date range at all — fetches every focus session the user has ever logged.
 
-For every raw-session query, omitted `projectId` means all projects, a UUID applies `.eq('project_id', id)`, and `null` applies `.is('project_id', null)`. All exclude sessions with a non-null `excluded_at` value.
+For every raw-session query, omitted `projectId` means all projects, a UUID applies `.eq('project_id', id)`, and `null` applies `.is('project_id', null)`. Every saved focus session is included.
 
 #### `fetchUserStats(userId, periodType, periodKey)`
 

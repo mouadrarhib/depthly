@@ -42,7 +42,7 @@ type ProjectStats = {
   total_tasks: number // count of all tasks in project
   completed_tasks: number // count of tasks where status = 'done'
   session_count: number // count of focus sessions
-  last_focused_at: string | null // latest included focus-session timestamp
+  last_focused_at: string | null // latest focus-session timestamp
 }
 ```
 
@@ -76,7 +76,7 @@ Stats for each card are fetched individually per-project via `useProjectStats` i
 
 Displays a single project with stats, a task view, and a sessions list.
 
-**Header**: Project color dot (14px) + optional emoji icon + project name (28px). Edit and Archive/Unarchive buttons in the top-right.
+**Header**: Project color dot (14px) + optional emoji icon + project name (28px desktop, compact mobile). Edit and Archive/Unarchive remain visible in the top-right on desktop; mobile consolidates them into an accessible project-actions menu so the project name keeps the full row.
 
 **Stats row** (3 figures, font-data class):
 
@@ -85,6 +85,13 @@ Displays a single project with stats, a task view, and a sessions list.
 - Session count (raw number)
 
 Shows `—` while stats are loading.
+
+On mobile the stats render as a bordered three-column summary card with compact
+labels and exact focus duration (`6h 55m` rather than a decimal). Tabs span the
+available width, task filters use two horizontally scrollable rows inside a
+single surface, and project session rows collapse into a two-column mobile
+layout. The Kanban upgrade preview stacks its columns vertically below the
+desktop breakpoint to prevent squeezed content or horizontal page overflow.
 
 **Tabs** (shadcn `Tabs`):
 
@@ -177,11 +184,18 @@ Shows `—` while stats are loading.
 |---|---|---|
 | `projectId` | `string` | Fetches sessions for this project |
 
-**Renders:** A vertically-divided list of session rows. Each row shows:
+**Renders:** A vertically-divided list of clickable session rows. Each row shows:
 
 - Date (e.g. "Jun 29, 2025") + time (e.g. "3:00 PM") — using `en-US` locale formatting
-- Task name column: currently always shows "No task" (task join not yet wired up)
+- Linked task name, or "No task" when the session has no task
 - Duration: formatted as `45m` or `1h 30m`
+
+Selecting a row opens the shared `SessionDetailModal` used by `/sessions`.
+From there the user can open `SessionModal` to edit title, notes, project, or
+task. Project-session queries include the project/task
+relations required by both dialogs. Session metadata updates invalidate
+sessions, analytics, projects, and tasks so moving a session immediately
+refreshes the old and new project surfaces.
 
 Loading state: 5 animated skeleton rows.
 Empty state: centered message.
@@ -366,8 +380,8 @@ custom accessible `Clear project search` control.
 
 Migration `019_sync_project_last_used.sql` adds a session trigger that recomputes
 the affected project's `last_used_at` whenever a focus session is inserted,
-deleted, reassigned, excluded/restored, or moved in time. The migration also
-backfills existing projects from their latest included focus session. This keeps
+deleted, reassigned, or moved in time. The migration also backfills existing
+projects from their latest focus session. This keeps
 both the Last used sort and card recency metadata accurate with the trusted timer
 lifecycle introduced in migration 015.
 
@@ -383,7 +397,6 @@ lifecycle introduced in migration 015.
 
 ## 8. Known Limitations
 
-- **Session task join not wired up**: `ProjectSessionsList` always shows "No task" in the task name column. The comment in the source notes "task join added in Phase 4 when tasks are built" — this was deferred.
 - **`sort_order` column unused**: The `projects` table has a `sort_order` column (float) but the current UI ignores it entirely — sort order is computed client-side from `last_used_at` and name.
 - **Create/edit/delete still refetch**: Archive and restore are optimistic; create, edit, and delete continue to invalidate and refetch.
 

@@ -1,4 +1,4 @@
-import { Calendar, Clock, FolderOpen, FileText, Pencil, RotateCcw, XCircle } from 'lucide-react'
+import { Calendar, Clock, FolderOpen, FileText, Pencil } from 'lucide-react'
 
 import {
   Dialog,
@@ -16,7 +16,6 @@ interface SessionDetailModalProps {
   onClose:  () => void
   session:  SessionWithRelations | null
   onEdit:   () => void
-  onDelete: () => void
 }
 
 function formatDate(iso: string): string {
@@ -64,7 +63,7 @@ function SectionLabel({ icon: Icon, children }: { icon: React.ElementType; child
   )
 }
 
-export function SessionDetailModal({ open, onClose, session, onEdit, onDelete }: SessionDetailModalProps) {
+export function SessionDetailModal({ open, onClose, session, onEdit }: SessionDetailModalProps) {
   if (!session) return null
 
   const isBreak = session.type === 'break'
@@ -192,10 +191,6 @@ export function SessionDetailModal({ open, onClose, session, onEdit, onDelete }:
           <Button type="button" variant="ghost" onClick={onClose}>
             Close
           </Button>
-          {session.is_trusted && !isBreak ? <Button type="button" variant={session.excluded_at ? 'ghost' : 'danger'} onClick={onDelete} style={{ gap: 6 }}>
-            {session.excluded_at ? <RotateCcw size={14} /> : <XCircle size={14} />}
-            {session.excluded_at ? 'Restore' : 'Exclude'}
-          </Button> : null}
           <Button type="button" variant="primary" onClick={onEdit} style={{ gap: 6 }}>
             <Pencil size={14} />
             Edit

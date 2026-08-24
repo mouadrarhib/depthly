@@ -475,7 +475,6 @@ The due date string (`YYYY-MM-DD`) is always parsed with `T00:00:00` appended to
 
 ## 9. Known Limitations
 
-- **No task-session link in sessions list**: `ProjectSessionsList` always shows "No task" — the sessions query does not join on `task_id` yet.
 - **No global task view**: Tasks can only be accessed through a project's detail page. There is no `/tasks` route.
 - **`actual_pomodoros` not incremented by client**: The field exists and is displayed, but the timer's `save_session()` RPC is responsible for incrementing it. The client never writes to this field directly.
 - **Float precision decay (Kanban only)**: After many drag-and-drop operations inserting between the same two cards, `kanban_order` values can become very close together (e.g. `3.000000001` and `3.000000002`). There is no renormalization mechanism in place yet. Doesn't apply to the list view, which no longer orders by `list_order`.

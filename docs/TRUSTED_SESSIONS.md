@@ -24,10 +24,17 @@ Challenges. New timer sessions increment personal and trusted aggregates atomica
 ## Session changes
 
 Saved timing is immutable. `update_session_metadata()` may change only title, notes, project, and
-task. Trusted focus sessions can be excluded/restored with `set_session_excluded()`; the RPC adjusts
-daily summaries, period stats, profile totals/streaks, goals, and task pomodoro counts in one
-transaction. Legacy sessions cannot be excluded because their original client-local aggregate date
-was not stored.
+task. Every saved focus session counts toward analytics, goals, streaks, project/task totals, and
+leaderboards. Migration `020_count_all_sessions.sql` restores any previously excluded sessions,
+clears their exclusion metadata, and revokes authenticated access to the legacy
+`set_session_excluded()` RPC. The exclusion columns and RPC remain temporarily for schema
+compatibility but are no longer used by the application.
+
+The main Sessions page and each project's Sessions tab share `SessionDetailModal` and
+`SessionModal`. Project rows fetch project/task relations, are keyboard accessible, and open the
+shared details dialog when selected. Sessions can be edited but not excluded or deleted. The page
+keeps only the session-type filter; a separate unfiltered session-count query distinguishes a
+genuinely empty account from a type/filter combination with zero results.
 
 ## Share Progress
 
@@ -38,6 +45,6 @@ download fallbacks. Free accounts can share only periods inside their analytics 
 
 ## Deployment
 
-Apply migrations through `016_active_timer_realtime.sql`, deploy the matching client, then verify direct
+Apply migrations through `020_count_all_sessions.sql`, deploy the matching client, then verify direct
 session writes and the legacy `save_session()` RPC are rejected for authenticated users. Deploying
 the client before migration 015 will make timer actions fail because the lifecycle RPCs do not exist.

@@ -86,7 +86,6 @@ export async function fetchSessionMinsByTask(projectId: string): Promise<Record<
   const { data, error } = await supabase
     .from('sessions')
     .select('task_id, duration_mins')
-    .is('excluded_at', null)
     .eq('project_id', projectId)
     .not('task_id', 'is', null)
 

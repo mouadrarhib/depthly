@@ -1,10 +1,9 @@
-import { ChevronRight, MoreHorizontal, Pencil, RotateCcw, ShieldQuestion, XCircle } from 'lucide-react'
+import { ChevronRight, MoreHorizontal, Pencil, ShieldQuestion } from 'lucide-react'
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/Badge'
@@ -15,7 +14,6 @@ interface SessionRowProps {
   session:      SessionWithRelations
   onOpenDetail: () => void
   onEdit:       () => void
-  onDelete:     () => void
 }
 
 function formatTime(iso: string): string {
@@ -33,7 +31,7 @@ function formatDuration(mins: number): string {
   return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
-export function SessionRow({ session, onOpenDetail, onEdit, onDelete }: SessionRowProps) {
+export function SessionRow({ session, onOpenDetail, onEdit }: SessionRowProps) {
   const isBreak = session.type === 'break'
 
   return (
@@ -82,12 +80,11 @@ export function SessionRow({ session, onOpenDetail, onEdit, onDelete }: SessionR
 
       {/* PROJECT + TASK, or a Break badge — flex-1 */}
       <div className="min-w-0 flex-1">
-        {!isBreak && (!session.is_trusted || session.excluded_at) ? <div className="mb-1 flex items-center gap-1.5">
+        {!isBreak && !session.is_trusted ? <div className="mb-1 flex items-center gap-1.5">
           {!session.is_trusted ? <Badge variant="outline" className="gap-1 border-depth-border bg-depth-raised text-ink-muted">
             <ShieldQuestion className="h-3 w-3" />
             Legacy
           </Badge> : null}
-          {session.excluded_at ? <Badge variant="outline" className="border-depth-border bg-depth-raised text-ink-muted">Excluded</Badge> : null}
         </div> : null}
         {isBreak ? (
           <Badge
@@ -166,11 +163,6 @@ export function SessionRow({ session, onOpenDetail, onEdit, onDelete }: SessionR
                 <Pencil className="h-3.5 w-3.5" />
                 Edit
               </DropdownMenuItem>
-              {session.is_trusted && !isBreak ? <><DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onDelete} className={session.excluded_at ? '' : 'text-feedback-error focus:text-feedback-error'}>
-                  {session.excluded_at ? <RotateCcw className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
-                  {session.excluded_at ? 'Restore' : 'Exclude'}
-                </DropdownMenuItem></> : null}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

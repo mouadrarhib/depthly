@@ -34,32 +34,39 @@ function throwRpcError(error: { message: string } | null): void {
   if (error) throw new Error(error.message)
 }
 
-export async function fetchSessionsByProject(projectId: string): Promise<Session[]> {
+export async function fetchSessionsByProject(projectId: string): Promise<SessionWithRelations[]> {
   const { data, error } = await supabase
     .from('sessions')
-    .select('*')
+    .select('*, projects(name, color), tasks(title)')
     .eq('project_id', projectId)
     .eq('type', 'focus')
-    .is('excluded_at', null)
     .order('started_at', { ascending: false })
     .limit(50)
 
   throwRpcError(error)
-  return data ?? []
+  return (data ?? []) as SessionWithRelations[]
 }
 
 // 'all' returns both focus and break sessions. Defaults to 'focus' so every
 // existing caller (e.g. the home page's recent-sessions list) keeps its
 // current behavior unchanged.
 export type SessionTypeFilter = 'all' | 'focus' | 'break'
-export type SessionStatusFilter = 'active' | 'excluded' | 'all'
+
+export async function fetchSessionCount(userId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('sessions')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+
+  throwRpcError(error)
+  return count ?? 0
+}
 
 export async function fetchSessionsPaginated(
   userId: string,
   page: number,
   pageSize: number = 20,
   typeFilter: SessionTypeFilter = 'focus',
-  statusFilter: SessionStatusFilter = 'active',
 ): Promise<{ sessions: SessionWithRelations[]; totalCount: number }> {
   const from = page * pageSize
   const to   = page * pageSize + pageSize - 1
@@ -72,9 +79,6 @@ export async function fetchSessionsPaginated(
   if (typeFilter !== 'all') {
     query = query.eq('type', typeFilter)
   }
-  if (statusFilter === 'active') query = query.is('excluded_at', null)
-  if (statusFilter === 'excluded') query = query.not('excluded_at', 'is', null)
-
   const { data, error, count } = await query
     .order('started_at', { ascending: false })
     .range(from, to)
@@ -136,13 +140,6 @@ export async function updateSessionMetadata(id: string, data: SessionMetadataInp
   return updated as Session
 }
 
-export async function setSessionExcluded(id: string, excluded: boolean): Promise<Session> {
-  const { data, error } = await trustedRpc('set_session_excluded', { p_session_id: id, p_excluded: excluded })
-  throwRpcError(error)
-  if (!data) throw new Error('Session not found')
-  return data as Session
-}
-
 export async function fetchSessionsThisMonth(userId: string): Promise<number> {
   const now = new Date()
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
@@ -152,7 +149,6 @@ export async function fetchSessionsThisMonth(userId: string): Promise<number> {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('type', 'focus')
-    .is('excluded_at', null)
     .gte('started_at', firstOfMonth)
 
   if (error) throw error
@@ -174,7 +170,6 @@ export async function fetchSessionsForExport(
     .from('sessions')
     .select('*, projects(name, color), tasks(title)')
     .eq('user_id', userId)
-    .is('excluded_at', null)
     .order('started_at', { ascending: false })
 
   if (!filters.includeBreaks) {

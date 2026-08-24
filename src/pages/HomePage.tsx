@@ -14,12 +14,11 @@ import { SessionRow } from '@/components/sessions/SessionRow'
 import { SessionDetailModal } from '@/components/sessions/SessionDetailModal'
 import { SessionModal } from '@/components/sessions/SessionModal'
 import { GoalDialog } from '@/components/goals/GoalDialog'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useProfile, useDailySummary, useDailySummariesRange } from '@/hooks/useAnalytics'
 import { useGoals } from '@/hooks/useGoals'
-import { useSessionsPaginated, useSetSessionExcluded } from '@/hooks/useSessions'
+import { useSessionsPaginated } from '@/hooks/useSessions'
 import {
   formatMinutesToHours,
   formatPeriodKey,
@@ -118,10 +117,8 @@ export function HomePage() {
   const { data: weekSummaries } = useDailySummariesRange(weekStart, weekEnd)
 
   const [editingSession,  setEditingSession]  = useState<SessionWithRelations | null>(null)
-  const [deletingSession, setDeletingSession] = useState<SessionWithRelations | null>(null)
   const [viewingSession,  setViewingSession]  = useState<SessionWithRelations | null>(null)
   const [goalDialogOpen,  setGoalDialogOpen]  = useState(false)
-  const deleteSession = useSetSessionExcluded()
 
   const sessions       = sessionsData?.sessions ?? []
   const recentSessions = sessions.slice(0, 3)
@@ -152,22 +149,9 @@ export function HomePage() {
     })
   }, [weekDays, weekSummaries, today])
 
-  function handleDeleteConfirm() {
-    if (!deletingSession) return
-    deleteSession.mutate({ id: deletingSession.id, excluded: !deletingSession.excluded_at }, {
-      onSuccess: () => setDeletingSession(null),
-    })
-  }
-
   function handleEditFromDetail() {
     if (!viewingSession) return
     setEditingSession(viewingSession)
-    setViewingSession(null)
-  }
-
-  function handleDeleteFromDetail() {
-    if (!viewingSession) return
-    setDeletingSession(viewingSession)
     setViewingSession(null)
   }
 
@@ -296,7 +280,6 @@ export function HomePage() {
                     session={session}
                     onOpenDetail={() => setViewingSession(session)}
                     onEdit={() => setEditingSession(session)}
-                    onDelete={() => setDeletingSession(session)}
                   />
                 ))}
               </div>
@@ -414,7 +397,6 @@ export function HomePage() {
         onClose={() => setViewingSession(null)}
         session={viewingSession}
         onEdit={handleEditFromDetail}
-        onDelete={handleDeleteFromDetail}
       />
 
       {/* Edit session modal */}
@@ -422,18 +404,6 @@ export function HomePage() {
         open={!!editingSession}
         onClose={() => setEditingSession(null)}
         session={editingSession ?? undefined}
-      />
-
-      {/* Delete session confirm */}
-      <ConfirmDialog
-        open={!!deletingSession}
-        onClose={() => setDeletingSession(null)}
-        onConfirm={handleDeleteConfirm}
-        title="Exclude session?"
-        description="The record stays in your history but no longer counts toward your statistics."
-        confirmLabel="Exclude"
-        isLoading={deleteSession.isPending}
-        variant="danger"
       />
 
       {/* Quick-set goal dialog */}

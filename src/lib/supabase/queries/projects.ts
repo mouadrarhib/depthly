@@ -89,7 +89,6 @@ export async function getProjectStats(projectId: string): Promise<ProjectStats> 
     supabase
       .from('sessions')
       .select('duration_mins, started_at')
-      .is('excluded_at', null)
       .eq('project_id', projectId)
       .eq('type', 'focus'),
     supabase.from('tasks').select('status').eq('project_id', projectId),

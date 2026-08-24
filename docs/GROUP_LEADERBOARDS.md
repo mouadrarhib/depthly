@@ -4,7 +4,7 @@
 
 Group leaderboards are private, invite-only focus circles. They are separate from
 Challenges: a group has a recurring Daily, Weekly, or Monthly reset and no custom
-start/end date. Rankings use trusted, non-excluded focus sessions only.
+start/end date. Rankings use trusted focus sessions only.
 
 ## Data and deployment
 
@@ -22,7 +22,7 @@ free and does not require public-profile or global-leaderboard eligibility.
 
 The creator's IANA timezone is captured at creation and defines shared period bounds.
 An active member's score is the sum of sessions that are focus sessions, trusted,
-not excluded, completed inside the current group period, and completed after that
+completed inside the current group period, and completed after that
 membership's `joined_at`. Ties share the same rank; deterministic join/user ordering
 stabilizes their display order. The optional goal is per member and never changes rank.
 

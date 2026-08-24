@@ -4,16 +4,15 @@ import { useAuthStore } from '@/store/authStore'
 import { sessionKeys } from '@/lib/queryKeys'
 import {
   fetchSessionsByProject,
+  fetchSessionCount,
   fetchSessionsPaginated,
   fetchSessionsForExport,
   updateSessionMetadata,
-  setSessionExcluded,
 } from '@/lib/supabase/queries/sessions'
 import type {
   SessionMetadataInput,
   ExportFilters,
   SessionTypeFilter,
-  SessionStatusFilter,
 } from '@/lib/supabase/queries/sessions'
 import {
   convertSessionsToCSV,
@@ -29,11 +28,20 @@ export function useSessionsByProject(projectId: string) {
   })
 }
 
-export function useSessionsPaginated(page: number, type: SessionTypeFilter = 'focus', status: SessionStatusFilter = 'active') {
+export function useSessionCount() {
   const userId = useAuthStore(s => s.user?.id ?? '')
   return useQuery({
-    queryKey: [...sessionKeys.paginated(userId, page, type), status],
-    queryFn:  () => fetchSessionsPaginated(userId, page, 20, type, status),
+    queryKey: sessionKeys.count(userId),
+    queryFn: () => fetchSessionCount(userId),
+    enabled: !!userId,
+  })
+}
+
+export function useSessionsPaginated(page: number, type: SessionTypeFilter = 'focus') {
+  const userId = useAuthStore(s => s.user?.id ?? '')
+  return useQuery({
+    queryKey: sessionKeys.paginated(userId, page, type),
+    queryFn:  () => fetchSessionsPaginated(userId, page, 20, type),
     enabled:  !!userId,
   })
 }
@@ -46,23 +54,8 @@ export function useUpdateSession() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['sessions'] })
       qc.invalidateQueries({ queryKey: ['analytics'] })
-    },
-  })
-}
-
-export function useSetSessionExcluded() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, excluded }: { id: string; excluded: boolean }) => setSessionExcluded(id, excluded),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['sessions'] })
-      qc.invalidateQueries({ queryKey: ['analytics'] })
-      qc.invalidateQueries({ queryKey: ['profile'] })
-      qc.invalidateQueries({ queryKey: ['goals'] })
       qc.invalidateQueries({ queryKey: ['projects'] })
       qc.invalidateQueries({ queryKey: ['tasks'] })
-      qc.invalidateQueries({ queryKey: ['leaderboard'] })
-      qc.invalidateQueries({ queryKey: ['group-leaderboards'] })
     },
   })
 }
