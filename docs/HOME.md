@@ -81,11 +81,11 @@ No sessions yet — start the timer to record your first session
 
 ---
 
-## Session edit / delete
+## Session details and editing
 
-`SessionRow` is wired to a `<SessionModal>` (edit) and `<ConfirmDialog>`
-(delete) within the Home page. Both are driven by local `useState` and
-the `useDeleteSession()` mutation.
+`SessionRow` opens the shared `<SessionDetailModal>` when selected. Its Edit action opens
+`<SessionModal>`, which can update project, task, title, and notes through the trusted
+metadata RPC. Session timing is immutable, and the Home page does not offer deletion.
 
 ---
 

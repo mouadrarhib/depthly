@@ -29,8 +29,8 @@ or a webhook handler should be reviewed against the same checklist (below) befor
    about to touch, and is `EXECUTE` scoped to the right Postgres role.
 4. **Edge Functions** — service role key usage, whether the client bundle can ever see a
    secret, and whether webhook handlers verify a signature before trusting the payload.
-5. **Write paths** — anything bypassing the `save_session()` RPC to write `daily_summaries`
-   or `user_stats` directly.
+5. **Write paths** — anything bypassing the approved trusted-timer lifecycle and its private
+   aggregate helper to write `daily_summaries` or `user_stats` directly.
 6. **Secrets** — committed to the repo, or leaked into the client bundle (anything without
    the `VITE_` prefix must never reach `src/`).
 7. **Client-supplied identity** — any code trusting a client-sent user id instead of
@@ -175,8 +175,8 @@ or wasn't 64 chars" — not a practically exploitable timing channel. Left as-is
   `split_part(name, '/', 1) = auth.uid()::text`; public read is intentional (avatars are
   meant to be publicly loadable images).
 - No client code writes to `daily_summaries` or `user_stats` directly — every reference in
-  `src/` is a `.select()`; the only writers are `save_session()` and the (service-role,
-  server-side) webhook handler.
+  `src/` is a `.select()`. Trusted timer completion writes them through the private
+  `apply_focus_aggregate_delta()` helper, whose execution is revoked from client roles.
 - The service role key (`SUPABASE_SERVICE_ROLE_KEY`, `.env.local`, gitignored) is used only
   in `lemonsqueezy-webhook` and local seed scripts — never in anything Vite bundles
   (`VITE_`-prefixed vars are the only ones the client ever sees).

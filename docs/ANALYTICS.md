@@ -11,8 +11,8 @@ all projects, one active or archived project, or sessions with no project.
 
 All aggregated stats come from two tables:
 
-- **`daily_summaries`** — one row per user per calendar day; fields: `date`, `focus_minutes`, `session_count`, `pomodoro_count`. Written atomically by the `save_session` RPC (SECURITY DEFINER). Never written from client code directly.
-- **`profiles`** — all-time cumulative stats: `total_focus_minutes`, `total_sessions`, `current_streak`, `longest_streak`, `member_since`. Updated by the same RPC.
+- **`daily_summaries`** — one row per user per calendar day; fields: `date`, `focus_minutes`, `session_count`, `pomodoro_count`. Written atomically by the trusted `finish_timer_run()` lifecycle through the private `apply_focus_aggregate_delta()` helper. Never written from client code directly.
+- **`profiles`** — all-time cumulative stats: `total_focus_minutes`, `total_sessions`, `current_streak`, `longest_streak`, `member_since`. Updated by the same trusted aggregation path.
 - **`sessions`** (raw) — queried by every view for project-aware totals,
   comparisons, timelines, heatmaps, streaks, and project breakdowns. Queries
   include `project_id`, `started_at`, duration, and a `projects(name, color)`
@@ -25,7 +25,7 @@ All aggregated stats come from two tables:
 
 `fetchSessionsForDay()` constructs local-midnight boundaries using `new Date(y, m-1, d)` (which respects the runtime's local timezone) and converts them to ISO strings for the Supabase query. A naïve UTC-midnight query would shift by the user's UTC offset and miss or misattribute sessions near midnight.
 
-**Known remaining issue:** the `save_session` RPC stores `daily_summaries.date` as `(p_started_at at time zone 'UTC')::date`, so sessions logged after ~11 PM local time in UTC+ timezones may land on the wrong date row in `daily_summaries`. This affects WeeklyView/MonthlyView/YearlyView (which read from `daily_summaries`), but not DailyView's session-level query (which queries `sessions` with local-midnight boundaries). Fixing this requires changing the RPC and has not been done yet.
+The trusted timer run stores the user's IANA timezone when it starts. `finish_timer_run()` derives `daily_summaries.date` from the server finish time in that stored timezone, so aggregate rows and the local-day session queries use the same calendar-day convention.
 
 ---
 
@@ -893,7 +893,7 @@ Implemented in utils, not used anywhere. Weekly and monthly views do their own i
 
 ### `useUserStats` / `useUserStatsRange` — hooks exist, not wired to any view
 
-The hooks and their underlying query functions are fully implemented. No view component currently calls them. The `user_stats` table is populated by the `save_session` RPC.
+The hooks and their underlying query functions are fully implemented. No view component currently calls them. The `user_stats` table is populated by the trusted timer aggregation path through `apply_focus_aggregate_delta()`.
 
 ### YearlyView fetches a full year of raw sessions
 
@@ -907,9 +907,9 @@ The hooks and their underlying query functions are fully implemented. No view co
 
 Only the heatmap has the `showOverlay` blur/lock treatment for the free plan's analytics window. The stats row (all 8 cards) and the "Focus Time by Project" card render full-year data regardless of plan, same as the original 3-card row did before this was expanded — this is pre-existing behavior, not something introduced by the 8-card expansion.
 
-### RPC timezone mismatch for daily_summaries
+### Aggregate timezone convention
 
-`save_session` stores `daily_summaries.date` as `(p_started_at at time zone 'UTC')::date`. For users in UTC+ timezones, sessions logged before midnight UTC (but after midnight local time on the next day) are stored under yesterday's date in `daily_summaries`. This affects the unfiltered WeeklyView, MonthlyView, and YearlyView. Project-filtered views derive their daily totals from local-date raw session queries and are not affected. DailyView's session-level query is also unaffected. Fixing the underlying aggregate still requires changing the RPC to accept a timezone offset parameter or store UTC-based dates explicitly as a known convention.
+Trusted timer runs persist the user's IANA timezone. On completion, `finish_timer_run()` assigns the aggregate date using that timezone before updating `daily_summaries`. Daily session queries continue to use local-midnight ISO boundaries, keeping raw-session and aggregate views aligned around midnight.
 
 ### YearlyView always fetches exactly 52 ISO weeks plus one optional overflow
 

@@ -173,7 +173,7 @@ Read-only detail view opened by clicking anywhere on a task row (`TaskListView`)
 **Start Timer button** — wired in `ProjectDetailPage.handleStartTimerFromTask`:
 - If a timer is already running or paused (`timerStore.isRunning || isPaused`), the click does **not** touch `selectedProjectId`/`selectedTaskId` — reassigning them mid-session would silently attribute the *currently running* session to the new task on save. Instead it shows a toast ("Finish or stop your current session before starting a new one") via `showSaveToast` and just navigates to `/timer` so the user can see the active session.
 - If idle, it calls `setSelectedProject(project.id)`, `setSelectedTask(task.id)`, then `start()` — the timer begins immediately at the configured focus duration, pre-linked to that task, then navigates to `/timer`.
-- Because `save_session()` already reads `selectedTaskId` off the store (see `useSaveSession.ts` and `docs/timer.md` §4), no other wiring was needed for the resulting session — and its natural break — to save with `task_id` set and increment `tasks.actual_pomodoros`.
+- The trusted start RPC persists the selected task on the active run. On completion, `finish_timer_run()` accepts the final metadata and its aggregate helper increments `tasks.actual_pomodoros`, so the client never writes that counter directly.
 
 ---
 
@@ -476,7 +476,7 @@ The due date string (`YYYY-MM-DD`) is always parsed with `T00:00:00` appended to
 ## 9. Known Limitations
 
 - **No global task view**: Tasks can only be accessed through a project's detail page. There is no `/tasks` route.
-- **`actual_pomodoros` not incremented by client**: The field exists and is displayed, but the timer's `save_session()` RPC is responsible for incrementing it. The client never writes to this field directly.
+- **`actual_pomodoros` not incremented by client**: The field exists and is displayed, but trusted timer completion updates it through `finish_timer_run()` and the private aggregate helper. The client never writes to this field directly.
 - **Float precision decay (Kanban only)**: After many drag-and-drop operations inserting between the same two cards, `kanban_order` values can become very close together (e.g. `3.000000001` and `3.000000002`). There is no renormalization mechanism in place yet. Doesn't apply to the list view, which no longer orders by `list_order`.
 - **No subtasks**: Tasks are flat — there is no parent/child task relationship in the schema.
 - **No bulk operations**: No select-all, bulk delete, or bulk status change in the UI.

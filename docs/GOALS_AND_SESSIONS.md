@@ -83,112 +83,81 @@ Renders two `GoalRow` sub-components — one for daily, one for weekly — each 
 - A shared Save button that calls `useUpdateGoals()`
 - A "Saved" confirmation that auto-clears after 2 s
 
-**Known gap — no UI entry point yet.** `GoalSettings` is built and works in isolation but is not mounted anywhere in the current navigation. It will be embedded in the Settings page (Phase 8). Until then it can only be tested by importing it directly.
+`GoalSettings` is mounted in the Goals section of `/settings`, so users can update these targets from the normal app navigation.
 
 ---
 
 ## Sessions Log
 
-> **Update 1:** manual creation, timing edits, and hard deletion were replaced by the trusted timer
-> lifecycle in `docs/TRUSTED_SESSIONS.md`. The historical CRUD notes below describe the pre-015
-> implementation and must not be used for new code.
+Route: `/sessions`. Sessions are immutable records produced by the trusted timer lifecycle described
+in `docs/TRUSTED_SESSIONS.md`. The page does not provide manual creation, hard deletion, timing edits,
+or analytics exclusion. Every saved focus session contributes to analytics; saved breaks remain visible
+in the log but do not add focus time.
 
 ### Pagination approach
 
-`fetchSessionsPaginated` in `src/lib/supabase/queries/sessions.ts` uses Supabase's `.range(from, to)` with `{ count: 'exact' }` to retrieve a page of sessions and the total row count in a single request.
+`fetchSessionsPaginated` in `src/lib/supabase/queries/sessions.ts` retrieves 20 rows at a time with
+Supabase `.range(from, to)` and an exact count. It accepts a session-type filter (`all`, `focus`, or
+`break`) and includes the related project and task needed by the list and detail dialog.
 
 ```
 from = page * pageSize        // inclusive, 0-indexed
 to   = from + pageSize - 1    // inclusive
 ```
 
-The companion hook `useSessionsPaginated(page)` sets `keepPreviousData: true` so the previous page stays visible while the next page loads — no loading flash between pages.
+The query key includes the user, page, and type filter so each result is cached independently. The fixed page
+size is 20. Date, project, duration, and text filters are applied to the loaded session data by the page;
+changing the server-side type filter resets pagination to the first page.
 
-Query key: `['sessions', 'paginated', userId, page]` — page changes create new cache entries, so forward/back navigation is instant after the first visit.
+`fetchSessionCount()` is a separate unfiltered count. It lets the page distinguish a genuinely new account
+from a filtered result with no matches, so the empty-state guidance stays accurate.
 
-### Edit sessions — `updateSession`
+### Editing metadata
 
-```typescript
-updateSession(id: string, data: UpdateSessionInput): Promise<Session>
-```
+`SessionModal` is edit-only. It can change:
 
-Accepted fields: `project_id`, `task_id`, `duration_mins`, `started_at`, `ended_at`, `notes`.
+- project
+- task
+- session title
+- notes
 
-> **⚠ Known issue — aggregates not recalculated.**
-> `updateSession` is a direct `UPDATE` on the `sessions` table. It does **not** touch `daily_summaries`, `user_stats`, or `profiles`. If a session's `duration_mins` or `started_at` is changed:
-> - The session list will show the correct new value immediately.
-> - The Analytics page will continue to show stale totals until the underlying aggregates are corrected.
-> - `profiles.total_focus_minutes`, `user_stats`, and `daily_summaries` will be out of sync.
->
-> This is acceptable for now (the edit flow is primarily for fixing project/task assignment or notes). A future `recalculate_stats()` RPC would be needed to fully fix this.
+The mutation calls `update_session_metadata()`. Duration, start time, end time, timer mode, trust state,
+and session type cannot be edited. This keeps the server-calculated record and all aggregates consistent.
+Changing the project clears an incompatible task selection. On success, session and analytics queries are
+invalidated so project breakdowns and lists refresh.
 
-`useUpdateSession()` invalidates both `['sessions']` and `['analytics']` on success so that at minimum the session list is refreshed and the analytics queries re-fetch (they will show the same stale aggregate values from the DB, but any client-side cached data is cleared).
+### Filters and day navigation
 
-### Delete sessions — `deleteSession`
+The filter toolbar supports:
 
-```typescript
-deleteSession(id: string): Promise<void>
-```
+- text search
+- session type (`All`, `Focus`, `Break`)
+- start and end dates through native date inputs
+- project
+- duration
 
-> **⚠ Known issue — aggregates not recalculated.**
-> `deleteSession` is a direct `DELETE` on the `sessions` table. It does **not** decrement `daily_summaries.focus_minutes`, `daily_summaries.session_count`, `user_stats`, or `profiles.total_focus_minutes` / `total_sessions`. Those aggregates will remain inflated after deletion.
->
-> The streak in `profiles.current_streak` is also unaffected.
+Sessions are grouped beneath local-calendar date headings. A range can be entered directly, avoiding repeated
+previous-day navigation when the user needs to inspect an older period.
 
-`useDeleteSession()` invalidates `['sessions']` only (analytics queries are not invalidated since the underlying aggregates haven't actually changed — re-fetching them would show the same inflated numbers).
+### Session details and rows
 
-### Manual session creation — `createManualSession`
+`SessionRow` is clickable and opens `SessionDetailModal`, which shows the saved timing, duration, type,
+trust indicator, project, task, title, and notes. Its Edit action opens the metadata modal. The row also has
+an accessible three-dot Edit action for direct access.
 
-```typescript
-createManualSession(data: CreateManualSessionInput): Promise<Session>
-```
+The same detail and edit dialogs are reused for sessions shown inside a project. This keeps session behavior
+consistent between `/sessions` and the project detail page.
 
-Input: `user_id`, `project_id`, `task_id`, `duration_mins`, `started_at`, `ended_at`, `notes`, `local_date`.
+Rows display a `Legacy` badge when `is_trusted` is false and a type badge for break records. Durations and
+counts use the data font.
 
-Unlike `updateSession` / `deleteSession`, manual creation **routes through the `save_session()` SECURITY DEFINER RPC** — the same function the timer uses. This means:
+### Page states
 
-- `daily_summaries` is correctly upserted.
-- `user_stats` (daily / weekly / monthly / yearly) is correctly upserted.
-- `profiles.total_focus_minutes`, `total_sessions`, `current_streak`, and `last_focus_date` are all updated atomically.
-- `tasks.actual_pomodoros` is incremented if a task is linked.
+- Initial loading uses session-row skeletons.
+- A genuinely empty account explains that completed timers appear here and links to the Timer.
+- A filtered-empty state explains that no sessions match and offers to clear the filters.
+- The pagination footer shows the visible row range and disables Previous/Next at the boundaries.
+- Only one document scrollbar is used; the filter controls and rows remain responsive on mobile.
 
-Two caveats from the RPC signature:
-1. `is_manual` is not a parameter the RPC accepts — the DB column defaults to `false`, so manual sessions are not distinguishable from timer sessions in the database.
-2. `p_timer_mode` is passed as `null`; the RPC coerces `null → 'pomodoro'` internally.
-
-`local_date` (`YYYY-MM-DD`) is the date the user picked in the form — it's passed straight through as `p_local_date` and used verbatim for `daily_summaries.date` / streak bookkeeping. As of migration `006_save_session_local_date.sql`, the RPC no longer derives the session's date from `p_started_at` in UTC (that desynced from the client's "today" for any non-UTC timezone) — every caller (timer completion, manual stop, break auto-save, and this one) must supply the local date explicitly.
-
-`useCreateManualSession()` invalidates both `['sessions']` and `['analytics']` on success, and in this case the analytics re-fetch will reflect the correctly updated aggregates.
-
-### SessionModal — `src/components/sessions/SessionModal.tsx`
-
-Used for both edit and create:
-- **Edit mode**: `session` prop is a `SessionWithRelations`. Fields are pre-filled from the session. Submits via `useUpdateSession()`.
-- **Create mode**: `session` prop is absent. Date/time default to `new Date()` in the user's local timezone. Submits via `useCreateManualSession()`.
-
-Date + time are stored as separate inputs and combined into a UTC ISO string on submit:
-```typescript
-const startedAt = new Date(`${date}T${time}`).toISOString()
-const endedAt   = new Date(startMs + durationMins * 60_000).toISOString()
-```
-
-The task selector is disabled until a project is selected, and changing the project clears the selected task.
-
-### SessionRow — `src/components/sessions/SessionRow.tsx`
-
-Renders a single row in the paginated list. Key behaviours:
-- Date shows "Today" when `started_at` is the same local calendar date as `new Date()`.
-- Duration formats as `"45m"` or `"1h 30m"` (no trailing `" 0m"` for whole hours).
-- Notes indicator: a `FileText` icon that reveals the full note text in a tooltip on hover.
-- The three-dot action menu is hidden at rest and fades in on row hover (`group-hover:opacity-100`).
-
-### SessionsPage — `src/pages/SessionsPage.tsx`
-
-Route: `/sessions` (registered in `src/routes/index.tsx`, linked from sidebar as "Sessions" with the `History` lucide icon).
-
-Page-level state: `currentPage`, `isModalOpen`, `editingSession`, `deletingSession`.
-
-- Loading state: 8 skeleton rows (shown only on initial load; `keepPreviousData` suppresses skeletons during pagination).
-- Empty state: shown when `!isPending && totalCount === 0` — offers "Start Timer" and "Add Session" actions.
-- Pagination footer: "Showing X–Y of Z sessions", Previous / Next buttons disabled at boundaries.
-- Delete uses `ConfirmDialog` which notes that stats won't be recalculated.
+There is intentionally no manual-session creation, hard-delete action, or status/exclusion selector. All saved
+focus sessions count in analytics, and corrections are limited to descriptive metadata.
