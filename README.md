@@ -236,11 +236,27 @@ supabase secrets set LEMONSQUEEZY_API_KEY=... LEMONSQUEEZY_WEBHOOK_SECRET=...
 
 ### 3. Set up the database
 
-Run the migrations in `supabase/migrations/` against your Supabase project (SQL editor or `supabase db push`), in order:
+Run **every** SQL file in `supabase/migrations/` against your Supabase project,
+in filename order. Prefer `supabase db push`; if using the SQL editor, apply one
+file at a time so migrations that extend enums remain in separate transactions.
 
-1. `001_initial_schema.sql` — tables, enums, RLS policies
-2. `002_save_session_rpc.sql` — the `save_session()` RPC (`SECURITY DEFINER`) that every session save must go through
-3. `003_avatars_storage_policies.sql` — storage policies for avatar uploads
+The migration history currently runs from `001_initial_schema.sql` through
+`020_count_all_sessions.sql`. Migration 001 is only the historical baseline;
+it is not a standalone snapshot of the current database. See
+[`supabase/CURRENT_SCHEMA.md`](supabase/CURRENT_SCHEMA.md) for the resulting
+current-state inventory.
+
+Key stages:
+
+1. `001`–`006` — baseline schema, avatar policies, billing statuses, and the original session RPC
+2. `007`–`014` — friend requests, leaderboard visibility, and security hardening
+3. `015`–`016` — trusted timer lifecycle and active-timer realtime support
+4. `017`–`018` — private group leaderboards
+5. `019`–`020` — project recency synchronization and all-session counting
+
+The active session-write path is the trusted timer RPC lifecycle introduced in
+`015_trusted_sessions.sql`; authenticated clients no longer execute the legacy
+`save_session()` RPC directly.
 
 Deploy the Edge Functions:
 

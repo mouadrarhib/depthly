@@ -1,9 +1,27 @@
 -- ============================================================================
--- FOCUS APP — COMPLETE DATABASE SCHEMA
+-- DEPTHLY — HISTORICAL DATABASE BASELINE (MIGRATION 001)
 -- ============================================================================
 -- Target:   PostgreSQL 15+ (Supabase)
--- Run in:   Supabase Dashboard → SQL Editor → New Query → Run
--- Order:    Top to bottom. This file is idempotent-safe on a fresh project.
+--
+-- IMPORTANT: This file is the original schema baseline, not a snapshot of the
+-- current database. Do not run it by itself when provisioning a new project.
+-- Apply every numbered file in supabase/migrations, in filename order. Later
+-- migrations add tables and columns, replace policies and RPCs, and revoke
+-- permissions that are intentionally present in this historical baseline.
+-- See supabase/CURRENT_SCHEMA.md for the resulting current-state inventory.
+--
+-- In particular, the current schema and security model include changes from:
+--   004-005  subscription status enum additions
+--   007-014  friend requests, safe public-profile access, security hardening
+--   011      seed-account metadata
+--   015-016  trusted timer lifecycle and realtime active timers
+--   017-018  private group leaderboards
+--   019      project-recency synchronization
+--   020      all-session counting and disabled session exclusion
+--
+-- Keep this migration immutable except for documentation corrections. Folding
+-- later objects into 001 would make a clean replay fail when those later
+-- migrations attempt to create or alter the same objects.
 --
 -- Structure of this file:
 --   1.  Extensions
@@ -643,5 +661,5 @@ create policy "subscriptions: read own"
 
 
 -- ============================================================================
--- END OF SCHEMA
+-- END OF MIGRATION 001 BASELINE
 -- ============================================================================
