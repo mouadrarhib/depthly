@@ -128,7 +128,7 @@ export function MonthlyView({ date, projectId }: MonthlyViewProps) {
   const [upgradeOpen, setUpgradeOpen] = useState(false)
 
   const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - windowDays)
+  cutoff.setDate(cutoff.getDate() - (windowDays - 1))
   const cutoffKey = formatPeriodKey(cutoff, 'daily')
   const showOverlay = !isPro && firstKey < cutoffKey
 

@@ -9,6 +9,7 @@ import {
   getProjectStats,
   createProject,
   updateProject,
+  setProjectArchived,
   deleteProject,
 } from '@/lib/supabase/queries/projects'
 import type {
@@ -86,7 +87,7 @@ export function useDeleteProject() {
 export function useArchiveProject() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => updateProject(id, { is_archived: true }),
+    mutationFn: (id: string) => setProjectArchived(id, true),
     onMutate: async (id) => {
       await Promise.all([
         qc.cancelQueries({ queryKey: projectKeys.active }),
@@ -123,7 +124,7 @@ export function useArchiveProject() {
 export function useUnarchiveProject() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => updateProject(id, { is_archived: false }),
+    mutationFn: (id: string) => setProjectArchived(id, false),
     onMutate: async (id) => {
       await Promise.all([
         qc.cancelQueries({ queryKey: projectKeys.active }),

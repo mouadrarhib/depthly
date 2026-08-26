@@ -10,8 +10,6 @@ import {
   fetchSessionsForYear,
   fetchSessionsForWeek,
   fetchSessionsAllTime,
-  fetchUserStats,
-  fetchUserStatsRange,
 } from '@/lib/supabase/queries/analytics'
 
 export function useProfile() {
@@ -83,29 +81,5 @@ export function useSessionsAllTime(projectId?: string | null) {
     queryKey: analyticsKeys.sessionsAllTime(userId, projectScopeKey(projectId)),
     queryFn: () => fetchSessionsAllTime(userId, projectId),
     enabled: !!userId,
-  })
-}
-
-export function useUserStats(periodType: string, periodKey: string) {
-  const userId = useAuthStore((s) => s.user?.id ?? '')
-  return useQuery({
-    queryKey: analyticsKeys.userStats(userId, periodType, periodKey),
-    queryFn: () =>
-      fetchUserStats(userId, periodType as 'daily' | 'weekly' | 'monthly' | 'yearly', periodKey),
-    enabled: !!userId,
-  })
-}
-
-export function useUserStatsRange(periodType: string, periodKeys: string[]) {
-  const userId = useAuthStore((s) => s.user?.id ?? '')
-  return useQuery({
-    queryKey: analyticsKeys.userStatsRange(userId, periodType, periodKeys),
-    queryFn: () =>
-      fetchUserStatsRange(
-        userId,
-        periodType as 'daily' | 'weekly' | 'monthly' | 'yearly',
-        periodKeys
-      ),
-    enabled: !!userId && periodKeys.length > 0,
   })
 }

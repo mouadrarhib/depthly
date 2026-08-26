@@ -441,6 +441,11 @@ Font rule: all countdown times and duration values use `.font-data` → JetBrain
 
 ## 10. Known Limitations / Future Work
 
+`start_timer_run` is the authoritative Free-plan session gate. It counts focus
+sessions in the run's IANA timezone and rejects the 51st completed focus
+session in that local month. Breaks do not count. Once a run starts, it may
+finish even if the account changes plan or crosses a calendar boundary.
+
 | Item                         | Notes                                                                                                                                                                 |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `timer_mode_type` enum       | DB enum is `('pomodoro', 'free')` — `'custom'` mode is coerced to `'pomodoro'` at the RPC level                                                                       |

@@ -294,6 +294,12 @@ never pollute revenue metrics. See the script's header comment for full details,
 
 ## Known Limitations
 
+Global ranking now uses `get_global_leaderboard` and
+`get_my_global_leaderboard_rank`. The database includes only public Pro or
+Founding profiles plus seed accounts. A downgraded Free user's stored
+`is_public` preference is retained but global visibility is paused. Friend and
+private group rankings are intentionally unaffected.
+
 1. **`useUserRank` does not support `all_time`.**
    `LeaderboardPage` works around this by searching the fetched list for the current
    user's entry (`entries.find(e => e.user_id === currentUserId)`). This means the

@@ -676,7 +676,31 @@ export type Database = {
     }
     Functions: {
       close_group_leaderboard: { Args: { p_leaderboard_id: string }; Returns: undefined }
+      create_project: {
+        Args: { p_color: string; p_icon?: string | null; p_name: string }
+        Returns: Database["public"]["Tables"]["projects"]["Row"]
+      }
       create_group_leaderboard: { Args: { p_goal_minutes: number | null; p_name: string; p_period_type: Database["public"]["Enums"]["period_type"]; p_timezone: string }; Returns: string }
+      export_my_sessions: {
+        Args: { p_end_date?: string | null; p_include_breaks?: boolean; p_limit?: number; p_offset?: number; p_project_id?: string | null; p_start_date?: string | null; p_timezone?: string }
+        Returns: Array<Database["public"]["Tables"]["sessions"]["Row"] & { project_color: string | null; project_name: string | null; task_title: string | null }>
+      }
+      get_analytics_daily_summaries: {
+        Args: { p_end_date: string; p_start_date: string; p_timezone: string }
+        Returns: Array<Database["public"]["Tables"]["daily_summaries"]["Row"]>
+      }
+      get_analytics_sessions: {
+        Args: { p_end_date?: string | null; p_project_filter_mode?: string; p_project_id?: string | null; p_start_date?: string | null; p_timezone?: string }
+        Returns: Array<Database["public"]["Tables"]["sessions"]["Row"] & { project_color: string | null; project_name: string | null }>
+      }
+      get_global_leaderboard: {
+        Args: { p_limit?: number; p_period_key?: string | null; p_period_type?: Database["public"]["Enums"]["period_type"] | null }
+        Returns: Array<{ avatar_url: string | null; current_streak: number; display_name: string; focus_minutes: number; last_focus_date: string | null; profile_slug: string; rank: number; session_count: number; user_id: string }>
+      }
+      get_global_streak_leaderboard: {
+        Args: { p_limit?: number; p_mode: string }
+        Returns: Array<{ avatar_url: string | null; current_streak: number; display_name: string; longest_streak: number; profile_slug: string; rank: number; user_id: string }>
+      }
       get_group_leaderboard: {
         Args: { p_leaderboard_id: string }
         Returns: Array<{ closed_at: string | null; closed_period_key: string | null; created_at: string; current_period_key: string; goal_minutes: number | null; id: string; invite_code: string; member_count: number; name: string; owner_id: string; period_ends_at: string | null; period_type: Database["public"]["Enums"]["period_type"]; role: string; status: string; timezone: string }>
@@ -685,6 +709,12 @@ export type Database = {
         Args: { p_leaderboard_id: string }
         Returns: Array<{ avatar_url: string | null; display_name: string; focus_minutes: number; joined_at: string; rank: number; role: string; session_count: number; user_id: string }>
       }
+      get_monthly_focus_session_count: { Args: { p_timezone: string }; Returns: number }
+      get_my_global_leaderboard_rank: {
+        Args: { p_period_key: string; p_period_type: Database["public"]["Enums"]["period_type"] }
+        Returns: Array<{ focus_minutes: number; rank: number }>
+      }
+      is_profile_slug_available: { Args: { p_slug: string }; Returns: boolean }
       join_group_leaderboard: { Args: { p_invite_code: string }; Returns: string }
       leave_group_leaderboard: { Args: { p_leaderboard_id: string }; Returns: undefined }
       list_my_group_leaderboards: {
@@ -696,6 +726,14 @@ export type Database = {
         Returns: Array<{ creator_name: string; goal_minutes: number | null; leaderboard_id: string; member_count: number; member_limit: number; name: string; period_type: Database["public"]["Enums"]["period_type"]; status: string }>
       }
       remove_group_leaderboard_member: { Args: { p_leaderboard_id: string; p_user_id: string }; Returns: undefined }
+      set_project_archived: {
+        Args: { p_archived: boolean; p_project_id: string }
+        Returns: Database["public"]["Tables"]["projects"]["Row"]
+      }
+      update_my_profile: {
+        Args: { p_patch: Json }
+        Returns: Database["public"]["Tables"]["profiles"]["Row"]
+      }
       save_session: {
         Args: {
           p_duration_mins: number

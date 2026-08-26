@@ -282,3 +282,22 @@ function, an Edge Function, or a webhook handler:
    search `src/` for every query that might depend on the branch being removed — this is
    how the friends/pending-request visibility requirements were found before they could
    silently break.
+
+---
+
+## Server-side plan enforcement (migrations 021–022)
+
+`profiles` is now default-deny for authenticated writes. The only client profile
+mutation is `update_my_profile(jsonb)`, which rejects every key except
+`display_name`, `avatar_url`, `profile_slug`, `is_public`, and
+`show_heatmap_on_profile`. Identity comes from `auth.uid()`; billing, plan,
+trusted-session, streak, aggregate, membership, and seed fields cannot be
+submitted by the client.
+
+Project creation/unarchiving and focus-session starts lock the caller's profile
+row before counting current usage. This serializes concurrent requests and
+prevents limit races. Analytics, export, and global leaderboard endpoints make
+their own plan decisions from `profiles.plan`; client checks are UX only.
+
+Migration 021 adds compatible APIs. Migration 022 removes the old direct
+profile/project grants and must be deployed only after the RPC-enabled client.

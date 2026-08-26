@@ -891,21 +891,31 @@ Both functions exist in `src/lib/utils/analytics.ts` with correct implementation
 
 Implemented in utils, not used anywhere. Weekly and monthly views do their own inline comparison logic instead.
 
-### `useUserStats` / `useUserStatsRange` — hooks exist, not wired to any view
+### Server-side access window
 
-The hooks and their underlying query functions are fully implemented. No view component currently calls them. The `user_stats` table is populated by the trusted timer aggregation path through `apply_focus_aggregate_delta()`.
+All Analytics views read through `get_analytics_daily_summaries` and
+`get_analytics_sessions`. Free results are clamped by Supabase to the current
+local day plus the previous six days; Pro and Founding users receive the
+requested range. The blur/upgrade treatment remains in the client, but older
+data is no longer sent to Free Analytics requests.
 
-### YearlyView fetches a full year of raw sessions
+### YearlyView fetches raw sessions
 
-`useSessionsForYear` queries the `sessions` table directly (no aggregation view/RPC exists), the same approach `DailyView` uses for a single day. For a full year this can be a large result set for power users. Column selection is kept minimal (`duration_mins, project_id, started_at, projects(name,color)`) to reduce payload size, but there is no pagination or server-side aggregation.
+`useSessionsForYear` uses the plan-aware analytics RPC. Paid power users can
+still receive a large full-year result because project breakdowns are computed
+client-side; Free users receive at most seven days.
 
-### OverviewView fetches every session ever logged, unbounded
+### OverviewView paid range can be unbounded
 
-`useSessionsAllTime` has no date range at all — for a long-tenured heavy user this is the largest of the three raw-session fetches (`useSessionsForDay` < `useSessionsForYear` < `useSessionsAllTime`). Same minimal-column mitigation as `useSessionsForYear`, but still no pagination or server-side aggregation. If this becomes a real cost/latency problem, the fix is a Postgres view or RPC that aggregates `sessions` by `project_id` server-side rather than shipping every row to the client.
+The RPC clamps Free users to seven days. Pro/Founding Overview remains an
+unbounded all-time result so the existing project breakdown works; a future
+server aggregate should replace this for high-volume accounts.
 
-### YearlyView's stat grid and project breakdown are not free-plan gated
+### Free yearly statistics
 
-Only the heatmap has the `showOverlay` blur/lock treatment for the free plan's analytics window. The stats row (all 8 cards) and the "Focus Time by Project" card render full-year data regardless of plan, same as the original 3-card row did before this was expanded — this is pre-existing behavior, not something introduced by the 8-card expansion.
+The yearly stat grid and project breakdown now derive from the same clamped RPC
+rows as the heatmap. They cannot expose older data even if the client overlay is
+removed.
 
 ### Aggregate timezone convention
 

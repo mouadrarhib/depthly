@@ -255,7 +255,7 @@ export function WeeklyView({ date, projectId, projectLabel }: WeeklyViewProps) {
   const [upgradeOpen, setUpgradeOpen] = useState(false)
 
   const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - windowDays)
+  cutoff.setDate(cutoff.getDate() - (windowDays - 1))
   const cutoffKey = formatPeriodKey(cutoff, 'daily')
   const showOverlay = !isPro && mondayKey < cutoffKey
 

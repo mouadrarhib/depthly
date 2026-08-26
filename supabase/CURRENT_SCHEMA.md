@@ -2,7 +2,7 @@
 
 This document describes the schema produced by applying every SQL file in
 `supabase/migrations/`, from `001_initial_schema.sql` through
-`020_count_all_sessions.sql`, in filename order. The numbered migrations are
+`023_explicit_client_table_grants.sql`, in filename order. The numbered migrations are
 the executable source of truth; this is a reviewable current-state inventory.
 
 ## Types
@@ -62,6 +62,22 @@ Important additions to original tables:
 - Timer lifecycle changes and session creation go through the trusted timer
   RPCs introduced by migration 015.
 - Group leaderboard tables are private and accessed through their RPCs.
+- Authenticated clients cannot write `profiles` directly. `update_my_profile`
+  accepts only display name, avatar URL, slug, public visibility, and heatmap
+  visibility; billing, plan, trust, and aggregate columns have no client write
+  path.
+- Project creation and archive changes go through `create_project` and
+  `set_project_archived`. Direct project updates are limited to presentation
+  and ordering columns.
+- `get_analytics_daily_summaries` and `get_analytics_sessions` clamp Free
+  accounts to seven local calendar days. Full owner session history remains
+  readable by the Sessions page.
+- `export_my_sessions` is paid-only and paginated to at most 500 rows per call.
+- Global leaderboard RPCs include public Pro/Founding profiles and seed
+  profiles only. Friends and private group visibility are unchanged.
+- Migration 023 explicitly grants each authenticated table operation required
+  by the matching RLS policies, so clean local and hosted schemas have the same
+  least-privilege access model.
 - Avatar object policies restrict writes to the authenticated user's folder;
   reads are public. The `avatars` bucket itself remains a documented manual
   Supabase Storage setup step.
@@ -70,6 +86,8 @@ Important additions to original tables:
 
 - `start_timer_run`, `pause_timer_run`, `resume_timer_run`,
   `cancel_timer_run`, and `finish_timer_run` own the timer lifecycle.
+- `start_timer_run` rejects the 51st Free focus session in the user's trusted
+  local calendar month. Breaks do not count, and an accepted run may finish.
 - `update_session_metadata` is the allowed post-save metadata update path.
 - The legacy `save_session` function remains in migration history but is not
   executable by authenticated clients after migration 015.

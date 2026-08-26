@@ -109,7 +109,7 @@ export function ShareProgressButton({
   const [error, setError] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - windowDays)
+  cutoff.setDate(cutoff.getDate() - (windowDays - 1))
   const locked =
     !isPro && date < new Date(cutoff.getFullYear(), cutoff.getMonth(), cutoff.getDate())
   const periodKey = formatPeriodKey(date, period)

@@ -397,6 +397,14 @@ lifecycle introduced in migration 015.
 
 ## 8. Known Limitations
 
+### Server-side project cap
+
+Creation uses `create_project`; archive/restore uses
+`set_project_archived`. Free users may have three non-archived projects.
+Profile-row locking makes create and restore concurrency-safe. Existing users
+above the cap keep their projects but cannot create or restore another until
+below it. Direct client updates cannot change ownership or archive state.
+
 - **`sort_order` column unused**: The `projects` table has a `sort_order` column (float) but the current UI ignores it entirely — sort order is computed client-side from `last_used_at` and name.
 - **Create/edit/delete still refetch**: Archive and restore are optimistic; create, edit, and delete continue to invalidate and refetch.
 

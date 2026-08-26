@@ -44,7 +44,7 @@ const LABEL_STYLE: React.CSSProperties = {
 
 export function ExportPanel({ projects, totalCount }: ExportPanelProps) {
   const { isPro } = usePlan()
-  const { exportSessions, isExporting } = useExportSessions()
+  const { exportSessions, isExporting, exportError } = useExportSessions()
 
   const [fromDate,      setFromDate]      = useState('')
   const [toDate,        setToDate]        = useState('')
@@ -237,6 +237,11 @@ export function ExportPanel({ projects, totalCount }: ExportPanelProps) {
         </div>
 
       </div>
+      {exportError ? (
+        <p className="mt-3 text-sm text-red-400" role="alert">
+          {exportError instanceof Error ? exportError.message : 'Export failed. Please try again.'}
+        </p>
+      ) : null}
     </div>
   )
 }

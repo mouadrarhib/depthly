@@ -62,7 +62,7 @@ export function useUpdateSession() {
 
 export function useExportSessions() {
   const userId = useAuthStore(s => s.user?.id ?? '')
-  const { mutate: exportSessions, isPending: isExporting } = useMutation({
+  const { mutate: exportSessions, isPending: isExporting, error } = useMutation({
     mutationFn: (filters: ExportFilters) => fetchSessionsForExport(userId, filters),
     onSuccess: (sessions, filters) => {
       const csv = convertSessionsToCSV(sessions)
@@ -70,5 +70,5 @@ export function useExportSessions() {
       downloadCSV(csv, filename)
     },
   })
-  return { exportSessions, isExporting }
+  return { exportSessions, isExporting, exportError: error }
 }

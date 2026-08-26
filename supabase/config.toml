@@ -1,5 +1,11 @@
 project_id = "wzwabskeqxqrtgvyjede"
 
+# Docker Desktop on Windows does not expose its unauthenticated TCP daemon by
+# default. Local Logflare/Vector requires that unsafe socket, so keep optional
+# log analytics disabled while all application services remain available.
+[analytics]
+enabled = false
+
 # Lemon Squeezy calls this endpoint directly and cannot send a Supabase auth
 # JWT — only the X-Signature header, which the function verifies itself.
 [functions.lemonsqueezy-webhook]

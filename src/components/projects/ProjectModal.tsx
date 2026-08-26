@@ -10,7 +10,6 @@ import {
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/button'
 import { useCreateProject, useUpdateProject } from '@/hooks/useProjects'
-import { useAuthStore } from '@/store/authStore'
 import type { Tables } from '@/types/database'
 
 type Project = Tables<'projects'>
@@ -32,7 +31,6 @@ interface ProjectModalProps {
 }
 
 export function ProjectModal({ open, onClose, project }: ProjectModalProps) {
-  const userId      = useAuthStore(s => s.user?.id ?? '')
   const isEdit      = !!project
 
   const [name,  setName]  = useState('')
@@ -83,7 +81,7 @@ export function ProjectModal({ open, onClose, project }: ProjectModalProps) {
       )
     } else {
       createProject.mutate(
-        { user_id: userId, name: trimmed, color, icon },
+        { name: trimmed, color, icon },
         { onSuccess: onClose },
       )
     }

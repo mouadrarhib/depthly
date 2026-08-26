@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { toAppError } from '@/lib/supabase/errors'
 import type { Database } from '@/types/database'
 
 type UserPreferencesRow = Database['public']['Tables']['user_preferences']['Row']
@@ -32,7 +33,7 @@ export async function fetchUserPreferences(userId: string): Promise<UserPreferen
     .eq('user_id', userId)
     .single()
 
-  if (error) throw error
+  if (error) throw toAppError(error)
   return data
 }
 
@@ -47,35 +48,31 @@ export async function updateUserPreferences(
     .select()
     .single()
 
-  if (error) throw error
+  if (error) throw toAppError(error)
   return updated
 }
 
 export async function updateProfile(
-  userId: string,
+  _userId: string,
   data: UpdateProfileInput,
 ): Promise<ProfileRow> {
-  const { data: updated, error } = await supabase
-    .from('profiles')
-    .update(data)
-    .eq('id', userId)
-    .select()
-    .single()
+  const { data: updated, error } = await supabase.rpc('update_my_profile', {
+    p_patch: data,
+  })
 
-  if (error) throw error
+  if (error) throw toAppError(error)
+  if (!updated) throw new Error('Profile was not updated')
   return updated
 }
 
 export async function checkSlugAvailable(slug: string, currentUserId: string): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('profile_slug', slug)
-    .neq('id', currentUserId)
-    .maybeSingle()
+  void currentUserId
+  const { data, error } = await supabase.rpc('is_profile_slug_available', {
+    p_slug: slug,
+  })
 
-  if (error) throw error
-  return data === null
+  if (error) throw toAppError(error)
+  return data
 }
 
 // NOTE: email change confirmation is

@@ -88,6 +88,18 @@ Note: the Lifetime variant (`1909499`) shows `"status": "pending"` via the Lemon
 
 ## Free Plan Limit Enforcement (as of 2026-07-10)
 
+As of migrations 021–022, these are also authoritative in Supabase:
+
+- `create_project`/`set_project_archived`: three active projects.
+- `start_timer_run`: 50 completed focus sessions per trusted local month.
+- Analytics RPCs: current local day plus the previous six days.
+- `export_my_sessions`: Pro/Founding only.
+- Global leaderboard/public discovery: public Pro/Founding profiles plus seed
+  profiles. Friends and private groups remain available to Free accounts.
+
+The React checks and upgrade modals remain for immediate feedback, but cannot
+be used to bypass the database rules.
+
 All five limits are now gated in the UI, each showing `UpgradeModal` with the matching `trigger` when the limit is hit:
 - **Projects** (`ProjectsPage.tsx`) — blocks creating a 4th project via `useProjectLimit`.
 - **Sessions** (`TimerPage.tsx`, `TimerWidget.tsx`) — pauses the timer and blocks saving past 50 sessions/month via `useSessionMonthLimit`.

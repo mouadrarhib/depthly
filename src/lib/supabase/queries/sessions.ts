@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
-import type { Tables } from '@/types/database'
+import { toAppError } from '@/lib/supabase/errors'
+import type { Database, Tables } from '@/types/database'
 
 export type Session = Tables<'sessions'>
 
@@ -31,7 +32,11 @@ type TrustedTimerRpc = (fn: string, params?: Record<string, unknown>) => RpcResu
 const trustedRpc = supabase.rpc.bind(supabase) as unknown as TrustedTimerRpc
 
 function throwRpcError(error: { message: string } | null): void {
-  if (error) throw new Error(error.message)
+  if (error) throw toAppError(error)
+}
+
+function browserTimeZone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
 }
 
 export async function fetchSessionsByProject(projectId: string): Promise<SessionWithRelations[]> {
@@ -140,19 +145,13 @@ export async function updateSessionMetadata(id: string, data: SessionMetadataInp
   return updated as Session
 }
 
-export async function fetchSessionsThisMonth(userId: string): Promise<number> {
-  const now = new Date()
-  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+export async function fetchSessionsThisMonth(_userId: string): Promise<number> {
+  const { data, error } = await supabase.rpc('get_monthly_focus_session_count', {
+    p_timezone: browserTimeZone(),
+  })
 
-  const { count, error } = await supabase
-    .from('sessions')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('type', 'focus')
-    .gte('started_at', firstOfMonth)
-
-  if (error) throw error
-  return count ?? 0
+  if (error) throw toAppError(error)
+  return data ?? 0
 }
 
 export type ExportFilters = {
@@ -163,31 +162,39 @@ export type ExportFilters = {
 }
 
 export async function fetchSessionsForExport(
-  userId: string,
+  _userId: string,
   filters: ExportFilters,
 ): Promise<SessionWithRelations[]> {
-  let query = supabase
-    .from('sessions')
-    .select('*, projects(name, color), tasks(title)')
-    .eq('user_id', userId)
-    .order('started_at', { ascending: false })
+  type ExportRow = Database['public']['Functions']['export_my_sessions']['Returns'][number]
+  const pageSize = 500
+  const sessions: SessionWithRelations[] = []
 
-  if (!filters.includeBreaks) {
-    query = query.eq('type', 'focus')
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase.rpc('export_my_sessions', {
+      p_start_date: filters.startDate ?? null,
+      p_end_date: filters.endDate ?? null,
+      p_project_id: filters.projectId ?? null,
+      p_include_breaks: filters.includeBreaks ?? false,
+      p_offset: offset,
+      p_limit: pageSize,
+      p_timezone: browserTimeZone(),
+    })
+
+    if (error) throw toAppError(error)
+    const rows = (data ?? []) as ExportRow[]
+    sessions.push(
+      ...rows.map((row) => {
+        const { project_name, project_color, task_title, ...session } = row
+        return {
+          ...session,
+          projects:
+            project_name && project_color ? { name: project_name, color: project_color } : null,
+          tasks: task_title ? { title: task_title } : null,
+        }
+      }),
+    )
+    if (rows.length < pageSize) break
   }
 
-  if (filters.startDate) {
-    query = query.gte('started_at', filters.startDate)
-  }
-  if (filters.endDate) {
-    query = query.lte('started_at', `${filters.endDate}T23:59:59`)
-  }
-  if (filters.projectId) {
-    query = query.eq('project_id', filters.projectId)
-  }
-
-  const { data, error } = await query
-
-  if (error) throw error
-  return (data ?? []) as SessionWithRelations[]
+  return sessions
 }

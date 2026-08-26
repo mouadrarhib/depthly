@@ -182,7 +182,7 @@ export function DailyView({ date, projectId, projectLabel }: DailyViewProps) {
   const [goalDialogOpen, setGoalDialogOpen] = useState(false)
 
   const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - windowDays)
+  cutoff.setDate(cutoff.getDate() - (windowDays - 1))
   const cutoffKey = formatPeriodKey(cutoff, 'daily')
   const showOverlay = !isPro && dateKey < cutoffKey
 

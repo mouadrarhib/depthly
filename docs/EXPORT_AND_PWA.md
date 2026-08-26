@@ -275,11 +275,18 @@ With the SW registered:
 
 **Export**
 
+- **Server entitlement.** CSV rows come from the paid-only
+  `export_my_sessions` RPC. The client requests stable 500-row pages until the
+  export is complete; Free callers receive `PLAN_REQUIRED` even if they invoke
+  the endpoint outside the UI.
+
 - **Session count is approximate.** The `~N sessions` shown in the panel comes from `useSessionsPaginated`'s `totalCount`, which counts all user focus sessions regardless of the active export filters. After applying date/project filters the actual row count in the downloaded CSV may be lower.
-- **Breaks are always excluded.** `fetchSessionsForExport` hard-filters `type = 'focus'`. There is no option to export break sessions.
+- **Breaks are optional.** The export RPC includes them only when the existing
+  Include breaks switch is enabled.
 - **Stats not recalculated on export.** If sessions were manually edited (duration, timestamps) via the Sessions page, the exported `duration_mins` reflects the edited values, but `daily_summaries` and `user_stats` aggregates may still show the original values (known limitation of the manual edit flow — see `sessions.ts` `updateSession` comment).
 - **Project filter in filename not reflected.** When a project filter is active but no date range is set, the filename is `depthly-sessions-YYYY-MM-DD.csv` and does not include the project name.
-- **No error UI on export failure.** If `fetchSessionsForExport` throws (network error, Supabase error), the mutation fails silently — `isExporting` returns to false and nothing happens. A toast notification on error would improve UX.
+- **Export errors are inline.** Network, validation, and plan errors render under
+  the export controls using the server's mapped user-facing message.
 
 **PWA**
 

@@ -88,138 +88,64 @@ export type LeaderboardEntry = {
   is_public: boolean
 }
 
-type PublicProfileCard = {
-  id: string
-  display_name: string
-  avatar_url: string | null
-  profile_slug: string
-  current_streak: number
-  last_focus_date: string | null
-}
-
-// Global/all-time leaderboards only ever rank public profiles, so a plain
-// `.eq('is_public', true)` against public_profiles (rather than the two
-// branches it also supports) is enough here.
-async function fetchAllPublicProfileCards(userIds: string[]): Promise<Map<string, PublicProfileCard>> {
-  if (userIds.length === 0) return new Map()
-
-  const { data, error } = await supabase
-    .from('public_profiles')
-    .select('id, display_name, avatar_url, profile_slug, current_streak, last_focus_date')
-    .in('id', userIds)
-
-  if (error) throw error
-  return new Map((data ?? []).map((p) => [p.id, p as PublicProfileCard]))
-}
-
 export async function fetchGlobalLeaderboard(
   periodType: 'yearly' | 'monthly' | 'weekly' | 'daily',
   periodKey: string,
   limit: number = 50,
 ): Promise<LeaderboardEntry[]> {
-  // Fetched as two queries (user_stats, then public_profiles) rather than an
-  // embedded profiles!inner(...) join — public_profiles is a view, and
-  // PostgREST can't auto-detect the FK relationship needed for embedding
-  // through a view the way it can for a real table. Same pattern already
-  // used by fetchFriendsLeaderboard below.
-  const { data: statsRows, error: statsError } = await supabase
-    .from('user_stats')
-    .select('user_id, trusted_focus_minutes, trusted_session_count')
-    .eq('period_type', periodType)
-    .eq('period_key', periodKey)
-    .order('trusted_focus_minutes', { ascending: false })
+  const { data, error } = await supabase.rpc('get_global_leaderboard', {
+    p_period_type: periodType,
+    p_period_key: periodKey,
+    p_limit: limit,
+  })
 
-  if (statsError) throw statsError
-  if (!statsRows || statsRows.length === 0) return []
-
-  const profileById = await fetchAllPublicProfileCards(statsRows.map((s) => s.user_id))
-
-  const entries: LeaderboardEntry[] = []
-  for (const row of statsRows) {
-    const profile = profileById.get(row.user_id)
-    if (!profile) continue // not a public profile — excluded from the global board
-    entries.push({
-      rank: entries.length + 1,
+  if (error) throw error
+  return (data ?? []).map((row) => ({
+      rank: row.rank,
       user_id: row.user_id,
-      display_name: profile.display_name,
-      avatar_url: profile.avatar_url,
-      profile_slug: profile.profile_slug,
-      focus_minutes: row.trusted_focus_minutes,
-      session_count: row.trusted_session_count,
-      current_streak: getEffectiveStreak(profile.current_streak, profile.last_focus_date),
+      display_name: row.display_name,
+      avatar_url: row.avatar_url,
+      profile_slug: row.profile_slug,
+      focus_minutes: row.focus_minutes,
+      session_count: row.session_count,
+      current_streak: getEffectiveStreak(row.current_streak, row.last_focus_date),
       is_public: true,
-    })
-    if (entries.length >= limit) break
-  }
-  return entries
+  }))
 }
 
 export async function fetchAllTimeLeaderboard(limit: number = 50): Promise<LeaderboardEntry[]> {
-  const { data, error } = await supabase
-    .from('public_profiles')
-    .select(
-      'id, display_name, avatar_url, profile_slug, trusted_focus_minutes, trusted_sessions, current_streak, last_focus_date',
-    )
-    .eq('is_public', true)
-    .order('trusted_focus_minutes', { ascending: false })
-    .limit(limit)
+  const { data, error } = await supabase.rpc('get_global_leaderboard', {
+    p_period_type: null,
+    p_period_key: null,
+    p_limit: limit,
+  })
 
   if (error) throw error
-  return (data ?? []).map((row, i) => ({
-    rank: i + 1,
-    user_id: row.id,
+  return (data ?? []).map((row) => ({
+    rank: row.rank,
+    user_id: row.user_id,
     display_name: row.display_name,
     avatar_url: row.avatar_url,
     profile_slug: row.profile_slug,
-    focus_minutes: row.trusted_focus_minutes,
-    session_count: row.trusted_sessions,
+    focus_minutes: row.focus_minutes,
+    session_count: row.session_count,
     current_streak: getEffectiveStreak(row.current_streak, row.last_focus_date),
     is_public: true,
   }))
 }
 
 export async function fetchUserRank(
-  userId: string,
+  _userId: string,
   periodType: PeriodType,
   periodKey: string,
 ): Promise<{ rank: number; focus_minutes: number } | null> {
-  const { data: statsData, error: statsError } = await supabase
-    .from('user_stats')
-    .select('trusted_focus_minutes')
-    .eq('user_id', userId)
-    .eq('period_type', periodType)
-    .eq('period_key', periodKey)
-    .maybeSingle()
+  const { data, error } = await supabase.rpc('get_my_global_leaderboard_rank', {
+    p_period_type: periodType,
+    p_period_key: periodKey,
+  })
 
-  if (statsError) throw statsError
-  if (!statsData) return null
-
-  // public_profiles.id is a much smaller set than the app's full user base,
-  // and this app runs at leaderboard scale — an .in() over all public ids is
-  // the same tradeoff fetchFriendsLeaderboard already makes for its group.
-  const { data: publicProfiles, error: publicError } = await supabase
-    .from('public_profiles')
-    .select('id')
-    .eq('is_public', true)
-
-  if (publicError) throw publicError
-  const publicIds = (publicProfiles ?? []).map((p) => p.id)
-  if (publicIds.length === 0) return { rank: 1, focus_minutes: statsData.trusted_focus_minutes }
-
-  const { count, error: countError } = await supabase
-    .from('user_stats')
-    .select('*', { count: 'exact', head: true })
-    .eq('period_type', periodType)
-    .eq('period_key', periodKey)
-    .in('user_id', publicIds)
-    .gt('trusted_focus_minutes', statsData.trusted_focus_minutes)
-
-  if (countError) throw countError
-
-  return {
-    rank: (count ?? 0) + 1,
-    focus_minutes: statsData.trusted_focus_minutes,
-  }
+  if (error) throw error
+  return data?.[0] ?? null
 }
 
 async function getFriendsGroupIds(userId: string): Promise<string[]> {

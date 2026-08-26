@@ -46,10 +46,9 @@ export async function uploadAvatar(userId: string, file: File): Promise<string> 
   // always treated as a fresh resource.
   const versionedUrl = `${publicUrl}?v=${Date.now()}`
 
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({ avatar_url: versionedUrl })
-    .eq('id', userId)
+  const { error: updateError } = await supabase.rpc('update_my_profile', {
+    p_patch: { avatar_url: versionedUrl },
+  })
 
   if (updateError) throw updateError
 
@@ -66,10 +65,9 @@ export async function deleteAvatar(userId: string): Promise<void> {
 
   if (removeError) throw removeError
 
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({ avatar_url: null })
-    .eq('id', userId)
+  const { error: updateError } = await supabase.rpc('update_my_profile', {
+    p_patch: { avatar_url: null },
+  })
 
   if (updateError) throw updateError
 }

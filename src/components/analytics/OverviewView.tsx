@@ -5,6 +5,7 @@ import {
   type ProjectEntry,
 } from '@/components/analytics/ProjectBreakdownCard'
 import { useProfile, useSessionsAllTime } from '@/hooks/useAnalytics'
+import { usePlan } from '@/hooks/usePlan'
 import { formatMinutesToHours } from '@/lib/utils/analytics'
 import {
   getCurrentFocusStreak,
@@ -105,6 +106,7 @@ function SkeletonCard() {
 export function OverviewView({ projectId, projectLabel }: AnalyticsProjectScope) {
   const { data: profile, isLoading: loadingProfile } = useProfile()
   const { data: sessions, isLoading: loadingSessions } = useSessionsAllTime(projectId)
+  const { isPro } = usePlan()
 
   const isProjectFiltered = projectId !== undefined
   const isLoading = loadingSessions || (!isProjectFiltered && loadingProfile)
@@ -131,19 +133,19 @@ export function OverviewView({ projectId, projectLabel }: AnalyticsProjectScope)
   const firstSessionDate = [...(sessions ?? [])].sort((a, b) =>
     a.started_at.localeCompare(b.started_at)
   )[0]?.started_at
-  const totalFocusMinutes = isProjectFiltered
-    ? (sessions ?? []).reduce((total, session) => total + session.duration_mins, 0)
-    : (profile?.total_focus_minutes ?? 0)
-  const totalSessions = isProjectFiltered ? (sessions?.length ?? 0) : (profile?.total_sessions ?? 0)
-  const currentStreak = isProjectFiltered
-    ? getCurrentFocusStreak(dailyTotals)
-    : (profile?.current_streak ?? 0)
-  const longestStreak = isProjectFiltered
-    ? getLongestFocusStreak(dailyTotals)
-    : (profile?.longest_streak ?? 0)
-  const memberSince = isProjectFiltered
-    ? (firstSessionDate ?? new Date().toISOString())
-    : (profile?.member_since ?? new Date().toISOString())
+  const totalFocusMinutes = (sessions ?? []).reduce(
+    (total, session) => total + session.duration_mins,
+    0,
+  )
+  const totalSessions = sessions?.length ?? 0
+  const currentStreak = getCurrentFocusStreak(dailyTotals)
+  const longestStreak = getLongestFocusStreak(dailyTotals)
+  const freeWindowStart = new Date()
+  freeWindowStart.setDate(freeWindowStart.getDate() - 6)
+  const memberSince = isPro
+    ? (firstSessionDate ?? profile?.member_since ?? new Date().toISOString())
+    : freeWindowStart.toISOString()
+  const rangeLabel = isPro ? 'all-time' : 'last 7 days'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -164,13 +166,13 @@ export function OverviewView({ projectId, projectLabel }: AnalyticsProjectScope)
               icon={<Clock size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
               title="Focus Time"
               value={formatMinutesToHours(totalFocusMinutes)}
-              label="total focus"
+              label={rangeLabel}
             />
             <StatCard
               icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
               title="Focus Sessions"
               value={totalSessions}
-              label="sessions"
+              label={`${rangeLabel} sessions`}
             />
             <StatCard
               icon={<Flame size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
@@ -181,7 +183,7 @@ export function OverviewView({ projectId, projectLabel }: AnalyticsProjectScope)
                   <span style={{ fontSize: 13, fontWeight: 400, marginLeft: 4 }}>days</span>
                 </>
               }
-              label={isProjectFiltered ? 'project activity streak' : 'current streak'}
+              label={isPro ? 'current streak' : 'streak in accessible range'}
             />
             <StatCard
               icon={<Award size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
@@ -192,7 +194,7 @@ export function OverviewView({ projectId, projectLabel }: AnalyticsProjectScope)
                   <span style={{ fontSize: 13, fontWeight: 400, marginLeft: 4 }}>days</span>
                 </>
               }
-              label={isProjectFiltered ? 'longest project streak' : 'longest streak'}
+              label={isPro ? 'longest streak' : 'best in accessible range'}
             />
             <StatCard
               icon={<Timer size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
@@ -202,10 +204,10 @@ export function OverviewView({ projectId, projectLabel }: AnalyticsProjectScope)
             />
             <StatCard
               icon={<Calendar size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title={isProjectFiltered ? 'First Session' : 'Member Since'}
+              title={isPro ? (isProjectFiltered ? 'First Session' : 'Member Since') : 'Range Starts'}
               valueSize={16}
               value={formatMemberSince(memberSince)}
-              label={isProjectFiltered ? 'first filtered session' : 'member since'}
+              label={isPro ? (isProjectFiltered ? 'first filtered session' : 'member since') : 'accessible analytics'}
             />
           </>
         )}
@@ -218,8 +220,8 @@ export function OverviewView({ projectId, projectLabel }: AnalyticsProjectScope)
         title={isProjectFiltered ? `${projectLabel} Focus` : 'Focus Time by Project'}
         subtitle={
           isProjectFiltered
-            ? `All-time focus logged for ${projectLabel}`
-            : "See how you've spent your focus time across every project, all-time"
+            ? `${isPro ? 'All-time' : 'Last 7 days'} focus logged for ${projectLabel}`
+            : `See how you've spent your focus time across every project, ${rangeLabel}`
         }
         emptyText={
           isProjectFiltered

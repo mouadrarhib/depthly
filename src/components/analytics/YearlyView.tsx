@@ -211,7 +211,7 @@ export function YearlyView({ date, projectId, projectLabel }: YearlyViewProps) {
   const [hoveredDay, setHoveredDay] = useState<HoveredDay | null>(null)
 
   const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - windowDays)
+  cutoff.setDate(cutoff.getDate() - (windowDays - 1))
   const cutoffKey = formatPeriodKey(cutoff, 'daily')
   const showOverlay = !isPro && jan1 < cutoffKey
 
