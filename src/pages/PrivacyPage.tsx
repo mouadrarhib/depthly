@@ -273,11 +273,12 @@ export function PrivacyPage() {
 
       <Section id="retention" number={7} title="DATA RETENTION">
         <p style={pStyle}>
-          We retain your personal information for as long as you maintain an account with us. If
-          you wish to have your account and associated data deleted, please contact us at{' '}
-          <a href={MAILTO} style={linkStyle}>{EMAIL}</a>, and we will process your request
-          manually. (Note: a self-service account deletion feature is planned for a future
-          release.)
+          We retain your personal information for as long as you maintain an account with us. You
+          can permanently delete your account and associated Depthly data from Settings under
+          Danger Zone, or contact us at <a href={MAILTO} style={linkStyle}>{EMAIL}</a> for help.
+          Account deletion also cancels renewable subscriptions, but Lemon Squeezy may retain
+          transaction records where required for payment processing, tax, fraud prevention, or
+          other legal obligations.
         </p>
       </Section>
 

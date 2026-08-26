@@ -28,7 +28,7 @@ function ConfirmDeleteModal({
 
   function handleConfirm() {
     if (!confirmed) return
-    deleteAccount.mutate()
+    deleteAccount.mutate('DELETE')
   }
 
   function handleOpenChange(isOpen: boolean) {
@@ -46,8 +46,11 @@ function ConfirmDeleteModal({
             Delete your account?
           </DialogTitle>
           <DialogDescription className="text-ink-secondary">
-            This will permanently delete your account, all sessions, projects,
-            tasks, and analytics data. This action cannot be undone.
+            This permanently deletes your account, sessions, projects, tasks,
+            analytics, and uploaded avatar. Any recurring subscription will be
+            cancelled without a prorated refund, and private leaderboards you
+            own will disappear for every member. Access ends immediately and
+            this action cannot be undone.
           </DialogDescription>
         </DialogHeader>
 

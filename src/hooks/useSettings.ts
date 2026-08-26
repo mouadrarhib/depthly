@@ -15,6 +15,7 @@ import {
 } from '@/lib/supabase/queries/settings'
 import type { UpdatePreferencesInput, UpdateProfileInput } from '@/lib/supabase/queries/settings'
 import { uploadAvatar } from '@/lib/supabase/storage'
+import { supabase } from '@/lib/supabase/client'
 
 export function usePreferences() {
   const userId = useAuthStore(s => s.user?.id ?? '')
@@ -102,15 +103,18 @@ export function useUploadAvatar() {
 
 export function useDeleteAccount() {
   const qc      = useQueryClient()
-  const userId  = useAuthStore(s => s.user?.id ?? '')
   const setUser = useAuthStore(s => s.setUser)
   const navigate = useNavigate()
   return useMutation({
-    mutationFn: () => deleteAccount(userId),
-    onSuccess: () => {
+    mutationFn: (confirmation: string) => deleteAccount(confirmation),
+    onSuccess: async () => {
+      // The Auth row is already gone, so global sign-out can report "user not
+      // found". Local scope is enough to remove the persisted browser session;
+      // UI cleanup must still happen even if the SDK returns an error here.
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined)
       qc.clear()
       setUser(null)
-      navigate('/login')
+      navigate('/login', { replace: true })
     },
   })
 }

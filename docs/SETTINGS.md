@@ -21,7 +21,7 @@ Max width 720px, centered.
 | `checkSlugAvailable(slug, currentUserId)` | `profiles` | Returns `true` if no other user owns the slug |
 | `updateEmail(newEmail)` | auth | `supabase.auth.updateUser({ email })` — sends confirmation email |
 | `updatePassword(newPassword)` | auth | `supabase.auth.updateUser({ password })` |
-| `deleteAccount(userId)` | `profiles` + auth | Deletes profile row (cascades) then signs out |
+| `deleteAccount(confirmation)` | `delete-account` Edge Function | Cancels renewable billing, removes avatar objects, hard-deletes the authenticated Auth user, then cascades all app data |
 
 ### `src/lib/supabase/storage.ts`
 
@@ -52,7 +52,7 @@ settingsKeys.profile(userId)      // ['settings', 'profile', userId]
 | `useUpdateEmail()` | mutation | Returns `{ ...mutation, successMessage }` |
 | `useUpdatePassword()` | mutation | Returns `{ ...mutation, successMessage }` |
 | `useUploadAvatar()` | mutation | Invalidates `settingsKeys.profile`; updates `authStore.user.user_metadata.avatar_url` |
-| `useDeleteAccount()` | mutation | Clears query cache, sets `authStore.user = null`, navigates to `/login` |
+| `useDeleteAccount()` | mutation | Invokes protected deletion, clears the local Supabase session/query cache/auth store, then replace-navigates to `/login` |
 
 ---
 
@@ -161,11 +161,11 @@ Red-tinted card (`rgba(242,92,92,0.04)` background, `rgba(242,92,92,0.3)` border
 Clicking "Delete account" opens an inline modal (not a separate file) built on shadcn `Dialog`.
 
 **Confirm-delete modal**
-- Describes what will be permanently deleted.
+- Describes all permanent deletion effects, including immediate access loss, recurring-subscription cancellation without a prorated refund, avatar removal, and deletion of owned private leaderboards for every member.
 - Requires typing `DELETE` (case-sensitive, exact match) to enable the confirm button.
-- On confirm: calls `useDeleteAccount` → deletes `profiles` row → signs out → navigates to `/login`.
+- On confirm: calls `useDeleteAccount('DELETE')` → protected `delete-account` Edge Function → local session/cache cleanup → `/login`.
 
-**⚠ Known limitation (partial deletion):** Deleting the `profiles` row cascades via foreign keys to all user data (sessions, tasks, projects, goals, daily_summaries, user_stats, user_preferences, follows). However, the Supabase **auth user record** in `auth.users` is NOT deleted — that requires service-role access, which is only available in an Edge Function. The account is effectively unusable (no profile row, signed out) but the auth record persists. Full auth deletion is deferred to a `delete-account` Edge Function (post-launch).
+**Server behavior:** `delete-account` accepts only an authenticated `POST` with `{ confirmation: 'DELETE' }`; the target user id always comes from the verified JWT. It first cancels every renewable Monthly/Annual Lemon Squeezy subscription and aborts safely if billing cannot be verified, then removes every object under the user's avatar folder and hard-deletes `auth.users`. The profile and all dependent application rows cascade from that Auth deletion. Delayed signed Lemon Squeezy webhooks for the removed user are acknowledged and ignored rather than retrying failed foreign-key writes.
 
 ---
 

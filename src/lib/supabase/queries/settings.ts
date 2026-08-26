@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
 import { toAppError } from '@/lib/supabase/errors'
+import { FunctionsHttpError } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 
 type UserPreferencesRow = Database['public']['Tables']['user_preferences']['Row']
@@ -89,16 +90,37 @@ export async function updatePassword(newPassword: string): Promise<void> {
   if (error) throw error
 }
 
-// Full deletion requires a Supabase Edge Function with service role key.
-// This deletes the profile row (cascades to all user data via FK) and signs out.
-export async function deleteAccount(userId: string): Promise<void> {
-  const { error: deleteError } = await supabase
-    .from('profiles')
-    .delete()
-    .eq('id', userId)
+type DeleteAccountResponse = {
+  success: boolean
+}
 
-  if (deleteError) throw deleteError
+async function extractFunctionErrorMessage(error: unknown): Promise<string> {
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const body = await error.context.json()
+      if (typeof body?.error === 'string') return body.error
+    } catch {
+      // The response was not JSON; use the generic fallback below.
+    }
+  }
 
-  const { error: signOutError } = await supabase.auth.signOut()
-  if (signOutError) throw signOutError
+  return error instanceof Error
+    ? error.message
+    : 'Your account could not be deleted. Please try again.'
+}
+
+// The Edge Function authenticates the caller, cancels renewable billing,
+// removes avatar objects, and hard-deletes the Supabase Auth identity. The
+// user id is intentionally not sent by the client.
+export async function deleteAccount(confirmation: string): Promise<void> {
+  const { data, error } = await supabase.functions.invoke<DeleteAccountResponse>(
+    'delete-account',
+    { body: { confirmation } },
+  )
+
+  if (error || !data?.success) {
+    throw new Error(await extractFunctionErrorMessage(
+      error ?? new Error('Your account could not be deleted. Please try again.'),
+    ))
+  }
 }

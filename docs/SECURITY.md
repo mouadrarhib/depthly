@@ -234,7 +234,7 @@ and `UserProfileModal.tsx`.
 
 **Still reads the base `profiles` table directly** (unaffected — always scoped to the
 caller's own `id = auth.uid()` row): `usePlan.ts`, `settings.ts` (`updateProfile`,
-`checkSlugAvailable`, `deleteAccount`), `storage.ts` (avatar upload/delete),
+`checkSlugAvailable`), `storage.ts` (avatar upload/delete),
 `analytics.ts`'s `fetchProfile`. These need the full row (billing columns included, for
 Settings/Billing) and are only ever queried for the signed-in user's own id, so the
 owner-only policy covers them correctly.
@@ -301,3 +301,24 @@ their own plan decisions from `profiles.plan`; client checks are UX only.
 
 Migration 021 adds compatible APIs. Migration 022 removes the old direct
 profile/project grants and must be deployed only after the RPC-enabled client.
+
+---
+
+## Protected account deletion
+
+`delete-account` is an authenticated Edge Function with JWT verification explicitly
+enabled in `supabase/config.toml`. Its request contains only the literal confirmation
+phrase; the target identity is always obtained from `auth.getUser()` and can never be
+selected by a caller-supplied id. A separate service-role client remains inside the
+function and is used only after authentication to cancel renewable billing, remove the
+caller's avatar objects, and call `auth.admin.deleteUser(user.id, false)`.
+
+The hard Auth deletion is the root operation: `profiles.id` references `auth.users` with
+`ON DELETE CASCADE`, and every user-owned application table cascades from `profiles`.
+Owned private leaderboards therefore disappear for all members. The function cancels
+Monthly/Annual Lemon Squeezy subscriptions before touching Auth and aborts deletion if
+renewal cannot be verified as disabled. Lifetime purchases are not subscription-cancelled.
+
+The signed Lemon Squeezy webhook checks that a referenced profile still exists before
+performing user-specific writes. Delayed events for deleted identities return `200 OK`,
+preventing foreign-key errors and retry storms without weakening signature verification.

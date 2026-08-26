@@ -10,3 +10,8 @@ enabled = false
 # JWT — only the X-Signature header, which the function verifies itself.
 [functions.lemonsqueezy-webhook]
 verify_jwt = false
+
+# Destructive account deletion is callable only with a valid user JWT. The
+# function also derives the target user from that JWT rather than request data.
+[functions.delete-account]
+verify_jwt = true

@@ -232,6 +232,28 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Account deletion removes the profile and subscriptions rows immediately,
+    // while Lemon Squeezy can deliver cancellation or payment events later.
+    // Acknowledge those signed events without attempting FK-backed writes for
+    // an identity that intentionally no longer exists.
+    if (userId) {
+      const { data: profile, error: profileLookupError } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle()
+
+      if (profileLookupError) {
+        console.error('Failed to check profile existence before webhook sync:', profileLookupError)
+        throw profileLookupError
+      }
+
+      if (!profile) {
+        console.warn('Ignoring webhook for deleted user:', eventName, userId)
+        return new Response('OK', { status: 200 })
+      }
+    }
+
     switch (eventName) {
       case 'order_created': {
         const attrs = payload.data.attributes as {
