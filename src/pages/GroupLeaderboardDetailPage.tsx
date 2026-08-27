@@ -93,7 +93,6 @@ export function GroupLeaderboardDetailPage() {
               <div>
                 <div className="mb-3 flex items-center gap-2"><span className={`rounded-full border px-2.5 py-1 text-xs ${group.status === 'active' ? 'border-brand/25 bg-brand/10 text-brand' : 'border-depth-border bg-depth-raised text-ink-muted'}`}>{group.status === 'active' ? 'Active' : 'Archived'}</span><span className="text-xs capitalize text-ink-secondary">{group.period_type} leaderboard</span></div>
                 <h1 className="text-3xl font-semibold tracking-tight text-ink-primary">{group.name}</h1>
-                <p className="mt-2 text-sm text-ink-secondary">Reset boundary: {group.timezone}</p>
               </div>
               {group.status === 'active' && isCreator ? <div className="flex flex-wrap gap-2"><Button variant="ghost" onClick={copyInvite}><Copy /> Copy invite</Button><Button variant="primary" onClick={shareInvite}><Share2 /> Share invite</Button></div> : null}
             </div>
