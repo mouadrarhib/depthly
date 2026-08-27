@@ -12,10 +12,11 @@
 // Same production safety gate/env vars as the other seed scripts. Idempotent:
 // if the account already has projects, this exits without creating more.
 
-import { createClient } from '@supabase/supabase-js'
 import { readFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
+
+import { createClient } from '@supabase/supabase-js'
 
 import type { Database } from '../src/types/database'
 

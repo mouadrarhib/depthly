@@ -1,4 +1,5 @@
 import { useState } from 'react'
+
 import { Lock } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import {
@@ -13,15 +14,15 @@ import {
   LabelList,
 } from 'recharts'
 
-import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import {
   ProjectBreakdownCard,
   type ProjectEntry,
 } from '@/components/analytics/ProjectBreakdownCard'
-import type { SessionProjectSliceWithDate } from '@/lib/supabase/queries/analytics'
+import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { useDailySummariesRange, useSessionsForWeek } from '@/hooks/useAnalytics'
 import { useGoals } from '@/hooks/useGoals'
 import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
+import type { SessionProjectSliceWithDate } from '@/lib/supabase/queries/analytics'
 import {
   getDaysInWeek,
   formatPeriodKey,
@@ -29,8 +30,8 @@ import {
   formatMinutesToHours,
   getGoalProgress,
 } from '@/lib/utils/analytics'
-import { PATHS } from '@/routes/paths'
 import { sessionsToDailyTotals } from '@/lib/utils/analyticsSessions'
+import { PATHS } from '@/routes/paths'
 import type { AnalyticsProjectScope } from '@/types/app'
 
 interface WeeklyViewProps extends AnalyticsProjectScope {
@@ -500,8 +501,8 @@ export function WeeklyView({ date, projectId, projectLabel }: WeeklyViewProps) {
                   axisLine={false}
                   tickLine={false}
                   height={36}
-                  tick={(props: any) => {
-                    const { x, y, index } = props
+                  tick={(props: { x?: number; y?: number; index?: number }) => {
+                    const { x = 0, y = 0, index = 0 } = props
                     const entry = chartData[index]
                     const dayColor = entry.isToday ? '#4B9EFF' : '#7A7890'
                     return (

@@ -1,15 +1,15 @@
-import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CalendarClock, Lock, Target, Users } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/ui/Logo'
 import { Spinner } from '@/components/ui/Spinner'
-import { useGroupInvitePreview, useJoinGroupLeaderboard } from '@/hooks/useGroupLeaderboards'
-import { useAuthStore } from '@/store/authStore'
 import { useAuth } from '@/hooks/shared/useAuth'
+import { useGroupInvitePreview, useJoinGroupLeaderboard } from '@/hooks/useGroupLeaderboards'
 import { authPath } from '@/lib/authRedirect'
 import { formatMinutesToHours } from '@/lib/utils/analytics'
 import { PATHS } from '@/routes/paths'
+import { useAuthStore } from '@/store/authStore'
 
 export function JoinGroupLeaderboardPage() {
   const { code = '' } = useParams<{ code: string }>()

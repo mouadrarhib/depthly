@@ -1,6 +1,9 @@
 import { useCallback, useState } from 'react'
+
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import { useSessionMonthLimit } from '@/hooks/usePlanLimits'
+import { timerKeys } from '@/lib/queryKeys'
 import {
   cancelTimerRun,
   finishTimerRun,
@@ -8,9 +11,7 @@ import {
   resumeTimerRun,
   startTimerRun,
 } from '@/lib/supabase/queries/sessions'
-import { timerKeys } from '@/lib/queryKeys'
 import { MIN_SESSION_SECONDS, showSaveToast, useTimerStore } from '@/store/timerStore'
-import { useSessionMonthLimit } from '@/hooks/usePlanLimits'
 
 export function useSaveSession() {
   const qc = useQueryClient()

@@ -1,8 +1,6 @@
 import { useState } from 'react'
 
-import { useDeleteAccount } from '@/hooks/useSettings'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/Input'
 import {
   Dialog,
   DialogContent,
@@ -11,6 +9,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/Input'
+import { useDeleteAccount } from '@/hooks/useSettings'
 
 // ── Confirm delete modal ───────────────────────────────────────────────────────
 

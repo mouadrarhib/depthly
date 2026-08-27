@@ -1,6 +1,9 @@
 import { useState } from 'react'
+
 import { Check, Clock, ListTodo, MoreHorizontal, Timer } from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,8 +11,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { Button } from '@/components/ui/button'
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
 import {
   useTasks,
@@ -18,6 +19,8 @@ import {
   useDeleteTask,
   useDuplicateTask,
 } from '@/hooks/useTasks'
+import type { Task } from '@/lib/supabase/queries/tasks'
+import { formatMinutesToHours } from '@/lib/utils/analytics'
 import {
   formatDueDate,
   isOverdue,
@@ -25,8 +28,6 @@ import {
   PRIORITY_ORDER,
   STATUS_CONFIG,
 } from '@/lib/utils/tasks'
-import { formatMinutesToHours } from '@/lib/utils/analytics'
-import type { Task } from '@/lib/supabase/queries/tasks'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

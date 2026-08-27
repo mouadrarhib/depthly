@@ -1,5 +1,6 @@
 import { Timer, Clock, Calendar } from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -7,11 +8,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
-import { formatDueDate, isOverdue, STATUS_CONFIG } from '@/lib/utils/tasks'
-import { formatMinutesToHours } from '@/lib/utils/analytics'
 import type { Task } from '@/lib/supabase/queries/tasks'
+import { formatMinutesToHours } from '@/lib/utils/analytics'
+import { formatDueDate, isOverdue, STATUS_CONFIG } from '@/lib/utils/tasks'
 
 interface TaskDetailModalProps {
   open:         boolean

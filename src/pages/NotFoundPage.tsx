@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
-import { PATHS } from '@/routes/paths'
 import { cn } from '@/lib/utils/cn'
+import { PATHS } from '@/routes/paths'
 
 export function NotFoundPage() {
   return (

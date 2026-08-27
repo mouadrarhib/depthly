@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+
+import { BarChart2, CheckCircle, Clock, FolderOpen, History, Target, Trophy } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import {
   BarChart,
@@ -7,25 +9,24 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts'
-import { BarChart2, CheckCircle, Clock, FolderOpen, History, Target, Trophy } from 'lucide-react'
 
+import { GoalDialog } from '@/components/goals/GoalDialog'
 import { TimerWidget } from '@/components/home/TimerWidget'
-import { SessionRow } from '@/components/sessions/SessionRow'
 import { SessionDetailModal } from '@/components/sessions/SessionDetailModal'
 import { SessionModal } from '@/components/sessions/SessionModal'
-import { GoalDialog } from '@/components/goals/GoalDialog'
+import { SessionRow } from '@/components/sessions/SessionRow'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useProfile, useDailySummary, useDailySummariesRange } from '@/hooks/useAnalytics'
 import { useGoals } from '@/hooks/useGoals'
 import { useSessionsPaginated } from '@/hooks/useSessions'
+import type { SessionWithRelations } from '@/lib/supabase/queries/sessions'
 import {
   formatMinutesToHours,
   formatPeriodKey,
   getDaysInWeek,
 } from '@/lib/utils/analytics'
 import { PATHS } from '@/routes/paths'
-import type { SessionWithRelations } from '@/lib/supabase/queries/sessions'
 
 const STAT_COLORS = {
   focus:    '#4B9EFF',

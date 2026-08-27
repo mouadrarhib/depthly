@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
 
-import { fetchActiveTimerRun } from '@/lib/supabase/queries/sessions'
+import { useActiveTimerRealtime } from '@/hooks/useActiveTimerRealtime'
+import { useSaveSession } from '@/hooks/useSaveSession'
 import { timerKeys } from '@/lib/queryKeys'
+import { fetchActiveTimerRun } from '@/lib/supabase/queries/sessions'
 import { useAuthStore } from '@/store/authStore'
 import { showSaveToast, useTimerStore } from '@/store/timerStore'
-import { useSaveSession } from '@/hooks/useSaveSession'
-import { useActiveTimerRealtime } from '@/hooks/useActiveTimerRealtime'
 
 function playBeep(freq = 880, duration = 0.6) {
   try {

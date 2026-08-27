@@ -1,14 +1,14 @@
 import { ChevronRight, MoreHorizontal, Pencil, ShieldQuestion } from 'lucide-react'
 
+import { Badge } from '@/components/ui/Badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/Badge'
-import { cn } from '@/lib/utils'
 import type { SessionWithRelations } from '@/lib/supabase/queries/sessions'
+import { cn } from '@/lib/utils'
 
 interface SessionRowProps {
   session:      SessionWithRelations

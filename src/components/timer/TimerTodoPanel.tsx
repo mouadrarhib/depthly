@@ -1,15 +1,16 @@
 import * as React from 'react'
-import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { X, ChevronDown, Plus, FolderOpen } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
 
+import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { useQuery } from '@tanstack/react-query'
+import { X, ChevronDown, Plus, FolderOpen } from 'lucide-react'
+
+import { useCreateTask } from '@/hooks/useTasks'
+import { projectKeys, taskKeys } from '@/lib/queryKeys'
+import { fetchProjects } from '@/lib/supabase/queries/projects'
+import { fetchTasksByProject } from '@/lib/supabase/queries/tasks'
 import { useUiStore } from '@/store'
 import { useAuthStore } from '@/store/authStore'
 import { useTimerStore } from '@/store/timerStore'
-import { useCreateTask } from '@/hooks/useTasks'
-import { fetchProjects } from '@/lib/supabase/queries/projects'
-import { fetchTasksByProject } from '@/lib/supabase/queries/tasks'
-import { projectKeys, taskKeys } from '@/lib/queryKeys'
 
 // ── Backdrop (shared pattern) ─────────────────────────────────────────────────
 

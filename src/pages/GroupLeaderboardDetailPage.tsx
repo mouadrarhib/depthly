@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Archive, ArrowLeft, Clock, Copy, LogOut, Share2, Target, UserMinus, Users } from 'lucide-react'
 
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { Archive, ArrowLeft, Clock, Copy, LogOut, Share2, Target, UserMinus, Users } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Spinner } from '@/components/ui/Spinner'
 import {
   useCloseGroupLeaderboard,
@@ -12,9 +13,9 @@ import {
   useLeaveGroupLeaderboard,
   useRemoveGroupLeaderboardMember,
 } from '@/hooks/useGroupLeaderboards'
-import { useAuthStore } from '@/store/authStore'
 import { formatMinutesToHours } from '@/lib/utils/analytics'
 import { PATHS } from '@/routes/paths'
+import { useAuthStore } from '@/store/authStore'
 
 function GroupCountdown({ endsAt }: { endsAt: string }) {
   const [now, setNow] = useState(Date.now())

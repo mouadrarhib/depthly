@@ -1,4 +1,5 @@
 import { useState } from 'react'
+
 import {
   Lock,
   Clock,
@@ -11,14 +12,14 @@ import {
   CalendarDays,
 } from 'lucide-react'
 
-import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import {
   ProjectBreakdownCard,
   type ProjectEntry,
 } from '@/components/analytics/ProjectBreakdownCard'
-import type { SessionProjectSliceWithDate } from '@/lib/supabase/queries/analytics'
+import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { useDailySummariesRange, useSessionsForYear } from '@/hooks/useAnalytics'
 import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
+import type { SessionProjectSliceWithDate } from '@/lib/supabase/queries/analytics'
 import {
   getWeeksInYear,
   formatPeriodKey,

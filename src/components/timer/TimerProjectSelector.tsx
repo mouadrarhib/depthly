@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { projectKeys, taskKeys } from '@/lib/queryKeys'
 import { fetchProjects } from '@/lib/supabase/queries/projects'
 import { fetchTasksByProject } from '@/lib/supabase/queries/tasks'
-import { projectKeys, taskKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/store/authStore'
 import { useTimerStore } from '@/store/timerStore'
 

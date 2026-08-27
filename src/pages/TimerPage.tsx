@@ -1,14 +1,14 @@
 import React from 'react'
 
+import { TimerControls } from '@/components/timer/TimerControls'
+import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { TimerFullscreen } from '@/components/timer/TimerFullscreen'
 import { TimerModeSelector } from '@/components/timer/TimerModeSelector'
-import { TimerDisplay } from '@/components/timer/TimerDisplay'
-import { TimerControls } from '@/components/timer/TimerControls'
-import { TimerSettings } from '@/components/timer/TimerSettings'
 import { TimerNotesPanel } from '@/components/timer/TimerNotesPanel'
+import { TimerSettings } from '@/components/timer/TimerSettings'
 import { TimerTodoPanel } from '@/components/timer/TimerTodoPanel'
-import { useTimerStore } from '@/store/timerStore'
 import { useUiStore } from '@/store'
+import { useTimerStore } from '@/store/timerStore'
 
 // ── Session dots — clickable focus/break cycle switcher ──────────────────
 

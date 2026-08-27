@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { BarChart2, Clock, Search, Users } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
 
+import { useQuery } from '@tanstack/react-query'
+import { BarChart2, Clock, Search, Users } from 'lucide-react'
+import { Link } from 'react-router-dom'
+
+import { PeriodNavigator } from '@/components/analytics/PeriodNavigator'
 import { LeaderboardRow } from '@/components/leaderboard/LeaderboardRow'
 import type { LeaderboardRowEntry } from '@/components/leaderboard/LeaderboardRow'
 import { PeriodCountdown } from '@/components/leaderboard/PeriodCountdown'
 import { UserProfileModal } from '@/components/leaderboard/UserProfileModal'
-import { PeriodNavigator } from '@/components/analytics/PeriodNavigator'
 import { Spinner } from '@/components/ui/Spinner'
+import { useDebounce } from '@/hooks/shared/useDebounce'
 import {
   useGlobalLeaderboard,
   useFriendsLeaderboard,
@@ -19,12 +21,11 @@ import {
   useAcceptFriendRequest,
   useDeclineFriendRequest,
 } from '@/hooks/useLeaderboard'
-import { useDebounce } from '@/hooks/shared/useDebounce'
-import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase/client'
+import type { LeaderboardEntry, ProfileSearchResult, PendingFriendRequest } from '@/lib/supabase/queries/leaderboard'
 import { formatMinutesToHours, formatPeriodKey } from '@/lib/utils/analytics'
 import { PATHS } from '@/routes/paths'
-import type { LeaderboardEntry, ProfileSearchResult, PendingFriendRequest } from '@/lib/supabase/queries/leaderboard'
+import { useAuthStore } from '@/store/authStore'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

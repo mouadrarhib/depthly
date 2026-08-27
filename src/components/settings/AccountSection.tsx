@@ -1,10 +1,10 @@
 import { useState } from 'react'
 
-import { useUpdateEmail, useUpdatePassword } from '@/hooks/useSettings'
-import { clearOnboardingTourSeen, runOnboardingTour } from '@/hooks/useOnboardingTour'
-import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/Input'
+import { clearOnboardingTourSeen, runOnboardingTour } from '@/hooks/useOnboardingTour'
+import { useUpdateEmail, useUpdatePassword } from '@/hooks/useSettings'
+import { useAuthStore } from '@/store/authStore'
 
 // ── Sub-card wrapper ───────────────────────────────────────────────────────────
 

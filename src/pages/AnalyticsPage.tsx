@@ -1,21 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { BarChart2 } from 'lucide-react'
 
-import { OverviewView } from '@/components/analytics/OverviewView'
-import { PeriodNavigator } from '@/components/analytics/PeriodNavigator'
-import { DailyView } from '@/components/analytics/DailyView'
-import { WeeklyView } from '@/components/analytics/WeeklyView'
-import { MonthlyView } from '@/components/analytics/MonthlyView'
-import { YearlyView } from '@/components/analytics/YearlyView'
-import { ShareProgressButton } from '@/components/analytics/ShareProgressButton'
+import { BarChart2 } from 'lucide-react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+
 import {
   ALL_PROJECTS_VALUE,
   AnalyticsProjectSelect,
   UNASSIGNED_PROJECT_VALUE,
 } from '@/components/analytics/AnalyticsProjectSelect'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { DailyView } from '@/components/analytics/DailyView'
+import { MonthlyView } from '@/components/analytics/MonthlyView'
+import { OverviewView } from '@/components/analytics/OverviewView'
+import { PeriodNavigator } from '@/components/analytics/PeriodNavigator'
+import { ShareProgressButton } from '@/components/analytics/ShareProgressButton'
+import { WeeklyView } from '@/components/analytics/WeeklyView'
+import { YearlyView } from '@/components/analytics/YearlyView'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProfile } from '@/hooks/useAnalytics'
 import { useArchivedProjects, useProjects } from '@/hooks/useProjects'
 import { PATHS } from '@/routes/paths'

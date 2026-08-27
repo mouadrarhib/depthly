@@ -1,9 +1,10 @@
 import { useState } from 'react'
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
-import { useAuthStore } from '@/store/authStore'
 import { settingsKeys, analyticsKeys } from '@/lib/queryKeys'
+import { supabase } from '@/lib/supabase/client'
 import {
   fetchUserPreferences,
   updateUserPreferences,
@@ -15,7 +16,7 @@ import {
 } from '@/lib/supabase/queries/settings'
 import type { UpdatePreferencesInput, UpdateProfileInput } from '@/lib/supabase/queries/settings'
 import { uploadAvatar } from '@/lib/supabase/storage'
-import { supabase } from '@/lib/supabase/client'
+import { useAuthStore } from '@/store/authStore'
 
 export function usePreferences() {
   const userId = useAuthStore(s => s.user?.id ?? '')

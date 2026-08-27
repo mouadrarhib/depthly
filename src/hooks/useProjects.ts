@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { useAuthStore } from '@/store/authStore'
 import { projectKeys } from '@/lib/queryKeys'
 import {
   fetchProjects,
@@ -17,6 +16,7 @@ import type {
   Project,
   UpdateProjectInput,
 } from '@/lib/supabase/queries/projects'
+import { useAuthStore } from '@/store/authStore'
 
 export function useProjects() {
   const userId = useAuthStore((s) => s.user?.id ?? '')

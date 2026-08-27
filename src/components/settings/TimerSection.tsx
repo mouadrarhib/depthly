@@ -1,9 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 
-import { usePreferences, useUpdatePreferences } from '@/hooks/useSettings'
-import { Stepper } from '@/components/ui/Stepper'
-import { Switch } from '@/components/ui/switch'
-import { Spinner } from '@/components/ui/Spinner'
 import {
   Select,
   SelectContent,
@@ -11,6 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Spinner } from '@/components/ui/Spinner'
+import { Stepper } from '@/components/ui/Stepper'
+import { Switch } from '@/components/ui/switch'
+import { usePreferences, useUpdatePreferences } from '@/hooks/useSettings'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

@@ -1,30 +1,31 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, List, Columns, Lock, Crown, Circle, Clock, CheckCircle, MoreHorizontal } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/Spinner'
-import { ProjectModal } from '@/components/projects/ProjectModal'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { TaskModal } from '@/components/tasks/TaskModal'
-import { TaskDetailModal } from '@/components/tasks/TaskDetailModal'
-import { TaskListView } from '@/components/tasks/TaskListView'
-import { TaskKanbanView } from '@/components/tasks/TaskKanbanView'
+import { ChevronLeft, List, Columns, Lock, Crown, Circle, Clock, CheckCircle, MoreHorizontal } from 'lucide-react'
+import { useParams, useNavigate } from 'react-router-dom'
+
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { ProjectModal } from '@/components/projects/ProjectModal'
 import { ProjectSessionsList } from '@/components/projects/ProjectSessionsList'
+import { TaskDetailModal } from '@/components/tasks/TaskDetailModal'
+import { TaskKanbanView } from '@/components/tasks/TaskKanbanView'
+import { TaskListView } from '@/components/tasks/TaskListView'
+import { TaskModal } from '@/components/tasks/TaskModal'
+import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Spinner } from '@/components/ui/Spinner'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { usePlan } from '@/hooks/usePlan'
 import { useProject, useProjectStats, useArchiveProject, useUpdateProject } from '@/hooks/useProjects'
 import { useDeleteTask, useTaskSessionMins } from '@/hooks/useTasks'
-import { usePlan } from '@/hooks/usePlan'
-import { useTimerStore, showSaveToast } from '@/store/timerStore'
-import { PATHS } from '@/routes/paths'
 import type { Task } from '@/lib/supabase/queries/tasks'
+import { PATHS } from '@/routes/paths'
+import { useTimerStore, showSaveToast } from '@/store/timerStore'
 
 function formatFocusDuration(minutes: number): string {
   const hours = Math.floor(minutes / 60)

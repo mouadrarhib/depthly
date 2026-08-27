@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+
 import { X } from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -9,8 +11,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/Input'
-import { Button } from '@/components/ui/button'
-import { Stepper } from '@/components/ui/Stepper'
 import {
   Select,
   SelectContent,
@@ -18,10 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useAuthStore } from '@/store/authStore'
+import { Stepper } from '@/components/ui/Stepper'
 import { useTasks, useCreateTask, useUpdateTask } from '@/hooks/useTasks'
-import { PRIORITY_CONFIG, STATUS_CONFIG } from '@/lib/utils/tasks'
 import type { Task } from '@/lib/supabase/queries/tasks'
+import { PRIORITY_CONFIG, STATUS_CONFIG } from '@/lib/utils/tasks'
+import { useAuthStore } from '@/store/authStore'
 
 type Status   = 'todo' | 'in_progress' | 'done'
 type Priority = 'low' | 'medium' | 'high' | 'urgent'

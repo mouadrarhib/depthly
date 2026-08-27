@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react'
+
 import type { Driver, DriveStep } from 'driver.js'
 import 'driver.js/dist/driver.css'
 
-import { useAuthStore, useIntroStore, useUiStore } from '@/store'
 import { getTourSteps } from '@/lib/onboarding/tourSteps'
+import { useAuthStore, useIntroStore, useUiStore } from '@/store'
 import '@/lib/onboarding/onboarding.css'
 
 const ONBOARDING_FINISHED_EVENT = 'depthly:onboarding-tour-finished'

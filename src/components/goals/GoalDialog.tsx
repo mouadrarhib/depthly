@@ -1,5 +1,6 @@
 import { Target } from 'lucide-react'
 
+import { GoalForm } from '@/components/goals/GoalForm'
 import {
   Dialog,
   DialogContent,
@@ -7,7 +8,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { GoalForm } from '@/components/goals/GoalForm'
 
 interface GoalDialogProps {
   open:    boolean

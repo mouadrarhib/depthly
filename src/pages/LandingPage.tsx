@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
 
 import { BarChart3, Clock, Globe, Image, Share2, ShieldCheck, Target, Users } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
+
 
 import { AnalyticsMockup } from '@/components/landing/AnalyticsMockup'
 import { ClosingCtaSection } from '@/components/landing/ClosingCtaSection'
@@ -12,10 +13,10 @@ import { LandingNav } from '@/components/landing/LandingNav'
 import { LeaderboardMockup } from '@/components/landing/LeaderboardMockup'
 import { OverviewSection } from '@/components/landing/OverviewSection'
 import { PricingSection } from '@/components/landing/PricingSection'
+import { FeatureBlock } from '@/components/landing/primitives'
 import { ProjectsSupportSection } from '@/components/landing/ProjectsSupportSection'
 import { ShareProgressMockup } from '@/components/landing/ShareProgressMockup'
 import { TimerMockup } from '@/components/landing/TimerMockup'
-import { FeatureBlock } from '@/components/landing/primitives'
 import { useLandingAnimations } from '@/components/landing/useLandingAnimations'
 import { useAuth } from '@/hooks/shared/useAuth'
 import { PATHS } from '@/routes/paths'

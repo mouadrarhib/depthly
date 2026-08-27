@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { useAuthStore } from '@/store/authStore'
 import { goalKeys } from '@/lib/queryKeys'
 import { fetchGoals, updateGoals } from '@/lib/supabase/queries/goals'
 import type { UpdateGoalsInput } from '@/lib/supabase/queries/goals'
+import { useAuthStore } from '@/store/authStore'
 
 export function useGoals() {
   const userId = useAuthStore(s => s.user?.id ?? '')

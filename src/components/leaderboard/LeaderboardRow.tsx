@@ -1,4 +1,5 @@
 import { useState } from 'react'
+
 import { Flame, Trophy } from 'lucide-react'
 
 const RANK_COLORS: Record<number, string> = {

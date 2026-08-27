@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
+
 import { Target, Users } from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/Input'
 import { useCreateGroupLeaderboard } from '@/hooks/useGroupLeaderboards'
 import { usePlan } from '@/hooks/usePlan'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/Input'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { GroupLeaderboardPeriod } from '@/lib/supabase/queries/groupLeaderboards'
 
 interface Props {

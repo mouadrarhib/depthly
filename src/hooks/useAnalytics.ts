@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { useAuthStore } from '@/store/authStore'
 import { analyticsKeys } from '@/lib/queryKeys'
 import {
   fetchProfile,
@@ -11,6 +10,7 @@ import {
   fetchSessionsForWeek,
   fetchSessionsAllTime,
 } from '@/lib/supabase/queries/analytics'
+import { useAuthStore } from '@/store/authStore'
 
 export function useProfile() {
   const userId = useAuthStore((s) => s.user?.id ?? '')

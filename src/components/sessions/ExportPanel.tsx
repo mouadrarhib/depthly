@@ -1,6 +1,8 @@
 import { useState } from 'react'
+
 import { Download, Lock } from 'lucide-react'
 
+import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -10,9 +12,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { UpgradeModal } from '@/components/billing/UpgradeModal'
-import { useExportSessions } from '@/hooks/useSessions'
 import { usePlan } from '@/hooks/usePlan'
+import { useExportSessions } from '@/hooks/useSessions'
 import type { Project } from '@/lib/supabase/queries/projects'
 
 interface ExportPanelProps {

@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { useAuthStore } from '@/store/authStore'
 import { leaderboardKeys } from '@/lib/queryKeys'
 import {
   fetchGlobalLeaderboard,
@@ -19,6 +18,7 @@ import {
   fetchPendingFriendRequestsCount,
   fetchFriendshipStatus,
 } from '@/lib/supabase/queries/leaderboard'
+import { useAuthStore } from '@/store/authStore'
 
 export function useGlobalLeaderboard(periodType: string, periodKey: string) {
   const isAllTime = periodType === 'all_time'

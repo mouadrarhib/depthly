@@ -1,7 +1,7 @@
 import { FolderKanban, Link2 } from 'lucide-react'
 
-import { TaskKanbanMockup } from '@/components/landing/TaskKanbanMockup'
 import { sectionPad } from '@/components/landing/primitives'
+import { TaskKanbanMockup } from '@/components/landing/TaskKanbanMockup'
 
 export function ProjectsSupportSection() {
   return (

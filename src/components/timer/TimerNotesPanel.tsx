@@ -1,9 +1,10 @@
 import * as React from 'react'
+
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X, Bold, Italic, List, ListOrdered } from 'lucide-react'
 
-import { useTimerStore } from '@/store/timerStore'
 import { useUiStore } from '@/store'
+import { useTimerStore } from '@/store/timerStore'
 
 // ── Formatting helpers ────────────────────────────────────────────────────────
 

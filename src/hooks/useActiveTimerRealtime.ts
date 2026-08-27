@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 
 import { supabase } from '@/lib/supabase/client'
+import type { ActiveTimerRun } from '@/lib/supabase/queries/sessions'
 import { useAuthStore } from '@/store/authStore'
 import { TIMER_SETTINGS_STORAGE_KEY, useTimerStore } from '@/store/timerStore'
-import type { ActiveTimerRun } from '@/lib/supabase/queries/sessions'
 
 export function useActiveTimerRealtime() {
   const userId = useAuthStore((state) => state.user?.id ?? '')

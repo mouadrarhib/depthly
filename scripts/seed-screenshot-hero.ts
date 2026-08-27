@@ -23,11 +23,11 @@
 // already has session history, re-running skips seeding but still resets the
 // password to a freshly generated one (printed again) in case you lost it.
 
-import { createClient } from '@supabase/supabase-js'
-import { randomBytes } from 'crypto'
 import { readFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
+
+import { createClient } from '@supabase/supabase-js'
 
 import type { Database } from '../src/types/database'
 

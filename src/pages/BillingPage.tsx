@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react'
+
 import { AlertTriangle, CheckCircle } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 
-import { usePlan, FREE_LIMITS } from '@/hooks/usePlan'
-import { useProfile } from '@/hooks/useAnalytics'
-import { useSubscriptions, useCancelSubscription } from '@/hooks/useBilling'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/Spinner'
 import {
   Dialog,
   DialogContent,
@@ -16,6 +13,10 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { Spinner } from '@/components/ui/Spinner'
+import { useProfile } from '@/hooks/useAnalytics'
+import { useSubscriptions, useCancelSubscription } from '@/hooks/useBilling'
+import { usePlan, FREE_LIMITS } from '@/hooks/usePlan'
 
 const FEATURES = [
   'Unlimited projects',

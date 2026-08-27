@@ -1,15 +1,16 @@
 import { useEffect, useRef } from 'react'
+
 import { Outlet, useLocation } from 'react-router-dom'
 
+import { TimerStatusToast } from '@/components/timer/TimerStatusToast'
 import { useAuth } from '@/hooks/shared/useAuth'
 import { useOnboardingTour } from '@/hooks/useOnboardingTour'
 import { useTimerEffects } from '@/hooks/useTimerEffects'
-import { useUiStore } from '@/store'
 import { cn } from '@/lib/utils/cn'
+import { useUiStore } from '@/store'
 
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
-import { TimerStatusToast } from '@/components/timer/TimerStatusToast'
 
 export function AppLayout() {
   useAuth()

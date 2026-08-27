@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase/client'
+import { useAuthStore } from '@/store/authStore'
 import type { Database } from '@/types/database'
 
 type PlanType = Database['public']['Enums']['plan_type']

@@ -1,19 +1,11 @@
-import { NavLink, useNavigate } from 'react-router-dom'
 import {
   BarChart2, Clock, CreditCard, FolderOpen, History,
   LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen,
   Settings, Trophy,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
 
-import { useUiStore, useAuthStore } from '@/store'
-import { usePlan } from '@/hooks/usePlan'
-import { useTodayStats } from '@/hooks/useTodayStats'
-import { useMediaQuery } from '@/hooks/shared/useMediaQuery'
-import { usePendingFriendRequestsCount } from '@/hooks/useLeaderboard'
-import { PATHS } from '@/routes/paths'
-import { supabase } from '@/lib/supabase/client'
-import { cn } from '@/lib/utils/cn'
 import { Avatar } from '@/components/ui/Avatar'
 import {
   Tooltip,
@@ -21,6 +13,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useMediaQuery } from '@/hooks/shared/useMediaQuery'
+import { usePendingFriendRequestsCount } from '@/hooks/useLeaderboard'
+import { usePlan } from '@/hooks/usePlan'
+import { useTodayStats } from '@/hooks/useTodayStats'
+import { supabase } from '@/lib/supabase/client'
+import { cn } from '@/lib/utils/cn'
+import { PATHS } from '@/routes/paths'
+import { useUiStore, useAuthStore } from '@/store'
 
 // ── Nav items ────────────────────────────────────────────────────────────────
 interface NavItem { label: string; path: string; Icon: LucideIcon; tour?: string }

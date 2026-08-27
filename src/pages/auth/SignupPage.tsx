@@ -1,10 +1,11 @@
 import { useState } from 'react'
+
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
-import { supabase } from '@/lib/supabase/client'
-import { PATHS } from '@/routes/paths'
 import { Button, GoogleButton, Input } from '@/components/ui'
 import { authPath, safeAuthNext } from '@/lib/authRedirect'
+import { supabase } from '@/lib/supabase/client'
+import { PATHS } from '@/routes/paths'
 
 export function SignupPage() {
   const navigate = useNavigate()

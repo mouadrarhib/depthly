@@ -1,28 +1,29 @@
 import { useState, useEffect, useRef } from 'react'
+
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, X } from 'lucide-react'
 
-import { useProfile } from '@/hooks/useAnalytics'
-import {
-  useUpdateProfile,
-  useUploadAvatar,
-  useCheckSlugAvailable,
-} from '@/hooks/useSettings'
-import { useCanAppearOnLeaderboard } from '@/hooks/usePlanLimits'
-import { useAuthStore } from '@/store/authStore'
-import { analyticsKeys, settingsKeys } from '@/lib/queryKeys'
-import { deleteAvatar } from '@/lib/supabase/storage'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/Input'
-import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@/components/ui/Spinner'
+import { Switch } from '@/components/ui/switch'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useProfile } from '@/hooks/useAnalytics'
+import { useCanAppearOnLeaderboard } from '@/hooks/usePlanLimits'
+import {
+  useUpdateProfile,
+  useUploadAvatar,
+  useCheckSlugAvailable,
+} from '@/hooks/useSettings'
+import { analyticsKeys, settingsKeys } from '@/lib/queryKeys'
+import { deleteAvatar } from '@/lib/supabase/storage'
+import { useAuthStore } from '@/store/authStore'
 
 function getAvatarColor(name: string): string {
   const colors = ['#4B9EFF', '#3DD68C', '#F5A623', '#F25C5C', '#A78BFA', '#F472B6', '#FB923C', '#34D399']

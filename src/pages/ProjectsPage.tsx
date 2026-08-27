@@ -1,13 +1,15 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Archive, Plus, Search, X } from 'lucide-react'
 
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/button'
+import { Archive, Plus, Search, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+
+import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { ProjectCard } from '@/components/projects/ProjectCard'
 import { ProjectModal } from '@/components/projects/ProjectModal'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { UpgradeModal } from '@/components/billing/UpgradeModal'
+import { useProjectLimit } from '@/hooks/usePlanLimits'
 import {
   useArchivedProjects,
   useArchiveProject,
@@ -16,7 +18,6 @@ import {
   useProjects,
   useUnarchiveProject,
 } from '@/hooks/useProjects'
-import { useProjectLimit } from '@/hooks/usePlanLimits'
 import { useProjectsTour } from '@/hooks/useProjectsTour'
 import { PATHS } from '@/routes/paths'
 import type { Tables } from '@/types/database'

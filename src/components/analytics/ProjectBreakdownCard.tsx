@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
 import { Tag } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip } from 'recharts'
 
 import { formatMinutesToHours } from '@/lib/utils/analytics'

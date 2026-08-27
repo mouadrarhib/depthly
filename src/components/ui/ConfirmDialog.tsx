@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -6,7 +7,6 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 
 interface ConfirmDialogProps {
   open:          boolean

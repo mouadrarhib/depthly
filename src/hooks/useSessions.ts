@@ -1,6 +1,5 @@
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { useAuthStore } from '@/store/authStore'
 import { sessionKeys } from '@/lib/queryKeys'
 import {
   fetchSessionsByProject,
@@ -19,6 +18,7 @@ import {
   downloadCSV,
   generateExportFilename,
 } from '@/lib/utils/export'
+import { useAuthStore } from '@/store/authStore'
 
 export function useSessionsByProject(projectId: string) {
   return useQuery({

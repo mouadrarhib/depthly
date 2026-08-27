@@ -1,15 +1,16 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { CheckSquare, FileText } from 'lucide-react'
 
-import { useTimerStore } from '@/store/timerStore'
-import { useUiStore } from '@/store'
-import { useSaveSession } from '@/hooks/useSaveSession'
+import { CheckSquare, FileText } from 'lucide-react'
+import { Link } from 'react-router-dom'
+
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { TimerNotesPanel } from '@/components/timer/TimerNotesPanel'
 import { TimerTodoPanel } from '@/components/timer/TimerTodoPanel'
 import { ProgressRing } from '@/components/ui/ProgressRing'
+import { useSaveSession } from '@/hooks/useSaveSession'
 import { PATHS } from '@/routes/paths'
+import { useUiStore } from '@/store'
+import { useTimerStore } from '@/store/timerStore'
 
 const RING = 220
 const SCALE = RING / 340

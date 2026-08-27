@@ -1,15 +1,16 @@
 import { useEffect } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
 
+import { projectKeys, taskKeys } from '@/lib/queryKeys'
 import { fetchProjects } from '@/lib/supabase/queries/projects'
 import { fetchTasksByProject } from '@/lib/supabase/queries/tasks'
-import { projectKeys, taskKeys } from '@/lib/queryKeys'
+import { useUiStore } from '@/store'
 import { useAuthStore } from '@/store/authStore'
 import { useTimerStore } from '@/store/timerStore'
-import { useUiStore } from '@/store'
 
-import { TimerDisplay } from './TimerDisplay'
 import { TimerControls } from './TimerControls'
+import { TimerDisplay } from './TimerDisplay'
 
 export function TimerFullscreen() {
   const isFullscreen     = useUiStore((s) => s.isFullscreen)

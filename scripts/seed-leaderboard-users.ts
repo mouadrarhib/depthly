@@ -1,10 +1,11 @@
 // DEV ONLY — DELETE BEFORE PRODUCTION
 // Run: npx tsx scripts/seed-leaderboard-users.ts
 
-import { createClient } from '@supabase/supabase-js'
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+
+import { createClient } from '@supabase/supabase-js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 

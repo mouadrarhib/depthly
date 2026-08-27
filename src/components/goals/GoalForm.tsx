@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
+
 import { Check, Clock, Calendar } from 'lucide-react'
 
-import { useGoals, useUpdateGoals } from '@/hooks/useGoals'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/Spinner'
+import { useGoals, useUpdateGoals } from '@/hooks/useGoals'
 import { formatMinutesToHours } from '@/lib/utils/analytics'
 
 const DAILY_PRESETS  = [{ label: '1h', minutes: 60 }, { label: '2h', minutes: 120 }, { label: '4h', minutes: 240 }, { label: '6h', minutes: 360 }]

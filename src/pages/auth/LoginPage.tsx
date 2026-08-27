@@ -1,11 +1,12 @@
 import { useState } from 'react'
+
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
+import { Button, GoogleButton, Input } from '@/components/ui'
+import { authPath, safeAuthNext } from '@/lib/authRedirect'
 import { supabase } from '@/lib/supabase/client'
 import { PATHS } from '@/routes/paths'
 import { useAuthStore } from '@/store'
-import { Button, GoogleButton, Input } from '@/components/ui'
-import { authPath, safeAuthNext } from '@/lib/authRedirect'
 
 export function LoginPage() {
   const navigate = useNavigate()

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+
 import {
   DndContext,
   DragOverlay,
@@ -20,8 +21,8 @@ import {
   useDuplicateTask,
   useReorderKanban,
 } from '@/hooks/useTasks'
-import { formatDueDate, isOverdue, getKanbanOrder, PRIORITY_CONFIG } from '@/lib/utils/tasks'
 import type { Task } from '@/lib/supabase/queries/tasks'
+import { formatDueDate, isOverdue, getKanbanOrder, PRIORITY_CONFIG } from '@/lib/utils/tasks'
 
 type Status         = 'todo' | 'in_progress' | 'done'
 type Priority       = 'low' | 'medium' | 'high' | 'urgent'

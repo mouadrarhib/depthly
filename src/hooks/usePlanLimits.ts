@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { useAuthStore } from '@/store/authStore'
-import { useProjects } from '@/hooks/useProjects'
-import { usePlan, FREE_LIMITS } from '@/hooks/usePlan'
-import { fetchSessionsThisMonth } from '@/lib/supabase/queries/sessions'
 import { useMyGroupLeaderboards } from '@/hooks/useGroupLeaderboards'
+import { usePlan, FREE_LIMITS } from '@/hooks/usePlan'
+import { useProjects } from '@/hooks/useProjects'
+import { fetchSessionsThisMonth } from '@/lib/supabase/queries/sessions'
+import { useAuthStore } from '@/store/authStore'
 
 export function useProjectLimit() {
   const { plan, isPro }    = usePlan()

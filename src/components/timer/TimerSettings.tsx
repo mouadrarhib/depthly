@@ -1,14 +1,16 @@
 import * as React from 'react'
+
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 
-import { useTimerStore } from '@/store/timerStore'
-import { useUiStore } from '@/store'
-import { Switch } from '@/components/ui/switch'
 import { Sheet, SheetPortal } from '@/components/ui/sheet'
 import { Stepper } from '@/components/ui/Stepper'
-import { TimerProjectSelector } from './TimerProjectSelector'
+import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
+import { useUiStore } from '@/store'
+import { useTimerStore } from '@/store/timerStore'
+
+import { TimerProjectSelector } from './TimerProjectSelector'
 
 type TimerMode      = 'pomodoro' | 'custom' | 'free'
 type PomodoroPreset = '25/5' | '50/10' | '90/20' | 'custom'

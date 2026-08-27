@@ -1,4 +1,5 @@
 import { useState } from 'react'
+
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Clock, MoreHorizontal, Timer } from 'lucide-react'
@@ -11,9 +12,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
-import { formatDueDate, isOverdue } from '@/lib/utils/tasks'
-import { formatMinutesToHours } from '@/lib/utils/analytics'
 import type { Task } from '@/lib/supabase/queries/tasks'
+import { formatMinutesToHours } from '@/lib/utils/analytics'
+import { formatDueDate, isOverdue } from '@/lib/utils/tasks'
 
 interface KanbanCardProps {
   task:         Task

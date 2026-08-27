@@ -45,11 +45,12 @@
 // 0 (i.e. sessions were already seeded for it), session generation is
 // skipped for that user on the re-run so you don't double its history.
 
-import { createClient } from '@supabase/supabase-js'
 import { randomBytes } from 'crypto'
 import { readFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
+
+import { createClient } from '@supabase/supabase-js'
 
 import type { Database } from '../src/types/database'
 

@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
+
 import { Link } from 'react-router-dom'
 
 import { LegalLayout } from '@/components/legal/LegalLayout'

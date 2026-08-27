@@ -1,10 +1,11 @@
 import { useState } from 'react'
+
 import { Lock } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/Spinner'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { Spinner } from '@/components/ui/Spinner'
 import {
   Tooltip,
   TooltipContent,
@@ -21,8 +22,8 @@ import {
   useDeclineFriendRequest,
   useUnfriend,
 } from '@/hooks/useLeaderboard'
-import { useAuthStore } from '@/store/authStore'
 import { formatMinutesToHours, formatPeriodKey, getWeeksInYear } from '@/lib/utils/analytics'
+import { useAuthStore } from '@/store/authStore'
 
 // ── Heatmap constants (mirrors YearlyView) ──────────────────────────────────
 

@@ -1,10 +1,11 @@
 import { useState } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
 
-import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/Spinner'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Spinner } from '@/components/ui/Spinner'
 import {
   useFriendshipStatus,
   usePendingFriendRequests,
@@ -13,9 +14,9 @@ import {
   useDeclineFriendRequest,
   useUnfriend,
 } from '@/hooks/useLeaderboard'
-import { useAuthStore } from '@/store/authStore'
 import { fetchProfileById } from '@/lib/supabase/queries/leaderboard'
 import { formatMinutesToHours } from '@/lib/utils/analytics'
+import { useAuthStore } from '@/store/authStore'
 
 const AVATAR_COLORS = ['#4B9EFF', '#7C3AED', '#059669', '#DC2626', '#D97706', '#DB2777']
 

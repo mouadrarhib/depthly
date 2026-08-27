@@ -1,6 +1,7 @@
+import { FunctionsHttpError } from '@supabase/supabase-js'
+
 import { supabase } from '@/lib/supabase/client'
 import { toAppError } from '@/lib/supabase/errors'
-import { FunctionsHttpError } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 
 type UserPreferencesRow = Database['public']['Tables']['user_preferences']['Row']

@@ -1,4 +1,5 @@
 import type { MouseEvent } from 'react'
+
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { Logo } from '@/components/ui'

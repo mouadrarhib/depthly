@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
-import { useTimerStore } from '@/store/timerStore'
 import { ProgressRing } from '@/components/ui/ProgressRing'
+import { useTimerStore } from '@/store/timerStore'
 
 function formatCountdown(seconds: number, free: boolean): string {
   if (free) {

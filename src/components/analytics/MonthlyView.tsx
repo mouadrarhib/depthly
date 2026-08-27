@@ -1,11 +1,12 @@
 import { useState } from 'react'
+
 import { Lock, Clock, BarChart2 } from 'lucide-react'
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
-import type { SessionProjectSliceWithDate } from '@/lib/supabase/queries/analytics'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useDailySummariesRange, useSessionsForWeek } from '@/hooks/useAnalytics'
 import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
+import type { SessionProjectSliceWithDate } from '@/lib/supabase/queries/analytics'
 import { getDaysInMonth, formatPeriodKey, formatMinutesToHours } from '@/lib/utils/analytics'
 import { sessionsToDailyTotals } from '@/lib/utils/analyticsSessions'
 import type { AnalyticsProjectScope } from '@/types/app'

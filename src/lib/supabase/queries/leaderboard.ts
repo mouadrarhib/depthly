@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
-import type { Database } from '@/types/database'
 import { getEffectiveStreak } from '@/lib/utils/streak'
+import type { Database } from '@/types/database'
 
 type PeriodType = Database['public']['Enums']['period_type']
 

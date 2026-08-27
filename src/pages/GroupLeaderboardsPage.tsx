@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+
 import { Archive, ArrowLeft, CalendarClock, Plus, Users } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { CreateGroupLeaderboardDialog } from '@/components/leaderboard/CreateGroupLeaderboardDialog'
 import { Button } from '@/components/ui/button'

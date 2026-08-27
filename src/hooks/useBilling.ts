@@ -1,10 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { FunctionsHttpError } from '@supabase/supabase-js'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { useAuthStore } from '@/store/authStore'
 import { billingKeys, analyticsKeys } from '@/lib/queryKeys'
-import { fetchSubscriptions } from '@/lib/supabase/queries/billing'
 import { supabase } from '@/lib/supabase/client'
+import { fetchSubscriptions } from '@/lib/supabase/queries/billing'
+import { useAuthStore } from '@/store/authStore'
 
 export function useSubscriptions() {
   const userId = useAuthStore(s => s.user?.id ?? '')

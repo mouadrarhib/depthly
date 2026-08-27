@@ -5,10 +5,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 
-import { usePreferences, useUpdatePreferences } from '@/hooks/useSettings'
-import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
+import { Switch } from '@/components/ui/switch'
+import { usePreferences, useUpdatePreferences } from '@/hooks/useSettings'
 
 type LocalPrefs = {
   daily_reminder_enabled:  boolean

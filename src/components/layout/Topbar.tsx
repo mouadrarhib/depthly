@@ -1,14 +1,8 @@
 import { useState } from 'react'
+
 import { CircleHelp, Flame, Clock, CheckCircle } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { supabase }    from '@/lib/supabase/client'
-import { useAuthStore, useUiStore } from '@/store'
-import { useTodayStats }  from '@/hooks/useTodayStats'
-import { usePlan }        from '@/hooks/usePlan'
-import { clearOnboardingTourSeen, runOnboardingTour } from '@/hooks/useOnboardingTour'
-import { clearProjectsTourSeen, runProjectsTour } from '@/hooks/useProjectsTour'
-import { PATHS }          from '@/routes/paths'
 import { Avatar }         from '@/components/ui/Avatar'
 import {
   DropdownMenu,
@@ -18,6 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
+import { clearOnboardingTourSeen, runOnboardingTour } from '@/hooks/useOnboardingTour'
+import { usePlan }        from '@/hooks/usePlan'
+import { clearProjectsTourSeen, runProjectsTour } from '@/hooks/useProjectsTour'
+import { useTodayStats }  from '@/hooks/useTodayStats'
+import { supabase }    from '@/lib/supabase/client'
+import { PATHS }          from '@/routes/paths'
+import { useAuthStore, useUiStore } from '@/store'
 
 function fmtFocus(mins: number): string {
   if (mins === 0) return '0m'

@@ -1,5 +1,5 @@
-import { useTimerStore } from '@/store/timerStore'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useTimerStore } from '@/store/timerStore'
 
 type TimerMode = 'pomodoro' | 'custom' | 'free'
 

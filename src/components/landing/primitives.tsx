@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
+
 import type { LucideIcon } from 'lucide-react'
 
 /** Small uppercase section label. */

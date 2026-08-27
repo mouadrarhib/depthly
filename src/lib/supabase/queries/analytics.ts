@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
-import type { Database, Tables } from '@/types/database'
 import { getEffectiveStreak } from '@/lib/utils/streak'
+import type { Database, Tables } from '@/types/database'
 
 type DailySummary = Tables<'daily_summaries'>
 type Profile = Tables<'profiles'>

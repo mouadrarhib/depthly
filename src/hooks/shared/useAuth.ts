@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+
 import { useNavigate } from 'react-router-dom'
 
 import { clearOAuthPending, getOAuthDestination, isOAuthPending } from '@/lib/oauthPending'

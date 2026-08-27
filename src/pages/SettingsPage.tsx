@@ -1,9 +1,9 @@
-import { ProfileSection }       from '@/components/settings/ProfileSection'
-import { GoalsSection }         from '@/components/settings/GoalsSection'
-import { TimerSection }         from '@/components/settings/TimerSection'
-import { NotificationsSection } from '@/components/settings/NotificationsSection'
 import { AccountSection }       from '@/components/settings/AccountSection'
 import { DangerZoneSection }    from '@/components/settings/DangerZoneSection'
+import { GoalsSection }         from '@/components/settings/GoalsSection'
+import { NotificationsSection } from '@/components/settings/NotificationsSection'
+import { ProfileSection }       from '@/components/settings/ProfileSection'
+import { TimerSection }         from '@/components/settings/TimerSection'
 
 export function SettingsPage() {
   return (

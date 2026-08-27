@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock, Download, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
-import { cn } from '@/lib/utils'
 
+import { ExportPanel } from '@/components/sessions/ExportPanel'
+import { SessionDetailModal } from '@/components/sessions/SessionDetailModal'
+import { SessionModal } from '@/components/sessions/SessionModal'
+import { SessionRow } from '@/components/sessions/SessionRow'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -13,17 +17,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ExportPanel } from '@/components/sessions/ExportPanel'
-import { SessionDetailModal } from '@/components/sessions/SessionDetailModal'
-import { SessionModal } from '@/components/sessions/SessionModal'
-import { SessionRow } from '@/components/sessions/SessionRow'
-import { useSessionCount, useSessionsPaginated } from '@/hooks/useSessions'
 import { useDebounce } from '@/hooks/shared/useDebounce'
-import { useProjects } from '@/hooks/useProjects'
 import { usePlan } from '@/hooks/usePlan'
+import { useProjects } from '@/hooks/useProjects'
+import { useSessionCount, useSessionsPaginated } from '@/hooks/useSessions'
+import type { SessionWithRelations, SessionTypeFilter } from '@/lib/supabase/queries/sessions'
+import { cn } from '@/lib/utils'
 import { formatPeriodKey } from '@/lib/utils/analytics'
 import { PATHS } from '@/routes/paths'
-import type { SessionWithRelations, SessionTypeFilter } from '@/lib/supabase/queries/sessions'
 
 const PAGE_SIZE = 20
 

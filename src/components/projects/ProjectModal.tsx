@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/Input'
-import { Button } from '@/components/ui/button'
 import { useCreateProject, useUpdateProject } from '@/hooks/useProjects'
 import type { Tables } from '@/types/database'
 

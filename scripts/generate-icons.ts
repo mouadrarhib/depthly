@@ -7,10 +7,11 @@
  * Run with:  npx tsx scripts/generate-icons.ts
  */
 
-import sharp from 'sharp'
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
+
+import sharp from 'sharp'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root      = path.resolve(__dirname, '..')

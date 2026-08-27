@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+
 import { Clock, BarChart2, Calendar, Lock } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import {
   BarChart,
   Bar,
@@ -11,14 +12,18 @@ import {
   Cell,
 } from 'recharts'
 
-import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import {
   ProjectBreakdownCard,
   type ProjectEntry,
 } from '@/components/analytics/ProjectBreakdownCard'
+import { UpgradeModal } from '@/components/billing/UpgradeModal'
+import { GoalDialog } from '@/components/goals/GoalDialog'
+import { GoalHistoryRow } from '@/components/goals/GoalHistoryRow'
+import { ConfettiBurst } from '@/components/ui/ConfettiBurst'
+import { ProgressRing } from '@/components/ui/ProgressRing'
 import { useDailySummary, useSessionsForDay, useDailySummariesRange } from '@/hooks/useAnalytics'
-import { useGoals } from '@/hooks/useGoals'
 import { useGoalCelebration } from '@/hooks/useGoalCelebration'
+import { useGoals } from '@/hooks/useGoals'
 import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
 import {
   formatPeriodKey,
@@ -26,10 +31,6 @@ import {
   getGoalProgress,
   getDaysInWeek,
 } from '@/lib/utils/analytics'
-import { ProgressRing } from '@/components/ui/ProgressRing'
-import { ConfettiBurst } from '@/components/ui/ConfettiBurst'
-import { GoalHistoryRow } from '@/components/goals/GoalHistoryRow'
-import { GoalDialog } from '@/components/goals/GoalDialog'
 import { PATHS } from '@/routes/paths'
 import type { AnalyticsProjectScope } from '@/types/app'
 

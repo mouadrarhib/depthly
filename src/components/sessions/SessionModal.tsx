@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/Input'
 import { useProjects } from '@/hooks/useProjects'
-import { useTasks } from '@/hooks/useTasks'
 import { useUpdateSession } from '@/hooks/useSessions'
+import { useTasks } from '@/hooks/useTasks'
 import type { SessionWithRelations } from '@/lib/supabase/queries/sessions'
 
 interface SessionModalProps { open: boolean; onClose: () => void; session?: SessionWithRelations }
