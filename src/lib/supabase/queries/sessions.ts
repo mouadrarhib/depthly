@@ -57,6 +57,17 @@ export async function fetchSessionsByProject(projectId: string): Promise<Session
 // current behavior unchanged.
 export type SessionTypeFilter = 'all' | 'focus' | 'break'
 
+export interface SessionPageFilters {
+  type: SessionTypeFilter
+  search: string
+  timezone: string
+  fromDate: string | null
+  toDate: string | null
+  projectId: string | null
+  minDuration: number | null
+  maxDuration: number | null
+}
+
 export async function fetchSessionCount(userId: string): Promise<number> {
   const { count, error } = await supabase
     .from('sessions')
@@ -68,30 +79,35 @@ export async function fetchSessionCount(userId: string): Promise<number> {
 }
 
 export async function fetchSessionsPaginated(
-  userId: string,
   page: number,
+  filters: SessionPageFilters,
   pageSize: number = 20,
-  typeFilter: SessionTypeFilter = 'focus',
 ): Promise<{ sessions: SessionWithRelations[]; totalCount: number }> {
-  const from = page * pageSize
-  const to   = page * pageSize + pageSize - 1
-
-  let query = supabase
-    .from('sessions')
-    .select('*, projects(name, color), tasks(title)', { count: 'exact' })
-    .eq('user_id', userId)
-
-  if (typeFilter !== 'all') {
-    query = query.eq('type', typeFilter)
-  }
-  const { data, error, count } = await query
-    .order('started_at', { ascending: false })
-    .range(from, to)
+  const { data, error } = await supabase.rpc('get_sessions_page', {
+    p_page: page,
+    p_page_size: pageSize,
+    p_type: filters.type === 'all' ? null : filters.type,
+    p_search: filters.search.trim() || null,
+    p_timezone: filters.timezone,
+    p_from_date: filters.fromDate,
+    p_to_date: filters.toDate,
+    p_project_id: filters.projectId,
+    p_min_duration: filters.minDuration,
+    p_max_duration: filters.maxDuration,
+  })
 
   throwRpcError(error)
+  const rows = data ?? []
   return {
-    sessions:   (data ?? []) as SessionWithRelations[],
-    totalCount: count ?? 0,
+    sessions: rows.map(({ project_name, project_color, task_title, total_count: _count, ...session }) => ({
+      ...session,
+      projects:
+        project_name !== null && project_color !== null
+          ? { name: project_name, color: project_color }
+          : null,
+      tasks: task_title ? { title: task_title } : null,
+    })),
+    totalCount: rows[0]?.total_count ?? 0,
   }
 }
 

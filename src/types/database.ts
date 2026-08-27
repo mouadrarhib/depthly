@@ -709,6 +709,28 @@ export type Database = {
         Args: { p_leaderboard_id: string }
         Returns: Array<{ avatar_url: string | null; display_name: string; focus_minutes: number; joined_at: string; rank: number; role: string; session_count: number; user_id: string }>
       }
+      get_sessions_page: {
+        Args: {
+          p_from_date: string | null
+          p_max_duration: number | null
+          p_min_duration: number | null
+          p_page: number
+          p_page_size: number
+          p_project_id: string | null
+          p_search: string | null
+          p_timezone: string
+          p_to_date: string | null
+          p_type: Database["public"]["Enums"]["session_type"] | null
+        }
+        Returns: Array<
+          Database["public"]["Tables"]["sessions"]["Row"] & {
+            project_color: string | null
+            project_name: string | null
+            task_title: string | null
+            total_count: number
+          }
+        >
+      }
       get_monthly_focus_session_count: { Args: { p_timezone: string }; Returns: number }
       get_my_global_leaderboard_rank: {
         Args: { p_period_key: string; p_period_type: Database["public"]["Enums"]["period_type"] }

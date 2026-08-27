@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { useAuthStore } from '@/store/authStore'
 import { sessionKeys } from '@/lib/queryKeys'
@@ -12,7 +12,7 @@ import {
 import type {
   SessionMetadataInput,
   ExportFilters,
-  SessionTypeFilter,
+  SessionPageFilters,
 } from '@/lib/supabase/queries/sessions'
 import {
   convertSessionsToCSV,
@@ -37,12 +37,27 @@ export function useSessionCount() {
   })
 }
 
-export function useSessionsPaginated(page: number, type: SessionTypeFilter = 'focus') {
+const DEFAULT_SESSION_PAGE_FILTERS: SessionPageFilters = {
+  type: 'focus',
+  search: '',
+  timezone: 'UTC',
+  fromDate: null,
+  toDate: null,
+  projectId: null,
+  minDuration: null,
+  maxDuration: null,
+}
+
+export function useSessionsPaginated(
+  page: number,
+  filters: SessionPageFilters = DEFAULT_SESSION_PAGE_FILTERS,
+) {
   const userId = useAuthStore(s => s.user?.id ?? '')
   return useQuery({
-    queryKey: sessionKeys.paginated(userId, page, type),
-    queryFn:  () => fetchSessionsPaginated(userId, page, 20, type),
+    queryKey: sessionKeys.paginated(userId, page, filters),
+    queryFn:  () => fetchSessionsPaginated(page, filters),
     enabled:  !!userId,
+    placeholderData: keepPreviousData,
   })
 }
 

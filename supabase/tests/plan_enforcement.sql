@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(20);
+select plan(25);
 
 -- Isolated Auth fixtures exercise the real handle_new_user() bootstrap and
 -- keep profile foreign keys valid during RPC updates. The transaction rolls
@@ -39,11 +39,19 @@ values
   ('20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', 'Two', '#4B9EFF'),
   ('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', 'Three', '#4B9EFF');
 
-insert into public.sessions(user_id, type, duration_mins, started_at, ended_at, local_date, is_trusted)
-select '10000000-0000-0000-0000-000000000001', 'focus', 25,
+insert into public.sessions(user_id, project_id, type, duration_mins, started_at, ended_at, local_date, notes, is_trusted)
+select '10000000-0000-0000-0000-000000000001',
+  case when n = 45 then '20000000-0000-0000-0000-000000000002'::uuid else null end,
+  'focus', case when n = 45 then 61 else 25 end,
   now() - make_interval(mins => n * 30), now() - make_interval(mins => n * 30 - 25),
-  current_date, true
+  current_date, case when n = 45 then 'literal 100%_needle' else null end, true
 from generate_series(1, 50) n;
+
+insert into public.sessions(user_id, type, duration_mins, started_at, ended_at, local_date, notes, is_trusted)
+values (
+  '10000000-0000-0000-0000-000000000002', 'focus', 25,
+  now(), now() + interval '25 minutes', current_date, 'literal 100%_needle', true
+);
 
 insert into public.daily_summaries(user_id, date, focus_minutes, session_count)
 values
@@ -109,6 +117,33 @@ select throws_ok(
   'P0001', 'PLAN_REQUIRED',
   'Free CSV export is rejected'
 );
+select is(
+  (select count(*)::integer from public.get_sessions_page(
+    0, 20, null, '100%_needle', 'UTC', null, null, null, null, null
+  )),
+  1,
+  'literal search finds an owned match beyond the original first page'
+);
+select is(
+  (select max(total_count) from public.get_sessions_page(
+    0, 20, null, null, 'UTC', current_date, current_date, null, null, null
+  )),
+  50::bigint,
+  'local-date filtering returns an exact filtered count'
+);
+select is(
+  (select max(total_count) from public.get_sessions_page(
+    0, 20, 'focus', null, 'UTC', null, null,
+    '20000000-0000-0000-0000-000000000002', 61, null
+  )),
+  1::bigint,
+  'project and duration filters combine before pagination'
+);
+select throws_ok(
+  $$select count(*) from public.get_sessions_page(0, 20, null, null, 'UTC', current_date, current_date - 1, null, null, null)$$,
+  'P0001', 'DATE_RANGE_INVALID',
+  'invalid date ranges are rejected'
+);
 
 reset role;
 select ok(
@@ -152,6 +187,19 @@ select ok(
       'EXECUTE'
     ),
   'legacy session mutation RPCs remain unavailable'
+);
+select ok(
+  has_function_privilege(
+    'authenticated',
+    'public.get_sessions_page(integer,integer,public.session_type,text,text,date,date,uuid,integer,integer)',
+    'EXECUTE'
+  )
+    and not has_function_privilege(
+      'anon',
+      'public.get_sessions_page(integer,integer,public.session_type,text,text,date,date,uuid,integer,integer)',
+      'EXECUTE'
+    ),
+  'filtered session pagination is authenticated-only'
 );
 select is(
   (select array_agg(profile_slug order by profile_slug)

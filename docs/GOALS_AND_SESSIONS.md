@@ -96,18 +96,21 @@ in the log but do not add focus time.
 
 ### Pagination approach
 
-`fetchSessionsPaginated` in `src/lib/supabase/queries/sessions.ts` retrieves 20 rows at a time with
-Supabase `.range(from, to)` and an exact count. It accepts a session-type filter (`all`, `focus`, or
-`break`) and includes the related project and task needed by the list and detail dialog.
+`fetchSessionsPaginated` calls the authenticated-only `get_sessions_page(...)` RPC. The function
+owner-scopes every read with `auth.uid()`, applies all filters to the complete dataset, and only then
+returns 20 rows plus an exact filtered count. Related project/task display fields are returned with each
+row. Paging is stable because rows are ordered by `started_at DESC, id DESC`.
 
 ```
 from = page * pageSize        // inclusive, 0-indexed
 to   = from + pageSize - 1    // inclusive
 ```
 
-The query key includes the user, page, and type filter so each result is cached independently. The fixed page
-size is 20. Date, project, duration, and text filters are applied to the loaded session data by the page;
-changing the server-side type filter resets pagination to the first page.
+The query key includes the user, page, and normalized filter object so each result is cached independently.
+Filters cover session type, literal text in notes or project names, local date range, project, and duration
+bounds. Date comparisons use the browser's IANA timezone. Search is debounced for 300 ms; changing any
+filter resets pagination to the first page, and the previous page stays visible while the next query loads.
+The UI clamps an out-of-range page after a deletion or count change.
 
 `fetchSessionCount()` is a separate unfiltered count. It lets the page distinguish a genuinely new account
 from a filtered result with no matches, so the empty-state guidance stays accurate.

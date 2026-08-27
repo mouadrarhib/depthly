@@ -18,6 +18,7 @@ import { SessionDetailModal } from '@/components/sessions/SessionDetailModal'
 import { SessionModal } from '@/components/sessions/SessionModal'
 import { SessionRow } from '@/components/sessions/SessionRow'
 import { useSessionCount, useSessionsPaginated } from '@/hooks/useSessions'
+import { useDebounce } from '@/hooks/shared/useDebounce'
 import { useProjects } from '@/hooks/useProjects'
 import { usePlan } from '@/hooks/usePlan'
 import { formatPeriodKey } from '@/lib/utils/analytics'
@@ -109,7 +110,31 @@ export function SessionsPage() {
   const [durationFilter, setDurationFilter] = useState<DurationFilter>('all')
   const [typeFilter,     setTypeFilter]     = useState<SessionTypeFilter>('all')
 
-  const query      = useSessionsPaginated(currentPage, typeFilter)
+  const debouncedSearch = useDebounce(searchTerm, 300)
+  const timezone = useMemo(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+    [],
+  )
+  const durationBounds = useMemo(() => {
+    if (durationFilter === 'short') return { minDuration: null, maxDuration: 29 }
+    if (durationFilter === 'medium') return { minDuration: 30, maxDuration: 60 }
+    if (durationFilter === 'long') return { minDuration: 61, maxDuration: null }
+    return { minDuration: null, maxDuration: null }
+  }, [durationFilter])
+  const sessionFilters = useMemo(
+    () => ({
+      type: typeFilter,
+      search: debouncedSearch,
+      timezone,
+      fromDate: fromDate || null,
+      toDate: toDate || null,
+      projectId: projectFilter === 'all' ? null : projectFilter,
+      ...durationBounds,
+    }),
+    [debouncedSearch, durationBounds, fromDate, projectFilter, timezone, toDate, typeFilter],
+  )
+
+  const query      = useSessionsPaginated(currentPage, sessionFilters)
   const sessionCountQuery = useSessionCount()
   const sessions   = query.data?.sessions   ?? []
   const totalCount = query.data?.totalCount ?? 0
@@ -124,27 +149,20 @@ export function SessionsPage() {
     if (exportOpen) exportPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [exportOpen])
 
-  const fromEntry  = currentPage * PAGE_SIZE + 1
+  useEffect(() => {
+    if (!query.isFetching && sessions.length === 0 && currentPage > 0) {
+      setCurrentPage(page => Math.max(0, page - 1))
+    }
+  }, [currentPage, query.isFetching, sessions.length])
+
+  const fromEntry  = totalCount === 0 ? 0 : currentPage * PAGE_SIZE + 1
   const toEntry    = Math.min((currentPage + 1) * PAGE_SIZE, totalCount)
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
   const hasPrev    = currentPage > 0
   const hasNext    = toEntry < totalCount
 
-  // Derive unique projects from the current page's sessions (no extra fetch)
-  const uniqueProjects = useMemo(() => {
-    const seen = new Set<string>()
-    const result: Array<{ id: string; name: string; color: string }> = []
-    for (const s of sessions) {
-      if (s.project_id && s.projects && !seen.has(s.project_id)) {
-        seen.add(s.project_id)
-        result.push({ id: s.project_id, name: s.projects.name, color: s.projects.color })
-      }
-    }
-    return result
-  }, [sessions])
-
   const hasActiveFilters =
-    searchTerm !== '' ||
+    searchTerm.trim() !== '' ||
     fromDate   !== '' ||
     toDate     !== '' ||
     projectFilter  !== 'all' ||
@@ -161,35 +179,8 @@ export function SessionsPage() {
     (projectFilter  !== 'all' ? 1 : 0) +
     (durationFilter !== 'all' ? 1 : 0)
 
-  // Client-side filtering applied to the fetched sessions
-  const filteredSessions = useMemo(() => {
-    return sessions.filter(session => {
-      if (searchTerm) {
-        const term = searchTerm.toLowerCase()
-        const matchesProject = session.projects?.name?.toLowerCase().includes(term)
-        const matchesNotes   = session.notes?.toLowerCase().includes(term)
-        if (!matchesProject && !matchesNotes) return false
-      }
-      if (fromDate) {
-        const sessionDate = formatPeriodKey(new Date(session.started_at), 'daily')
-        if (sessionDate < fromDate) return false
-      }
-      if (toDate) {
-        const sessionDate = formatPeriodKey(new Date(session.started_at), 'daily')
-        if (sessionDate > toDate) return false
-      }
-      if (projectFilter !== 'all') {
-        if (session.project_id !== projectFilter) return false
-      }
-      if (durationFilter === 'short'  && session.duration_mins >= 30) return false
-      if (durationFilter === 'medium' && (session.duration_mins < 30 || session.duration_mins > 60)) return false
-      if (durationFilter === 'long'   && session.duration_mins <= 60) return false
-      return true
-    })
-  }, [sessions, searchTerm, fromDate, toDate, projectFilter, durationFilter])
-
-  // Group filtered sessions by local date key ("YYYY-MM-DD")
-  const grouped = filteredSessions.reduce<Record<string, SessionWithRelations[]>>(
+  // The RPC applies every filter before returning a stable 20-row page.
+  const grouped = sessions.reduce<Record<string, SessionWithRelations[]>>(
     (acc, session) => {
       const key = formatPeriodKey(new Date(session.started_at), 'daily')
       const existing = acc[key]
@@ -214,8 +205,6 @@ export function SessionsPage() {
     setCurrentPage(0)
   }
 
-  // Type filter changes the underlying server query (not a client-side
-  // filter like the others), so the page count can differ — reset to page 1.
   function handleTypeFilterChange(next: SessionTypeFilter) {
     setTypeFilter(next)
     setCurrentPage(0)
@@ -306,7 +295,7 @@ export function SessionsPage() {
           {/* ── Export panel — collapsed by default for Pro users, toggled by the header Export button ── */}
           <div ref={exportPanelRef}>
             {(!isPro || exportOpen) && (
-              <ExportPanel projects={projects ?? []} totalCount={totalCount} />
+              <ExportPanel projects={projects ?? []} totalCount={sessionCountQuery.data ?? 0} />
             )}
           </div>
 
@@ -322,7 +311,10 @@ export function SessionsPage() {
               <input
                 type="text"
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={e => {
+                  setSearchTerm(e.target.value)
+                  setCurrentPage(0)
+                }}
                 placeholder="Search by project or notes..."
                 className="h-9 w-full rounded-lg border border-depth-border bg-depth-raised
                            pl-9 pr-8 text-[13px] text-ink-primary
@@ -332,7 +324,10 @@ export function SessionsPage() {
               />
               {searchTerm && (
                 <button
-                  onClick={() => setSearchTerm('')}
+                  onClick={() => {
+                    setSearchTerm('')
+                    setCurrentPage(0)
+                  }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted
                              transition-colors hover:text-ink-primary"
                   aria-label="Clear search"
@@ -414,7 +409,10 @@ export function SessionsPage() {
                   <input
                     type="date"
                     value={fromDate}
-                    onChange={e => setFromDate(e.target.value)}
+                    onChange={e => {
+                      setFromDate(e.target.value)
+                      setCurrentPage(0)
+                    }}
                     max={toDate || undefined}
                     className={DATE_INPUT_CLASS + ' w-full sm:w-auto'}
                   />
@@ -424,7 +422,10 @@ export function SessionsPage() {
                   <input
                     type="date"
                     value={toDate}
-                    onChange={e => setToDate(e.target.value)}
+                    onChange={e => {
+                      setToDate(e.target.value)
+                      setCurrentPage(0)
+                    }}
                     min={fromDate || undefined}
                     className={DATE_INPUT_CLASS + ' w-full sm:w-auto'}
                   />
@@ -432,7 +433,13 @@ export function SessionsPage() {
               </div>
 
               {/* Project filter */}
-              <Select value={projectFilter} onValueChange={setProjectFilter}>
+              <Select
+                value={projectFilter}
+                onValueChange={value => {
+                  setProjectFilter(value)
+                  setCurrentPage(0)
+                }}
+              >
                 <SelectTrigger className="h-9 w-full text-[13px] sm:w-[160px]">
                   <div className="flex items-center gap-2 overflow-hidden">
                     <SlidersHorizontal style={{ width: 13, height: 13, flexShrink: 0 }} className="text-ink-muted" />
@@ -441,7 +448,7 @@ export function SessionsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All projects</SelectItem>
-                  {uniqueProjects.map(p => (
+                  {(projects ?? []).map(p => (
                     <SelectItem key={p.id} value={p.id}>
                       <span className="flex items-center gap-2">
                         <span
@@ -458,7 +465,10 @@ export function SessionsPage() {
               {/* Duration filter */}
               <Select
                 value={durationFilter}
-                onValueChange={v => setDurationFilter(v as DurationFilter)}
+                onValueChange={v => {
+                  setDurationFilter(v as DurationFilter)
+                  setCurrentPage(0)
+                }}
               >
                 <SelectTrigger className="h-9 w-full text-[13px] sm:w-[160px]">
                   <SelectValue placeholder="Any duration" />
@@ -486,14 +496,14 @@ export function SessionsPage() {
           </div>
 
           {/* Active filter indicator */}
-          {hasActiveFilters && filteredSessions.length > 0 && (
+          {hasActiveFilters && sessions.length > 0 && (
             <p className="mb-4 text-[12px] text-ink-muted">
-              Showing {filteredSessions.length} of {totalCount} sessions
+              Showing {fromEntry}–{toEntry} of {totalCount} matching sessions
             </p>
           )}
 
           {/* Filtered empty state — sessions exist but none match filters */}
-          {filteredSessions.length === 0 && (
+          {sessions.length === 0 && (
             <div className="flex flex-col items-center py-16 text-center">
               <Search
                 className="text-ink-muted"
@@ -514,7 +524,7 @@ export function SessionsPage() {
           )}
 
           {/* Grouped session list */}
-          {filteredSessions.length > 0 && (
+          {sessions.length > 0 && (
             <>
               <div className="flex flex-col gap-8">
                 {sortedDates.map((dateKey) => {
@@ -558,11 +568,9 @@ export function SessionsPage() {
 
               {/* Pagination */}
               <div style={{ marginTop: 16 }} className="text-center">
-                {!hasActiveFilters && (
-                  <p className="text-[12px] text-ink-muted">
-                    Showing {fromEntry}–{toEntry} of {totalCount} sessions
-                  </p>
-                )}
+                <p className="text-[12px] text-ink-muted">
+                  Showing {fromEntry}–{toEntry} of {totalCount} sessions
+                </p>
                 <div
                   className="flex items-center justify-center gap-3"
                   style={{ marginTop: 12 }}
@@ -571,7 +579,7 @@ export function SessionsPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setCurrentPage(p => p - 1)}
-                    disabled={!hasPrev}
+                    disabled={!hasPrev || query.isFetching}
                     aria-label="Previous page"
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -584,7 +592,7 @@ export function SessionsPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setCurrentPage(p => p + 1)}
-                    disabled={!hasNext}
+                    disabled={!hasNext || query.isFetching}
                     aria-label="Next page"
                   >
                     <span className="hidden sm:inline">Next</span>
