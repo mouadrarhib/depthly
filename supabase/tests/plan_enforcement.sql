@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(15);
+select plan(20);
 
 -- Isolated Auth fixtures exercise the real handle_new_user() bootstrap and
 -- keep profile foreign keys valid during RPC updates. The transaction rolls
@@ -119,6 +119,39 @@ select ok(
   has_column_privilege('authenticated', 'public.projects', 'name', 'UPDATE')
     and not has_column_privilege('authenticated', 'public.projects', 'is_archived', 'UPDATE'),
   'project metadata is writable but archive state is protected'
+);
+select ok(
+  not has_table_privilege('anon', 'public.profiles', 'SELECT')
+    and not has_table_privilege('anon', 'public.tasks', 'SELECT'),
+  'anonymous users cannot read base profile or task tables'
+);
+select ok(
+  has_table_privilege('anon', 'public.public_profiles', 'SELECT'),
+  'anonymous public profile reads remain available through the narrow view'
+);
+select ok(
+  not has_table_privilege('authenticated', 'public.daily_summaries', 'INSERT')
+    and not has_table_privilege('authenticated', 'public.daily_summaries', 'UPDATE')
+    and not has_table_privilege('authenticated', 'public.daily_summaries', 'DELETE'),
+  'authenticated users cannot write server-owned daily aggregates'
+);
+select ok(
+  not has_function_privilege('anon', 'public.handle_new_user()', 'EXECUTE')
+    and not has_function_privilege('authenticated', 'public.set_updated_at()', 'EXECUTE'),
+  'trigger helpers are not directly executable by clients'
+);
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'public.save_session(uuid,uuid,uuid,public.session_type,integer,timestamp with time zone,timestamp with time zone,text,text,date)',
+    'EXECUTE'
+  )
+    and not has_function_privilege(
+      'authenticated',
+      'public.set_session_excluded(uuid,boolean)',
+      'EXECUTE'
+    ),
+  'legacy session mutation RPCs remain unavailable'
 );
 select is(
   (select array_agg(profile_slug order by profile_slug)
