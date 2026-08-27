@@ -10,9 +10,10 @@ export function formatPeriodKey(
   if (period === 'monthly') return `${y}-${m}`
   if (period === 'yearly') return `${y}`
 
-  // weekly — ISO week number
-  const w = getISOWeek(date)
-  return `${y}-W${String(w).padStart(2, '0')}`
+  // Weekly keys use the ISO week-numbering year, which can differ from the
+  // calendar year around New Year's Day.
+  const { year: weekYear, week } = getISOWeek(date)
+  return `${weekYear}-W${String(week).padStart(2, '0')}`
 }
 
 export function getDaysInWeek(weekStart: Date): Date[] {
@@ -197,11 +198,14 @@ function getMonday(date: Date): Date {
   return d
 }
 
-function getISOWeek(date: Date): number {
-  const d = new Date(date)
-  d.setHours(0, 0, 0, 0)
-  // Thursday of the current week (ISO week belongs to the year of its Thursday)
-  d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7))
-  const yearStart = new Date(d.getFullYear(), 0, 4)
-  return Math.round(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+function getISOWeek(date: Date): { year: number; week: number } {
+  const thursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+  const day = thursday.getUTCDay() || 7
+  thursday.setUTCDate(thursday.getUTCDate() + 4 - day)
+
+  const year = thursday.getUTCFullYear()
+  const yearStart = new Date(Date.UTC(year, 0, 1))
+  const week = Math.ceil(((thursday.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+
+  return { year, week }
 }
