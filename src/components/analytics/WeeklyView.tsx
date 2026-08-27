@@ -13,6 +13,7 @@ import {
   Cell,
   LabelList,
 } from 'recharts'
+import type { XAxisTickContentProps } from 'recharts'
 
 import {
   ProjectBreakdownCard,
@@ -501,16 +502,18 @@ export function WeeklyView({ date, projectId, projectLabel }: WeeklyViewProps) {
                   axisLine={false}
                   tickLine={false}
                   height={36}
-                  tick={(props: { x?: number; y?: number; index?: number }) => {
-                    const { x = 0, y = 0, index = 0 } = props
+                  tick={(props: XAxisTickContentProps) => {
+                    const { x, y, index } = props
+                    const tickX = Number(x)
+                    const tickY = Number(y)
                     const entry = chartData[index]
                     const dayColor = entry.isToday ? '#4B9EFF' : '#7A7890'
                     return (
-                      <text x={x} y={y + 4} textAnchor="middle" fontFamily="Inter, sans-serif">
-                        <tspan x={x} dy="0" fill={dayColor} fontSize={12}>
+                      <text x={tickX} y={tickY + 4} textAnchor="middle" fontFamily="Inter, sans-serif">
+                        <tspan x={tickX} dy="0" fill={dayColor} fontSize={12}>
                           {entry.day}
                         </tspan>
-                        <tspan x={x} dy="16" fill="#7A7890" fontSize={11}>
+                        <tspan x={tickX} dy="16" fill="#7A7890" fontSize={11}>
                           {entry.date}
                         </tspan>
                       </text>
