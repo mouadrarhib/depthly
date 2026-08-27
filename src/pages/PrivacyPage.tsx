@@ -55,7 +55,7 @@ function SubHeading({ children }: { children: ReactNode }) {
 
 export function PrivacyPage() {
   return (
-    <LegalLayout title="Privacy Policy" lastUpdated="July 20, 2026">
+    <LegalLayout title="Privacy Policy" lastUpdated="August 27, 2026">
       {/* Table of contents */}
       <h2 style={{ ...h2Style, marginBottom: 4 }}>TABLE OF CONTENTS</h2>
       <nav
@@ -146,6 +146,12 @@ export function PrivacyPage() {
           diagnosing problems, maintaining security, and preventing fraudulent or abusive activity
           (such as manipulation of the leaderboard or streak features).
         </p>
+        <p style={pStyle}>
+          Sentry receives error diagnostics such as stack traces, browser information, and the
+          affected operation category when the production application fails. We do not attach user
+          identity, focus-session notes, timer titles, mutation inputs, or application state, and
+          performance tracing and session replay are disabled.
+        </p>
 
         <SubHeading>Information We Do Not Collect</SubHeading>
         <p style={pStyle}>
@@ -226,6 +232,7 @@ export function PrivacyPage() {
                 ['Lemon Squeezy', 'Payment processing and subscription billing'],
                 ['Google', 'OAuth sign-in (if you choose to sign in with Google)'],
                 ['Vercel', 'Website hosting'],
+                ['Sentry', 'Error monitoring and production diagnostics'],
               ].map(([provider, purpose]) => (
                 <tr key={provider}>
                   <td style={{ padding: '8px 12px 8px 0', borderBottom: '0.5px solid #2E2E38', color: '#E8E6F0', whiteSpace: 'nowrap' }}>
@@ -264,7 +271,8 @@ export function PrivacyPage() {
           session while using the Services (for example, through Supabase Auth and Google OAuth
           sign-in flows). We do not use cookies for advertising, targeted marketing, or third-party
           analytics tracking (e.g., we do not use Google Analytics), and we do not use Google Maps
-          or similar location-based APIs.
+          or similar location-based APIs. Sentry is limited to error reporting; it does not run
+          advertising analytics, performance tracing, or session replay.
         </p>
         <p style={{ ...pStyle, fontStyle: 'italic' }}>
           A dedicated Cookie Policy page will be linked here once available.

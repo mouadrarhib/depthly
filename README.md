@@ -219,6 +219,10 @@ cp .env.example .env.local
 | `VITE_SUPABASE_ANON_KEY` | Client | Do not rename this key |
 | `VITE_APP_NAME` | Client | Display name |
 | `VITE_APP_URL` | Client + Edge Function secret | Used to build checkout redirect URLs |
+| `VITE_SENTRY_DSN` | Client | Public Sentry DSN; the Vercel integration's `SENTRY_DSN` is also supported |
+| `SENTRY_AUTH_TOKEN` | Build only | Uploads source maps; never prefix with `VITE_` |
+| `SENTRY_ORG` | Build only | Sentry organization slug |
+| `SENTRY_PROJECT` | Build only | Sentry project slug |
 | `VITE_STRIPE_PUBLISHABLE_KEY` | Client | Legacy/optional, not the active payment processor |
 | `LEMONSQUEEZY_STORE_ID` | Edge Function secret only | No `VITE_` prefix — never bundled client-side |
 | `LEMONSQUEEZY_VARIANT_PRO_MONTHLY` | Edge Function secret only | |

@@ -2,6 +2,8 @@ import React from 'react'
 
 import { AlertCircle } from 'lucide-react'
 
+import { captureBoundaryError } from '@/lib/monitoring'
+
 interface Props {
   children:  React.ReactNode
   fallback?: React.ReactNode
@@ -20,6 +22,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
+    captureBoundaryError(error, info.componentStack)
     console.error('ErrorBoundary caught:', error, info)
   }
 
@@ -41,7 +44,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             Something went wrong
           </div>
           <div style={{ fontSize: 13, color: '#7A7890', marginTop: 8 }}>
-            {this.state.error?.message || 'An unexpected error occurred'}
+            An unexpected error occurred. Please reload the page and try again.
           </div>
           <button
             onClick={() => window.location.reload()}
