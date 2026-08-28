@@ -11,7 +11,8 @@ start/end date. Rankings use trusted focus sessions only.
 Apply `supabase/migrations/017_group_leaderboards.sql` after migration 016, then deploy
 the generated client types and UI. The migration creates `group_leaderboards` and
 `group_leaderboard_members`. Direct table access is revoked; all reads and writes use
-scoped RPCs.
+scoped RPCs. Migration `026_anchor_weekly_groups_to_creation.sql` changes weekly groups
+from calendar weeks to creation-anchored seven-day rounds.
 
 Free creators may own 1 active group with 15 total active members. Pro and Founding
 creators may own 10 active groups with 100 members each. Limits include the creator,
@@ -21,6 +22,9 @@ free and does not require public-profile or global-leaderboard eligibility.
 ## Trusted scoring
 
 The creator's IANA timezone is captured at creation and defines shared period bounds.
+Weekly groups receive a full seven-day round beginning at the exact local creation time,
+then reset every seven days from that anchor. Daily and monthly groups continue to use
+calendar-day and calendar-month boundaries in the creator's timezone.
 An active member's score is the sum of sessions that are focus sessions, trusted,
 completed inside the current group period, and completed after that
 membership's `joined_at`. Ties share the same rank; deterministic join/user ordering
