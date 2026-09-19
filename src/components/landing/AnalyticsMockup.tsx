@@ -46,19 +46,14 @@ function StatCard({
 }) {
   return (
     <div
-      className="flex flex-1 flex-col gap-2 p-[18px_20px] md:gap-1.5 md:p-[clamp(12px,1.7vh,18px)_clamp(14px,1.8vh,20px)]"
-      style={{
-        backgroundColor: '#141417',
-        border: '1px solid #2E2E38',
-        borderRadius: 14,
-      }}
+      className="flex min-w-0 flex-1 flex-col gap-1.5"
     >
       <span className="flex items-center gap-2" style={{ fontSize: 12, color: '#7A7890' }}>
         <Icon size={14} style={{ color: '#4B9EFF' }} strokeWidth={1.75} />
         {label}
       </span>
       <span
-        className="font-data text-[26px] md:text-[clamp(22px,3vh,26px)]"
+        className="font-data text-[24px] sm:text-[28px] md:text-[clamp(24px,3.4vh,30px)]"
         style={{
           fontWeight: 600,
           color: '#E8E6F0',
@@ -73,23 +68,24 @@ function StatCard({
 }
 
 /**
- * Static illustrative analytics panel — two stat cards and a mini calendar
- * heatmap (app's real blue intensity scale), plus a compact per-project
- * donut using the same recharts PieChart/Pie/Cell approach as the real
- * ProjectBreakdownCard, just scaled down and without the hover tooltip.
+ * Illustrative progress report using the app's heatmap intensity scale and
+ * the same chart primitives as the real project breakdown. It is a static
+ * preview, not a set of interactive controls.
  */
 export function AnalyticsMockup() {
   return (
     <div
       data-analytics-preview
-      className="mx-auto flex w-full max-w-[460px] flex-col gap-4 md:max-w-[min(460px,calc((100dvh-220px)*0.71))] md:gap-[clamp(8px,1.4vh,14px)]"
+      role="img"
+      aria-label="Example progress report: 2 hours 30 minutes of focus across four sessions, 83 percent of a daily goal, a monthly calendar, and time by project."
+      className="mx-auto w-full max-w-[460px] overflow-hidden rounded-[16px] border border-depth-border bg-depth-surface p-5 sm:p-6 md:max-w-[min(460px,calc((100dvh-180px)*0.8))] md:p-[clamp(16px,2.4vh,24px)]"
     >
-      <div className="flex flex-col gap-4 sm:flex-row md:gap-[clamp(8px,1.4vh,14px)]">
+      <div className="flex gap-5 border-b border-depth-border pb-5 md:pb-[clamp(12px,2vh,18px)]">
         <StatCard Icon={Clock} label="Today's focus" value="2h 30m" />
         <StatCard Icon={CalendarDays} label="Sessions" value="4" countup={4} />
       </div>
 
-      <div className="rounded-[14px] border border-depth-border bg-depth-surface p-[18px] md:p-[clamp(12px,1.7vh,16px)]">
+      <div className="py-5 md:py-[clamp(12px,2vh,18px)]">
         <div className="flex items-center justify-between gap-3">
           <span className="flex items-center gap-2 text-[12px] text-ink-secondary">
             <Target size={14} className="text-brand" /> Daily goal
@@ -98,20 +94,15 @@ export function AnalyticsMockup() {
             2h 30m / 3h <span className="text-brand">· 83%</span>
           </span>
         </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-depth-raised md:mt-[clamp(8px,1.3vh,12px)]">
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-depth-raised md:mt-[clamp(8px,1.3vh,12px)]">
           <div className="h-full w-[83%] rounded-full bg-brand" />
         </div>
-        <p className="font-data mt-2 text-right text-[10px] text-ink-muted md:mt-1.5">30m to go</p>
+        <p className="font-data mt-2 text-right text-[11px] text-ink-secondary md:mt-1.5">30m to go</p>
       </div>
 
       <div
         data-heatmap
-        className="p-5 md:p-[clamp(12px,1.8vh,20px)]"
-        style={{
-          backgroundColor: '#141417',
-          border: '1px solid #2E2E38',
-          borderRadius: 14,
-        }}
+        className="border-t border-depth-border py-5 md:py-[clamp(12px,2vh,18px)]"
       >
         <div className="mb-[14px] flex items-center justify-between md:mb-[clamp(9px,1.5vh,14px)]">
           <span style={{ fontSize: 13, fontWeight: 500, color: '#E8E6F0' }}>July 2026</span>
@@ -120,7 +111,7 @@ export function AnalyticsMockup() {
           </span>
         </div>
 
-        <div className="mb-1.5 grid grid-cols-7 gap-2 md:gap-[clamp(5px,0.8vh,8px)]">
+        <div className="mx-auto mb-1.5 grid grid-cols-7 gap-2 md:max-w-[330px] md:gap-[clamp(5px,0.8vh,8px)]">
           {WEEKDAYS.map((d) => (
             <span key={d} style={{ fontSize: 10, color: '#7A7890', textAlign: 'center' }}>
               {d}
@@ -128,7 +119,7 @@ export function AnalyticsMockup() {
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-2 md:gap-[clamp(5px,0.8vh,8px)]">
+        <div className="mx-auto grid grid-cols-7 gap-2 md:max-w-[330px] md:gap-[clamp(5px,0.8vh,8px)]">
           {DAYS.map((minutes, i) => (
             <span
               key={i}
@@ -149,24 +140,19 @@ export function AnalyticsMockup() {
       </div>
 
       <div
-        className="p-[18px] md:p-[clamp(12px,1.7vh,18px)]"
-        style={{
-          backgroundColor: '#141417',
-          border: '1px solid #2E2E38',
-          borderRadius: 14,
-        }}
+        className="border-t border-depth-border pt-5 md:pt-[clamp(12px,2vh,18px)]"
       >
         <span style={{ fontSize: 13, fontWeight: 500, color: '#E8E6F0' }}>By project</span>
 
-        <div className="mt-[14px] flex items-center gap-4 md:mt-[clamp(9px,1.5vh,14px)] md:gap-3">
+        <div className="mt-[14px] flex items-center gap-4 md:mt-[clamp(8px,1.3vh,12px)] md:gap-3">
           <div style={{ flexShrink: 0 }}>
-            <PieChart width={92} height={92}>
+            <PieChart width={76} height={76}>
               <Pie
                 data={PROJECTS}
-                cx={46}
-                cy={46}
-                innerRadius={26}
-                outerRadius={41}
+                cx={38}
+                cy={38}
+                innerRadius={21}
+                outerRadius={34}
                 dataKey="minutes"
                 startAngle={90}
                 endAngle={-270}
@@ -180,7 +166,7 @@ export function AnalyticsMockup() {
             </PieChart>
           </div>
 
-          <div className="flex flex-col" style={{ gap: 8, flex: 1, minWidth: 0 }}>
+          <div className="flex flex-col" style={{ gap: 3, flex: 1, minWidth: 0 }}>
             {PROJECTS.map((project) => (
               <div key={project.name} className="flex items-center gap-2">
                 <span

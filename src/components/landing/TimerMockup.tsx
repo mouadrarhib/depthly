@@ -35,6 +35,8 @@ export function TimerMockup() {
   return (
     <div
       ref={ref}
+      role="img"
+      aria-label="Illustration of Depthly's 25-minute focus timer"
       className="mx-auto flex w-full flex-col items-center"
       style={{
         maxWidth: 440,

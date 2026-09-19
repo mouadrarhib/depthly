@@ -104,6 +104,6 @@ export function FeatureBlock({
 }
 
 export const sectionPad: CSSProperties = {
-  paddingTop: '5.5rem',
-  paddingBottom: '5.5rem',
+  paddingTop: '4.5rem',
+  paddingBottom: '4.5rem',
 }

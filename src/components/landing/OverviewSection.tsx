@@ -1,94 +1,45 @@
-import { BarChart2, Share2, Target, Timer, Users } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
-
-import { SectionHeader } from './primitives'
-
 interface OverviewItem {
-  Icon: LucideIcon
   title: string
   description: string
 }
 
 const ITEMS: OverviewItem[] = [
-  {
-    Icon: Timer,
-    title: 'Focus',
-    description: 'Start a trusted timer session.',
-  },
-  {
-    Icon: Target,
-    title: 'Set goals',
-    description: 'Choose what a focused day means.',
-  },
-  {
-    Icon: BarChart2,
-    title: 'See progress',
-    description: 'Read the pattern behind your hours.',
-  },
-  {
-    Icon: Share2,
-    title: 'Share',
-    description: 'Turn the current view into an image.',
-  },
-  {
-    Icon: Users,
-    title: 'Focus together',
-    description: 'Invite a private focus circle.',
-  },
+  { title: 'Focus', description: 'Start a countdown or stopwatch.' },
+  { title: 'Set goals', description: 'Choose how much focus time to aim for.' },
+  { title: 'See progress', description: 'See your sessions, streaks, and trends.' },
+  { title: 'Share', description: 'Turn your Analytics view into an image.' },
+  { title: 'Focus together', description: 'Invite friends into a private group.' },
 ]
 
 export function OverviewSection() {
   return (
-    <section id="features" data-focus-path className="px-5 pb-12 pt-[5.5rem] md:px-8 md:pb-4">
-      <div className="mx-auto" style={{ maxWidth: 1100 }}>
-        <div data-focus-path-header>
-          <SectionHeader
-            eyebrow="Your focus path"
-            title="Start alone. Add accountability when it helps."
-            subtext="Depthly keeps personal progress at the center. Sharing and competition are optional layers, not the product you have to work around."
-          />
+    <section id="features" data-focus-path className="px-5 pb-12 pt-20 md:px-8 md:pb-4 md:pt-24">
+      <div className="mx-auto max-w-6xl">
+        <div data-focus-path-header className="max-w-xl">
+          <h2 className="text-[clamp(28px,3.4vw,42px)] font-medium leading-[1.15] tracking-[-0.03em] text-ink-primary">
+            From focused sessions to visible progress
+          </h2>
         </div>
 
-        <div
-          className="relative grid grid-cols-1 gap-3 md:grid-cols-5"
-          style={{ marginTop: 56, perspective: 900 }}
-        >
-          {ITEMS.map(({ Icon, title, description }, index) => (
-            <div
+        <ol className="mt-10 grid grid-cols-1 border-t border-depth-border md:mt-14 md:grid-cols-5">
+          {ITEMS.map(({ title, description }, index) => (
+            <li
               key={title}
               data-focus-step
-              className="relative flex items-center gap-4 rounded-xl border border-depth-border bg-depth-surface p-4 md:flex-col md:items-start md:gap-3"
+              className="grid grid-cols-[2.75rem_minmax(0,1fr)] gap-3 border-b border-depth-border py-5 last:border-b-0 md:block md:border-b-0 md:border-r md:px-5 md:py-6 md:first:pl-0 md:last:border-r-0 md:last:pr-0"
             >
-              <span
-                data-focus-step-icon
-                className="flex shrink-0 items-center justify-center"
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  backgroundColor: '#222228',
-                  border: '1px solid #2E2E38',
-                }}
-              >
-                <Icon size={19} style={{ color: '#4B9EFF' }} strokeWidth={1.75} />
+              <span aria-hidden="true" className="font-data text-xs text-brand">
+                0{index + 1}
               </span>
-              <div className="min-w-0 flex-1 md:min-h-[76px]">
-                <span className="font-data text-[10px] text-[#555266]">0{index + 1}</span>
-                <h3
-                  style={{
-                    fontSize: 16,
-                    fontWeight: 500,
-                    color: '#E8E6F0',
-                    letterSpacing: '-0.01em',
-                  }}
-                >
+              <div className="min-w-0">
+                <h3 className="text-base font-medium tracking-[-0.01em] text-ink-primary md:mt-5">
                   {title}
                 </h3>
-                <p style={{ fontSize: 14, color: '#848198', lineHeight: 1.6 }}>{description}</p>
+                <p className="mt-2 text-sm leading-6 text-ink-secondary">{description}</p>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
   )

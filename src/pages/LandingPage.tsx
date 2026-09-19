@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-import { BarChart3, Clock, Globe, Image, Share2, ShieldCheck, Target, Users } from 'lucide-react'
+import { BarChart3, Target } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 
@@ -65,32 +65,33 @@ export function LandingPage() {
         {/* 1 — Trusted focus timer */}
         <FeatureSection
           eyebrow="Trusted focus"
-          title="Make every focused minute count"
-          subtext="Start a countdown or stopwatch and let Depthly track the session from the timer itself. When you finish, that trusted time becomes part of your progress."
+          title="A timer for the work in front of you"
+          subtext="Choose a countdown or stopwatch. When you finish, the session updates your history and goal progress."
           mockupSide="left"
           mockup={<TimerMockup />}
         >
-          <FeatureBlock
-            Icon={Clock}
-            title="Your rhythm, accurately tracked"
-            description="Use a focused countdown or an open-ended stopwatch. Pause, resume, or recover the same active timer across tabs."
-          />
-          <FeatureBlock
-            Icon={ShieldCheck}
-            title="Trusted progress"
-            description="Completed timer sessions become verified progress, so your analytics and private rankings reflect time you actually focused."
-          />
-          <FeatureBlock
-            Icon={Target}
-            title="Built for consistency"
-            description="Set your focus and break lengths, then return tomorrow with your history, goals, and streak ready to continue."
-          />
+          <div data-reveal className="border-t border-depth-border pt-5">
+            <h3 className="text-base font-medium tracking-[-0.01em] text-ink-primary">
+              Pick up where you left off
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-ink-secondary">
+              Pause, refresh, or switch tabs without losing your active timer.
+            </p>
+          </div>
+          <div data-reveal className="border-t border-depth-border pt-5">
+            <h3 className="text-base font-medium tracking-[-0.01em] text-ink-primary">
+              After you finish
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-ink-secondary">
+              Your focus time updates Analytics and private group rankings.
+            </p>
+          </div>
         </FeatureSection>
 
         {/* 2 — Daily goals and Analytics */}
         <FeatureSection
           heading="Turn a focused day into a visible habit"
-          body="Set a daily target, watch it fill as you work, and use Analytics to understand where your time went across days, weeks, months, and years."
+          body="Set a daily goal. Your finished sessions show how today is going and how your focus builds over time."
           mockupSide="right"
           mockup={<AnalyticsMockup />}
           viewportFit
@@ -99,14 +100,14 @@ export function LandingPage() {
         >
           <FeatureBlock
             Icon={Target}
-            title="A daily goal you can see"
-            description="Compare today's focused time with your target at a glance, including the real total when you go beyond it."
+            title="Know where you stand today"
+            description="See your focus time beside your daily target, even when you go past it."
             descriptionColor={READABLE_SECONDARY_TEXT}
           />
           <FeatureBlock
             Icon={BarChart3}
-            title="Patterns, not guesswork"
-            description="See session totals, heatmaps, trends, streaks, and project breakdowns using the same trusted focus history."
+            title="Look back with context"
+            description="Find the days you showed up and the projects that got your time."
             descriptionColor={READABLE_SECONDARY_TEXT}
           />
         </FeatureSection>
@@ -114,39 +115,49 @@ export function LandingPage() {
         {/* 3 — Share Progress */}
         <FeatureSection
           heading="Share the progress, not just a number"
-          body="Turn the Analytics view you are already looking at into a branded image, complete with its charts and goal progress. Preview it before you share or download."
+          body="Make an image from the Analytics view you're looking at, with its charts and goal progress intact."
           mockupSide="left"
           mockup={<ShareProgressMockup />}
+          bodyColor={READABLE_SECONDARY_TEXT}
         >
-          <FeatureBlock
-            Icon={Image}
-            title="Your current Analytics view"
-            description="Share Daily, Weekly, Monthly, or Yearly progress with the same visual story you see inside Depthly."
-          />
-          <FeatureBlock
-            Icon={Share2}
-            title="Preview, then choose"
-            description="Use native sharing when available, or download and copy the image. Share Progress works on every plan within its Analytics window."
-          />
+          <div data-reveal className="grid gap-5 border-t border-depth-border pt-6 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
+            <div>
+              <h3 className="text-sm font-medium text-ink-primary">Your current view</h3>
+              <p className="mt-2 text-sm leading-6" style={{ color: READABLE_SECONDARY_TEXT }}>
+                Daily, Weekly, Monthly, or Yearly, including the project you selected.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-ink-primary">Your choice to share</h3>
+              <p className="mt-2 text-sm leading-6" style={{ color: READABLE_SECONDARY_TEXT }}>
+                Preview the image, then share, copy, or download it.
+              </p>
+            </div>
+          </div>
         </FeatureSection>
 
         {/* 4 — Private group leaderboards */}
         <FeatureSection
           heading="Bring your own focus circle"
-          body="Create an invite-only group for study partners, freelancer peers, or accountability friends. Everyone can join and compete privately, including Free members, without making their profile public."
+          body="Make a private circle for the people you work alongside. Trusted sessions count toward a ranking only members can see."
           mockupSide="right"
           mockup={<LeaderboardMockup />}
+          bodyColor={READABLE_SECONDARY_TEXT}
         >
-          <FeatureBlock
-            Icon={Users}
-            title="Private by membership"
-            description="Only group members see names, avatars, trusted focus time, session counts, and progress inside that group."
-          />
-          <FeatureBlock
-            Icon={Globe}
-            title="Public competition stays optional"
-            description="Friends and global rankings are still available when you want them. Your private group never changes your public-profile setting."
-          />
+          <div data-reveal className="space-y-5 border-t border-depth-border pt-6">
+            <div>
+              <h3 className="text-sm font-medium text-ink-primary">Choose the rhythm</h3>
+              <p className="mt-2 text-sm leading-6" style={{ color: READABLE_SECONDARY_TEXT }}>
+                Run daily, seven-day, or monthly rounds, with an optional goal for each member.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-ink-primary">No public profile needed</h3>
+              <p className="mt-2 text-sm leading-6" style={{ color: READABLE_SECONDARY_TEXT }}>
+                Free members can join and rank without making their profiles public.
+              </p>
+            </div>
+          </div>
         </FeatureSection>
 
         {/* 5 — Projects and tasks support the focus loop */}

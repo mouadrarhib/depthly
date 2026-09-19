@@ -17,9 +17,9 @@ accountability second:
 
 Students remain the primary acquisition audience, while the public product
 positioning explicitly serves students, freelancers, and independent learners.
-The approved hero headline is:
+The hero headline is:
 
-> Focus deeply. Track your progress. Go further together.
+> Focus on the work. We'll track the time.
 
 The page must not invent testimonials, user totals, or performance claims. It
 must not describe Depthly as a team or social-first product. The closing idea is
@@ -28,7 +28,7 @@ to start alone and invite others only when useful.
 ## Page order
 
 1. Sticky navigation with login, signup, Features, and Pricing destinations.
-2. Hero with the exact three-line headline, copy covering study, client work,
+2. Hero with the two-line headline, copy covering study, client work,
    and independent learning, a free-signup CTA, and a jump to the product flow.
 3. Five-stage overview: Focus, Set goals, See progress, Share, Focus together.
 4. Trusted focus timer: timer-tracked sessions become trusted progress.
@@ -66,14 +66,39 @@ subtle navigation entrance, opaque hero glide, ambient grid drift, depth-based
 scroll reveals for every feature section, heatmap/count-up micro-motion, and the
 footer reveal.
 
-The **Your focus path** overview intentionally does not use the generic
+The focus path overview intentionally does not use the generic
 `data-reveal-group` animation. It has a dedicated GSAP timeline identified by
-`data-focus-path`: the heading enters first, followed by the five numbered cards
-in product order—Focus, Set goals, See progress, Share, Focus together. Cards
-rise, scale, and settle with a slight 3D rotation; their icons follow with a
-short pop animation. The sequence runs once when the section reaches 78% of the
-viewport. This makes the product journey visibly sequential instead of another
-generic content reveal.
+`data-focus-path`: the heading enters first, followed by five numbered steps
+in product order: Focus, Set goals, See progress, Share, Focus together. The
+ordered rail uses simple separators instead of repeated cards and icons. Each
+step enters with a short, staggered rise when the section reaches 78% of the
+viewport. The sequence runs once and stays readable without animation.
+
+The Trusted focus section keeps its static timer preview and explains the
+session-to-progress link with two concise details: active-timer recovery and
+finished sessions feeding Analytics and private group rankings. The illustrative
+preview has one accessible image label rather than exposing its nonfunctional
+controls as separate content.
+
+The Share Progress section shows an example exported image, with the same
+branded frame, Analytics capture, and footer used by the real sharing flow.
+Its seven-day chart renders visible bars; share controls are described beside
+the image rather than drawn as nonfunctional buttons inside it. The example
+is labeled as illustrative and has an accessible image description.
+
+The private focus-circle section mirrors the real group detail page at preview
+scale: active status, member and rank summary, shared-target banner, and a
+ranking table with session counts, focus time, and goal progress. The copy
+explains daily, creation-anchored seven-day, and monthly rounds, optional
+goals, member-only visibility, and Free participation without a public profile.
+The static preview does not present an unusable invite button.
+
+The Projects and Tasks support section is a short, unboxed transition before
+pricing. Its example kanban board contains tasks from one research project and
+shows focus time on individual tasks and the project. The example is labeled
+and has an accessible image description; it does not imply tasks from separate
+projects share one board. Its tinted status columns, status dots and counts,
+priority badges, and task-card treatment follow the real Kanban components.
 
 All animation is disabled by `prefers-reduced-motion`, leaving every element in
 its normal visible layout.
@@ -90,14 +115,13 @@ The Daily goals and Analytics section opts into `FeatureSection`'s
 nav, applies height-aware clamped vertical padding, and vertically centers the
 copy and mockup columns.
 
-`AnalyticsMockup` keeps every part of the composition visible together:
-Today's focus, Sessions, Daily goal, the monthly heatmap, and By project. Its
-desktop width is capped at 460px and also responds to viewport height. Card
-padding, inter-card gaps, metric size, heatmap gaps, and the project donut are
-compacted without changing the established colors, typography, borders, data,
-or GSAP animation hooks. Below the desktop breakpoint, the section retains the
-original 5.5rem vertical padding, stacked layout, full-size mobile spacing, and
-normal document scrolling.
+`AnalyticsMockup` presents Today's focus, Sessions, Daily goal, the monthly
+heatmap, and By project as one connected report instead of a stack of separate
+cards. Its desktop width is capped at 460px and responds to viewport height.
+The calendar grid and project donut compact at desktop sizes while retaining
+the illustrative data, brand colors, data-font metrics, and GSAP animation
+hooks. Below the desktop breakpoint, the section keeps its 5.5rem vertical
+padding, stacked layout, and normal document scrolling.
 
 Global horizontal overflow uses `overflow-x: clip`, not `hidden`. Using `hidden`
 causes the other axis to compute as `auto`, which can turn `body` into a second

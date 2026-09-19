@@ -1,80 +1,51 @@
+import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { Button, Logo } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { PATHS } from '@/routes/paths'
 
-/**
- * Full-width closing banner — lifted surface, bounded top and bottom,
- * generous padding matching the hero. Headline + subtext + primary CTA
- * with a lower-commitment secondary link, echoing the hero's structure
- * and trust line for consistency.
- *
- * Subtext alternates considered:
- *   "Join students, freelancers, and developers building better focus habits."
- *   "Your next deep work session is one click away."
- *   "Thousands of focused hours start with a single session."
- */
+/** A decisive final step after pricing, without repeating the hero layout. */
 export function ClosingCtaSection() {
   return (
     <section
       data-reveal-group
-      className="px-5"
-      style={{
-        backgroundColor: '#141417',
-        borderTop: '0.5px solid #2E2E38',
-        borderBottom: '0.5px solid #2E2E38',
-        paddingTop: '6rem',
-        paddingBottom: '6rem',
-      }}
+      className="border-y border-depth-border bg-depth-surface px-5 py-20 md:px-8 md:py-24"
     >
-      <div className="mx-auto flex flex-col items-center text-center" style={{ maxWidth: 620 }}>
-        <span data-reveal style={{ color: '#3D3B4E', marginBottom: 20 }}>
-          <Logo size={32} />
-        </span>
-
-        <h2
-          data-reveal
-          style={{
-            fontSize: 'clamp(28px, 4.5vw, 40px)',
-            fontWeight: 500,
-            letterSpacing: '-0.03em',
-            color: '#E8E6F0',
-            lineHeight: 1.15,
-          }}
-        >
-          Start with one focused session
-        </h2>
-
-        <p
-          data-reveal
-          style={{
-            fontSize: 16,
-            color: '#7A7890',
-            lineHeight: 1.65,
-            marginTop: 16,
-            maxWidth: 480,
-          }}
-        >
-          Build your own rhythm first. Share progress or invite others when accountability would
-          help.
-        </p>
+      <div className="mx-auto grid max-w-[1100px] gap-10 md:grid-cols-[minmax(0,1.25fr)_minmax(280px,0.75fr)] md:items-end md:gap-16">
+        <div data-reveal className="max-w-[680px]">
+          <h2 className="text-[clamp(34px,5vw,54px)] font-medium leading-[1.08] tracking-[-0.04em] text-ink-primary">
+            Start with one focused session
+          </h2>
+          <p className="mt-5 max-w-[540px] text-base leading-7 text-ink-secondary">
+            Build your own rhythm first. Share progress or invite others when accountability would
+            help.
+          </p>
+        </div>
 
         <div
           data-reveal
-          className="flex flex-col items-center gap-3 sm:flex-row sm:gap-2"
-          style={{ marginTop: 32 }}
+          data-reveal-direction="right"
+          className="border-t border-depth-border pt-7 md:border-l md:border-t-0 md:pl-10 md:pt-0"
         >
-          <Button asChild size="lg" style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}>
-            <Link to={PATHS.signup}>Get started free</Link>
+          <Button
+            asChild
+            size="lg"
+            className="w-full bg-brand text-depth-bg hover:bg-brand/90 focus-visible:ring-brand"
+          >
+            <Link to={PATHS.signup} className="group whitespace-nowrap">
+              Get started free
+              <ArrowRight
+                aria-hidden="true"
+                size={17}
+                strokeWidth={1.75}
+                className="transition-transform group-hover:translate-x-0.5"
+              />
+            </Link>
           </Button>
-          <Button asChild variant="ghost" size="lg" style={{ color: '#7A7890' }}>
-            <a href="#pricing">View pricing</a>
-          </Button>
+          <p className="mt-4 text-center text-xs text-ink-secondary md:text-left">
+            Free forever <span aria-hidden="true">•</span> No credit card required
+          </p>
         </div>
-
-        <span data-reveal style={{ fontSize: 13, color: '#7A7890', marginTop: 16 }}>
-          Free forever • No credit card required
-        </span>
       </div>
     </section>
   )

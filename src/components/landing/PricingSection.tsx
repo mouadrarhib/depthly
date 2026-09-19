@@ -26,12 +26,20 @@ interface Tier {
   features: string[]
   cta: string
   highlighted?: boolean
-  founderBadge?: boolean
+  founder?: boolean
   /** Price display — only Pro varies with the billing interval. */
   price: (interval: PlanInterval) => TierPrice
-  /** Signup link — carries plan + interval for checkout wiring later. */
+  /** Signup link carries the selected plan and interval into checkout. */
   ctaTo: (interval: PlanInterval) => string
 }
+
+const PRO_FEATURES = [
+  'Unlimited projects & sessions',
+  'Full Analytics history + CSV export',
+  'Public profile and global leaderboard visibility',
+  'Create up to 10 private groups',
+  'Up to 100 members per group',
+]
 
 const TIERS: Tier[] = [
   {
@@ -49,14 +57,8 @@ const TIERS: Tier[] = [
   },
   {
     name: 'Pro',
-    features: [
-      'Unlimited projects & sessions',
-      'Full Analytics history + CSV export',
-      'Public profile and global leaderboard visibility',
-      'Create up to 10 private groups',
-      'Up to 100 members per group',
-    ],
-    cta: 'Start free trial',
+    features: PRO_FEATURES,
+    cta: 'Choose Pro',
     highlighted: true,
     price: (interval) =>
       interval === 'monthly'
@@ -67,12 +69,12 @@ const TIERS: Tier[] = [
   {
     name: 'Lifetime',
     features: [
-      'Everything in Pro, forever',
+      ...PRO_FEATURES.slice(0, 3),
       'All future updates included',
       'Founding member badge on your profile',
     ],
     cta: 'Become a founder',
-    founderBadge: true,
+    founder: true,
     price: () => ({ amount: '$79', note: 'one-time payment' }),
     ctaTo: () => `${PATHS.signup}?plan=lifetime`,
   },
@@ -95,28 +97,21 @@ export function PricingSection() {
           subtext="Use the personal focus core for free. Upgrade for more history, scale, and public visibility."
         />
 
-        {/* Monthly / Yearly toggle — same segmented style as the timer mode selector */}
-        <div data-reveal className="flex justify-center" style={{ marginTop: 36 }}>
+        <div data-reveal className="mt-9 flex flex-col items-center gap-2.5">
+          <p className="text-xs text-ink-primary/75">Pro billing</p>
           <Tabs
             value={billingInterval}
             onValueChange={(v) => setBillingInterval(v as PlanInterval)}
           >
             <TabsList
-              className="h-auto gap-0.5 rounded-full p-1"
-              style={{ background: 'var(--color-surface-overlay)' }}
+              aria-label="Pro billing period"
+              className="h-auto gap-1 rounded-full border border-depth-border bg-depth-surface p-1"
             >
               {INTERVALS.map(({ value, label }) => (
                 <TabsTrigger
                   key={value}
                   value={value}
-                  className={[
-                    'rounded-full px-[18px] py-[6px] text-[13px] font-medium',
-                    'shadow-none transition-all',
-                    'data-[state=inactive]:bg-transparent data-[state=inactive]:text-[var(--color-text-faint)]',
-                    'data-[state=active]:bg-[var(--color-surface-raised)] data-[state=active]:text-[var(--color-brand)]',
-                    'data-[state=active]:border data-[state=active]:border-[rgba(75,158,255,0.3)]',
-                    'data-[state=active]:shadow-none',
-                  ].join(' ')}
+                  className="rounded-full px-5 py-2 text-[13px] text-ink-primary/75 shadow-none transition-colors hover:text-ink-primary focus-visible:ring-brand data-[state=active]:bg-depth-raised data-[state=active]:text-ink-primary data-[state=active]:shadow-none"
                 >
                   {label}
                 </TabsTrigger>
@@ -126,8 +121,7 @@ export function PricingSection() {
         </div>
 
         <div
-          className="grid grid-cols-1 items-start gap-6 md:grid-cols-3"
-          style={{ marginTop: 40, maxWidth: 980, marginLeft: 'auto', marginRight: 'auto' }}
+          className="mx-auto mt-10 grid max-w-5xl grid-cols-1 items-stretch gap-5 lg:grid-cols-3"
         >
           {TIERS.map((tier) => {
             const { amount, note, sub, savings } = tier.price(billingInterval)
@@ -135,122 +129,67 @@ export function PricingSection() {
               <div
                 key={tier.name}
                 data-reveal
-                className="relative flex flex-col"
-                style={{
-                  backgroundColor: '#141417',
-                  border: tier.highlighted ? '2px solid #4B9EFF' : '1px solid #2E2E38',
-                  borderRadius: 14,
-                  padding: 28,
-                }}
+                className={`flex flex-col rounded-xl border p-7 md:p-8 ${
+                  tier.highlighted || tier.founder
+                    ? 'border-brand bg-depth-raised'
+                    : 'border-depth-border bg-depth-surface'
+                }`}
               >
-                {tier.highlighted ? (
-                  <span
-                    className="absolute rounded-full"
-                    style={{
-                      top: -12,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      fontSize: 11,
-                      fontWeight: 500,
-                      padding: '3px 12px',
-                      backgroundColor: '#4B9EFF',
-                      color: '#FFFFFF',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    Most popular
-                  </span>
-                ) : null}
-
-                <div className="flex items-center gap-2.5">
-                  <h3 style={{ fontSize: 16, fontWeight: 500, color: '#E8E6F0' }}>{tier.name}</h3>
-                  {tier.founderBadge ? (
-                    <span
-                      className="rounded-full"
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 500,
-                        padding: '2px 9px',
-                        backgroundColor: 'rgba(200, 255, 100, 0.1)',
-                        color: '#C8FF64',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      Founding member
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className={`text-lg font-medium ${tier.highlighted || tier.founder ? 'text-brand' : 'text-ink-primary'}`}>
+                    {tier.name}
+                  </h3>
+                  {tier.founder ? (
+                    <span className="rounded-full border border-brand/40 bg-brand/10 px-2.5 py-1 text-[11px] font-medium text-brand">
+                      Pro, forever
                     </span>
                   ) : null}
                 </div>
 
-                {/* Price block — fixed height so cards don't shift when Pro's sub-line appears */}
-                <div style={{ marginTop: 16, minHeight: 58 }}>
-                  <div className="flex flex-wrap items-baseline" style={{ gap: 8 }}>
-                    <span
-                      className="font-data"
-                      style={{
-                        fontSize: 36,
-                        fontWeight: 600,
-                        color: '#E8E6F0',
-                        letterSpacing: '-0.02em',
-                        lineHeight: 1,
-                      }}
-                    >
+                <div className="mt-6 min-h-[92px]">
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <span className="font-data text-[40px] font-semibold leading-none tracking-[-0.03em] text-ink-primary">
                       {amount}
                     </span>
-                    <span style={{ fontSize: 13, color: '#7A7890' }}>{note}</span>
+                    <span className="text-[13px] text-ink-primary/75">{note}</span>
                     {savings ? (
-                      <span
-                        className="rounded-full"
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 500,
-                          padding: '2px 8px',
-                          backgroundColor: 'rgba(75, 158, 255, 0.12)',
-                          color: '#4B9EFF',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
+                      <span className="font-data rounded-full bg-brand/15 px-2 py-0.5 text-[11px] font-medium text-brand">
                         {savings}
                       </span>
                     ) : null}
                   </div>
                   {sub ? (
-                    <div
-                      className="font-data"
-                      style={{ fontSize: 12, color: '#7A7890', marginTop: 6 }}
-                    >
-                      {sub}
-                    </div>
+                    <p className="font-data mt-2 text-xs text-ink-primary/75">{sub} equivalent</p>
                   ) : null}
                 </div>
 
-                <ul
-                  className="flex flex-col gap-3"
-                  style={{ marginTop: 18, marginBottom: 28, padding: 0, listStyle: 'none' }}
+                <Button
+                  asChild
+                  variant={tier.highlighted || tier.founder ? 'primary' : 'outline'}
+                  className={`w-full focus-visible:ring-brand ${
+                    tier.highlighted || tier.founder
+                      ? 'bg-brand text-depth-bg hover:bg-brand/90'
+                      : 'border-depth-border bg-depth-bg text-ink-primary hover:bg-depth-raised hover:text-ink-primary'
+                  }`}
                 >
+                  <Link to={tier.ctaTo(billingInterval)}>{tier.cta}</Link>
+                </Button>
+
+                <div className="my-7 h-px bg-depth-border" aria-hidden="true" />
+                <ul className="flex flex-col gap-3.5">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2.5">
                       <Check
                         size={16}
-                        strokeWidth={2}
-                        style={{ color: '#4B9EFF', flexShrink: 0, marginTop: 2 }}
+                        strokeWidth={1.75}
+                        className="mt-0.5 shrink-0 text-brand"
                       />
-                      <span style={{ fontSize: 14, color: '#7A7890', lineHeight: 1.5 }}>
+                      <span className="text-sm leading-[1.55] text-ink-primary/80">
                         {feature}
                       </span>
                     </li>
                   ))}
                 </ul>
-
-                <Button
-                  asChild
-                  variant={tier.highlighted ? 'default' : 'outline'}
-                  className="mt-auto w-full"
-                  style={
-                    tier.highlighted ? { backgroundColor: '#4B9EFF', color: '#FFFFFF' } : undefined
-                  }
-                >
-                  <Link to={tier.ctaTo(billingInterval)}>{tier.cta}</Link>
-                </Button>
               </div>
             )
           })}

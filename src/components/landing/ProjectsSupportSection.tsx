@@ -1,5 +1,3 @@
-import { FolderKanban, Link2 } from 'lucide-react'
-
 import { sectionPad } from '@/components/landing/primitives'
 import { TaskKanbanMockup } from '@/components/landing/TaskKanbanMockup'
 
@@ -10,23 +8,16 @@ export function ProjectsSupportSection() {
       className="px-5 md:px-8"
       style={{ ...sectionPad, paddingTop: '3.5rem' }}
     >
-      <div className="mx-auto grid max-w-[980px] items-center gap-8 rounded-2xl border border-depth-border bg-depth-surface p-5 sm:p-8 md:grid-cols-[0.85fr_1.15fr]">
+      <div className="mx-auto grid max-w-[1040px] items-center gap-10 border-t border-depth-border pt-12 md:grid-cols-[0.85fr_1.15fr] md:gap-14">
         <div data-reveal>
-          <span className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-depth-border bg-depth-raised text-brand">
-            <FolderKanban size={19} />
-          </span>
-          <p className="mt-5 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-muted">
-            Supporting your focus
-          </p>
-          <h2 className="mt-2 text-[clamp(24px,4vw,32px)] font-medium leading-tight tracking-[-0.03em] text-ink-primary">
-            Give every focused hour somewhere to go.
+          <h2 className="text-[clamp(26px,4vw,36px)] font-medium leading-[1.15] tracking-[-0.03em] text-ink-primary">
+            Keep tasks and focus time together.
           </h2>
-          <p className="mt-3 text-[14px] leading-6 text-ink-secondary">
-            Projects and tasks keep study plans, client work, and personal goals organized. Pick one
-            when the timer starts, then see the time build on the work itself.
+          <p className="mt-4 text-[15px] leading-7 text-ink-primary/70">
+            Pick a project or task when you start the timer. After the session, you can see the time spent on that work.
           </p>
-          <div className="mt-5 flex items-center gap-2 text-[12px] text-ink-secondary">
-            <Link2 size={14} className="text-brand" /> List or kanban · priorities · due dates
+          <div className="mt-7 border-t border-depth-border pt-5 text-sm leading-6 text-ink-primary/70">
+            Organize tasks in a list or board, with priorities and due dates when you need them.
           </div>
         </div>
         <div data-reveal className="min-w-0">

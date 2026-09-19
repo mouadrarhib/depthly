@@ -43,13 +43,11 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
         )
       }
 
-      // The five-step path gets its own clearly sequenced story animation:
-      // context first, then each stage from Focus through Focus together.
+      // Reveal the path in reading order: heading, then each stage.
       const focusPath = root.querySelector('[data-focus-path]')
       if (focusPath) {
         const pathHeader = focusPath.querySelector('[data-focus-path-header]')
         const pathSteps = focusPath.querySelectorAll('[data-focus-step]')
-        const pathIcons = focusPath.querySelectorAll('[data-focus-step-icon]')
         const pathTimeline = gsap.timeline({
           scrollTrigger: { trigger: focusPath, start: 'top 78%', once: true },
         })
@@ -57,32 +55,22 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
         if (pathHeader) {
           pathTimeline.fromTo(
             pathHeader,
-            { y: 42, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.7, ease: 'power3.out' }
+            { y: 24, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.55, ease: 'power3.out' }
           )
         }
         if (pathSteps.length) {
           pathTimeline.fromTo(
             pathSteps,
-            { y: 52, opacity: 0, scale: 0.92, rotationX: -12 },
+            { y: 24, opacity: 0 },
             {
               y: 0,
               opacity: 1,
-              scale: 1,
-              rotationX: 0,
-              duration: 0.75,
-              ease: 'back.out(1.25)',
-              stagger: 0.16,
+              duration: 0.55,
+              ease: 'power3.out',
+              stagger: 0.12,
             },
-            pathHeader ? '-=0.25' : 0
-          )
-        }
-        if (pathIcons.length) {
-          pathTimeline.fromTo(
-            pathIcons,
-            { scale: 0.35, rotation: -18 },
-            { scale: 1, rotation: 0, duration: 0.45, ease: 'back.out(1.8)', stagger: 0.16 },
-            pathHeader ? '-=0.95' : '-=0.7'
+            pathHeader ? '-=0.15' : 0
           )
         }
       }
@@ -92,6 +80,19 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
         const items = group.querySelectorAll('[data-reveal]')
         if (!items.length) return
 
+        const revealFromX = (_index: number, element: Element) => {
+          const direction = (element as HTMLElement).dataset.revealDirection
+          if (direction === 'left') return -24
+          if (direction === 'right') return 24
+          return 0
+        }
+
+        const revealFromY = (_index: number, element: Element) =>
+          (element as HTMLElement).dataset.revealDirection ? 18 : 36
+
+        const revealFromScale = (_index: number, element: Element) =>
+          (element as HTMLElement).dataset.revealDirection ? 0.995 : 0.985
+
         if (group.getBoundingClientRect().top < window.innerHeight) {
           loadGroups.push(items)
           return
@@ -99,8 +100,9 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
 
         gsap.fromTo(
           items,
-          { y: 36, opacity: 0, scale: 0.985 },
+          { x: revealFromX, y: revealFromY, opacity: 0, scale: revealFromScale },
           {
+            x: 0,
             y: 0,
             opacity: 1,
             scale: 1,
@@ -112,13 +114,35 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
         )
       })
 
-      loadGroups.forEach((items) => gsap.set(items, { y: 30, opacity: 0, scale: 0.99 }))
+      loadGroups.forEach((items) =>
+        gsap.set(items, {
+          x: (_index: number, element: Element) => {
+            const direction = (element as HTMLElement).dataset.revealDirection
+            if (direction === 'left') return -24
+            if (direction === 'right') return 24
+            return 0
+          },
+          y: (_index: number, element: Element) =>
+            (element as HTMLElement).dataset.revealDirection ? 18 : 30,
+          opacity: 0,
+          scale: (_index: number, element: Element) =>
+            (element as HTMLElement).dataset.revealDirection ? 0.995 : 0.99,
+        })
+      )
 
       const supportingEntrance = gsap.timeline()
       loadGroups.forEach((items, index) => {
         supportingEntrance.to(
           items,
-          { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: 'power3.out', stagger: 0.1 },
+          {
+            x: 0,
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.8,
+            ease: 'power3.out',
+            stagger: 0.1,
+          },
           0.35 + index * 0.2
         )
       })

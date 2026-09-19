@@ -1,185 +1,101 @@
-import { PRIORITY_CONFIG } from '@/lib/utils/tasks'
+import { Clock } from 'lucide-react'
 
+import { PriorityBadge } from '@/components/ui/PriorityBadge'
+
+type Priority = 'low' | 'medium' | 'high' | 'urgent'
 type Status = 'todo' | 'in_progress' | 'done'
-type Priority = keyof typeof PRIORITY_CONFIG
 
-// Same tinted backgrounds + accent colors as the real KanbanColumn's local COLUMN_CONFIG.
+interface PreviewTask {
+  title: string
+  priority: Priority
+  focus?: string
+}
+
+// Match the real KanbanColumn status colors and tinted surfaces.
 const STATUS_CONFIG: Record<Status, { bg: string; color: string; label: string }> = {
   todo: { bg: 'rgba(122, 120, 144, 0.06)', color: '#7A7890', label: 'To Do' },
   in_progress: { bg: 'rgba(75, 158, 255, 0.06)', color: '#4B9EFF', label: 'In Progress' },
   done: { bg: 'rgba(61, 214, 140, 0.06)', color: '#3DD68C', label: 'Done' },
 }
 
-interface FakeCard {
-  title: string
-  priority: Priority
-  due?: { label: string; overdue?: boolean }
-}
-
-const COLUMNS: { status: Status; cards: FakeCard[] }[] = [
+const COLUMNS: { status: Status; tasks: PreviewTask[] }[] = [
   {
     status: 'todo',
-    cards: [
-      { title: 'Portfolio update', priority: 'high' },
-      { title: 'Book chapter', priority: 'low' },
+    tasks: [
+      { title: 'Review sources', priority: 'high' },
+      { title: 'Draft conclusion', priority: 'medium' },
     ],
   },
   {
     status: 'in_progress',
-    cards: [
-      { title: 'Client proposal', priority: 'urgent', due: { label: 'Yesterday', overdue: true } },
-      { title: 'Essay outline', priority: 'medium' },
-    ],
+    tasks: [{ title: 'Write outline', priority: 'medium', focus: '2h 15m' }],
   },
   {
     status: 'done',
-    cards: [
-      { title: 'Invoice sent', priority: 'medium' },
-      { title: 'Study notes', priority: 'low' },
-    ],
+    tasks: [{ title: 'Read papers', priority: 'low', focus: '1h 40m' }],
   },
 ]
 
-function PriorityChip({ priority }: { priority: Priority }) {
-  const { label, color } = PRIORITY_CONFIG[priority]
-  return (
-    <span
-      style={{
-        backgroundColor: `${color}26`,
-        color,
-        border: `1px solid ${color}66`,
-        borderRadius: 9999,
-        padding: '2px 10px',
-        fontSize: 11,
-        fontWeight: 500,
-      }}
-    >
-      {label}
-    </span>
-  )
-}
-
-function DueChip({ label, overdue }: { label: string; overdue?: boolean }) {
-  return (
-    <span
-      style={{
-        backgroundColor: 'transparent',
-        color: overdue ? '#F25C5C' : '#7A7890',
-        border: overdue ? '1px solid #F25C5C' : '1px solid #2E2E38',
-        borderRadius: 6,
-        padding: '2px 8px',
-        fontSize: 11,
-      }}
-    >
-      {label}
-    </span>
-  )
-}
-
-/**
- * Static illustrative kanban board — three columns styled after the real
- * KanbanColumn/KanbanCard/PriorityBadge, with hardcoded fake tasks. No
- * dnd-kit, no drag-and-drop; purely decorative.
- *
- * The board itself is much shorter than the text column it sits beside;
- * FeatureSection's mockup slot stretches to the row's full height and
- * centers whatever mockup is inside it, so this component only needs to
- * render its own natural content — no local height/centering wrapper
- * needed here. Cards use a plain `data-reveal` (no nested
- * `data-reveal-group`) so they're picked up by the section's own single
- * reveal group, same as every other FeatureSection.
- */
+/** Static, project-scoped preview using the real Kanban styling. */
 export function TaskKanbanMockup() {
   return (
-    <div className="mx-auto w-full" style={{ maxWidth: 440 }}>
+    <figure className="mx-auto w-full max-w-[540px]">
       <div
-        className="w-full"
-        style={{
-          backgroundColor: '#0D0D10',
-          border: '1px solid #2E2E38',
-          borderRadius: 20,
-          padding: '28px 22px',
-        }}
+        role="img"
+        aria-label="Example Research paper Kanban board with To Do, In Progress, and Done columns. Tasks show their priorities and recorded focus time."
+        className="rounded-[16px] border border-depth-border bg-depth-bg p-4 sm:p-5"
       >
-        <div className="flex w-full" style={{ gap: 6 }}>
-          {COLUMNS.map(({ status, cards }) => {
+        <div className="flex items-end justify-between gap-4 border-b border-depth-border pb-4">
+          <div>
+            <p className="text-xs text-ink-secondary">Project</p>
+            <h3 className="mt-1 text-base font-medium text-ink-primary">Research paper</h3>
+          </div>
+          <div className="text-right">
+            <p className="font-data text-sm text-ink-primary">6h 45m</p>
+            <p className="text-[11px] text-ink-secondary">focused</p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          {COLUMNS.map(({ status, tasks }) => {
             const cfg = STATUS_CONFIG[status]
             return (
               <div
                 key={status}
-                className="flex-1"
-                style={{
-                  minWidth: 0,
-                  borderRadius: 12,
-                  padding: 8,
-                  border: '1px solid rgba(46, 46, 56, 0.8)',
-                  backgroundColor: cfg.bg,
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
+                className="min-w-0 rounded-[14px] border p-3 sm:min-h-[225px]"
+                style={{ borderColor: 'rgba(46, 46, 56, 0.8)', backgroundColor: cfg.bg }}
               >
-                {/* Column header — label wraps rather than truncating so
-                    "In Progress" stays readable in a narrow mobile column;
-                    items-start + a small dot offset keep the dot/badge
-                    pinned to the first line instead of centering against
-                    the wrapped block. */}
-                <div className="flex items-start gap-1.5" style={{ marginBottom: 8 }}>
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      backgroundColor: cfg.color,
-                      flexShrink: 0,
-                      marginTop: 3,
-                    }}
-                  />
-                  <span
-                    className="flex-1 break-words"
-                    style={{ fontSize: 11, fontWeight: 600, color: cfg.color, minWidth: 0 }}
-                  >
-                    {cfg.label}
-                  </span>
-                  <span
-                    style={{
-                      backgroundColor: `${cfg.color}26`,
-                      color: cfg.color,
-                      borderRadius: 999,
-                      padding: '1px 6px',
-                      fontSize: 10,
-                      fontWeight: 600,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {cards.length}
-                  </span>
+                <div className="mb-3 flex items-start gap-1.5">
+                  <div className="flex min-w-0 items-start gap-1.5">
+                    <span
+                      className="mt-1 h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: cfg.color }}
+                    />
+                    <span className="min-w-0 text-[11px] font-semibold leading-4" style={{ color: cfg.color }}>
+                      {cfg.label}
+                    </span>
+                    <span
+                      className="font-data shrink-0 rounded-full px-1.5 text-[10px] font-semibold"
+                      style={{ backgroundColor: `${cfg.color}26`, color: cfg.color }}
+                    >
+                      {tasks.length}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Cards */}
-                <div className="flex flex-col" style={{ gap: 6 }}>
-                  {cards.map((card) => (
-                    <div
-                      key={card.title}
-                      data-reveal
-                      className="flex flex-col"
-                      style={{
-                        borderRadius: 10,
-                        padding: 8,
-                        backgroundColor: '#141417',
-                        border: '1px solid #2E2E38',
-                      }}
-                    >
-                      <PriorityChip priority={card.priority} />
+                <div className="space-y-2">
+                  {tasks.map((task) => (
+                    <div key={task.title} className="rounded-[10px] border border-depth-border bg-depth-surface p-3">
+                      <PriorityBadge priority={task.priority} dimmed={status === 'done'} />
                       <p
-                        className="line-clamp-2 leading-snug"
-                        style={{ fontSize: 12, fontWeight: 500, color: '#E8E6F0', marginTop: 8 }}
+                        className={`mt-2 text-xs font-medium leading-5 text-ink-primary ${status === 'done' ? 'opacity-50 line-through' : ''}`}
                       >
-                        {card.title}
+                        {task.title}
                       </p>
-                      {card.due ? (
-                        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #2E2E38' }}>
-                          <DueChip label={card.due.label} overdue={card.due.overdue} />
-                        </div>
+                      {task.focus ? (
+                        <p className="font-data mt-2 flex items-center gap-1.5 border-t border-depth-border pt-2 text-[11px] text-ink-secondary">
+                          <Clock size={11} strokeWidth={1.75} /> {task.focus}
+                        </p>
                       ) : null}
                     </div>
                   ))}
@@ -189,6 +105,9 @@ export function TaskKanbanMockup() {
           })}
         </div>
       </div>
-    </div>
+      <figcaption className="mt-3 text-center text-xs text-ink-secondary">
+        Example project board
+      </figcaption>
+    </figure>
   )
 }

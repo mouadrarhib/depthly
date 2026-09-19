@@ -6,12 +6,7 @@ import { PATHS } from '@/routes/paths'
 /** Public hero for students, freelancers, and independent learners. */
 export function HeroSection() {
   return (
-    <section
-      className="relative flex flex-col items-center overflow-hidden px-4 pt-[4.5rem] text-center sm:px-5 sm:pt-[clamp(4.5rem,7vw,5rem)]"
-      style={{
-        paddingBottom: 'clamp(4.5rem, 9vw, 6rem)',
-      }}
-    >
+    <section className="relative overflow-hidden px-4 pb-16 pt-12 sm:px-5 sm:pt-16 lg:pb-20">
       {/* Background dot grid — absolutely positioned to cover the full
           section, sits behind the text content (below, in the relative
           content wrapper's stacking order). Dot color uses the app's
@@ -36,56 +31,46 @@ export function HeroSection() {
         }}
       />
 
-      <div className="relative flex flex-col items-center" style={{ maxWidth: 700, zIndex: 1 }}>
-        <h1
-          data-hero
-          className="max-w-full text-[27px] min-[360px]:text-[30px] sm:text-[clamp(34px,5vw,64px)]"
-          style={{
-            fontWeight: 600,
-            letterSpacing: '-0.04em',
-            color: '#E8E6F0',
-            lineHeight: 1.08,
-          }}
-        >
-          <span className="sm:block">Focus deeply. </span>
-          <span className="sm:block">Track your progress. </span>
-          <span className="text-brand sm:block">Go further together.</span>
-        </h1>
-
-        <p
-          data-hero
-          className="mt-5 sm:mt-[30px]"
-          style={{
-            fontSize: 16,
-            color: '#918EA8',
-            lineHeight: 1.65,
-            maxWidth: 610,
-          }}
-        >
-          Build a focus habit you can actually see. Whether you&apos;re studying, doing client work,
-          or learning independently, Depthly turns timer-tracked sessions into goals, honest
-          progress, and optional accountability.
-        </p>
-
-        <div
-          data-hero
-          className="mt-9 flex w-full max-w-sm flex-col items-stretch gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:items-center sm:gap-2.5"
-        >
-          <Button
-            asChild
-            size="lg"
-            className="w-full sm:w-auto"
-            style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}
+      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-2 lg:gap-10" style={{ zIndex: 1 }}>
+        <div className="flex flex-col items-start text-left">
+          <h1
+            data-hero
+            className="text-[27px] font-semibold leading-[1.08] tracking-[-0.04em] text-ink-primary min-[360px]:text-[30px] sm:text-[clamp(34px,4.3vw,58px)]"
           >
-            <Link to={PATHS.signup}>Get started free</Link>
-          </Button>
-          <Button asChild size="lg" variant="ghost" className="w-full text-[#9A97AE] sm:w-auto">
-            <a href="#features">See how it works</a>
-          </Button>
+            <span className="block">Focus on the work.</span>
+            <span className="block text-brand">We&apos;ll track the time.</span>
+          </h1>
+
+          <p data-hero className="mt-6 max-w-[540px] text-base leading-relaxed text-ink-secondary sm:mt-8">
+            Start a session for study, client work, or whatever you&apos;re learning. See your progress,
+            and invite friends when it helps.
+          </p>
+
+          <div
+            data-hero
+            className="mt-8 flex w-full max-w-sm flex-col items-stretch gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:items-center sm:gap-2.5"
+          >
+            <Button asChild size="lg" variant="primary" className="w-full bg-brand text-white hover:bg-brand/90 sm:w-auto">
+              <Link to={PATHS.signup}>Get started free</Link>
+            </Button>
+            <Button asChild size="lg" variant="ghost" className="w-full text-ink-secondary sm:w-auto">
+              <a href="#features">See how it works</a>
+            </Button>
+          </div>
+          <span data-hero className="mt-4 text-[12px] text-ink-secondary sm:mt-5 sm:text-[13px]">
+            Free forever <span aria-hidden="true">•</span> No credit card required
+          </span>
         </div>
-        <span data-hero className="mt-4 text-[12px] text-ink-secondary sm:mt-5 sm:text-[13px]">
-          Free forever <span aria-hidden="true">•</span> No credit card required
-        </span>
+
+        <div data-hero className="relative h-[260px] overflow-hidden rounded-2xl border border-depth-border bg-depth-surface sm:h-[360px] lg:h-[520px]">
+          <img
+            src="/images/focus-work-hero.png"
+            alt=""
+            aria-hidden="true"
+            className="h-full w-full object-cover object-[65%_50%]"
+          />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-depth-bg/40 via-transparent to-transparent" />
+        </div>
       </div>
     </section>
   )

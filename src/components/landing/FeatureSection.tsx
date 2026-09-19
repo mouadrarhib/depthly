@@ -82,6 +82,7 @@ export function FeatureSection({
               plugged in or how tall its content is. */}
           <div
             data-reveal
+            data-reveal-direction={mockupSide}
             className="flex w-full items-center justify-center md:w-[55%] md:self-stretch"
           >
             {mockup}
@@ -93,6 +94,7 @@ export function FeatureSection({
             {heading && body ? (
               <div
                 data-reveal
+                data-reveal-direction={mockupSide === 'left' ? 'right' : 'left'}
                 className={`flex flex-col ${compactCopy ? 'gap-5' : 'gap-3'}`}
                 style={{ textAlign: 'left' }}
               >
