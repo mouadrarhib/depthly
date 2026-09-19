@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-import { BarChart2, CheckCircle, Clock, FolderOpen, History, Target, Trophy } from 'lucide-react'
+import { BarChart2, CheckCircle, ChevronRight, Clock, FolderOpen, History, Target, Trophy } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import {
   BarChart,
@@ -17,6 +17,7 @@ import { SessionModal } from '@/components/sessions/SessionModal'
 import { SessionRow } from '@/components/sessions/SessionRow'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { StreakBadge } from '@/components/ui/StreakBadge'
 import { useProfile, useDailySummary, useDailySummariesRange } from '@/hooks/useAnalytics'
 import { useGoals } from '@/hooks/useGoals'
 import { useSessionsPaginated } from '@/hooks/useSessions'
@@ -48,22 +49,15 @@ function IconChip({ color, icon }: { color: string; icon: React.ReactNode }) {
 }
 
 interface StatCardProps {
-  accent?:   string
   icon:      React.ReactNode
   value:     React.ReactNode
   label?:    string
   children?: React.ReactNode
 }
 
-function StatCard({ accent, icon, value, label, children }: StatCardProps) {
+function StatCard({ icon, value, label, children }: StatCardProps) {
   return (
-    <div
-      className="flex flex-col items-center gap-1 rounded-xl border border-depth-border bg-depth-surface"
-      style={{
-        padding:   '14px 8px',
-        borderTop: accent ? `2px solid ${accent}` : undefined,
-      }}
-    >
+    <div className="flex min-w-0 flex-1 flex-col items-center gap-1 px-2 py-4 sm:px-4">
       {icon}
       <span className="font-data mt-1 text-[20px] font-semibold leading-none text-ink-primary sm:text-[22px]">
         {value}
@@ -82,10 +76,10 @@ function StatCard({ accent, icon, value, label, children }: StatCardProps) {
 }
 
 const QUICK_LINKS = [
-  { label: 'Analytics',   icon: <BarChart2  size={24} style={{ color: '#4B9EFF' }} />, path: PATHS.analytics   },
-  { label: 'Leaderboard', icon: <Trophy     size={24} style={{ color: '#F5A623' }} />, path: PATHS.leaderboard },
-  { label: 'Projects',    icon: <FolderOpen size={24} style={{ color: '#3DD68C' }} />, path: PATHS.projects    },
-  { label: 'Sessions',    icon: <History    size={24} style={{ color: '#A78BFA' }} />, path: PATHS.sessions    },
+  { label: 'Analytics',   description: 'Review your focus patterns', icon: BarChart2,  path: PATHS.analytics   },
+  { label: 'Leaderboard', description: 'See how you compare',        icon: Trophy,     path: PATHS.leaderboard },
+  { label: 'Projects',    description: 'Choose what to work on',     icon: FolderOpen, path: PATHS.projects    },
+  { label: 'Sessions',    description: 'Browse your focus history',  icon: History,    path: PATHS.sessions    },
 ]
 
 const GREETINGS = {
@@ -157,15 +151,34 @@ export function HomePage() {
   }
 
   return (
-    <div className="px-4 py-5 sm:px-6">
+    <div className="mx-auto w-full max-w-[1180px] py-2 sm:py-4">
+
+      <header className="mb-5 flex flex-col gap-1 sm:mb-6">
+        {profileLoading ? (
+          <>
+            <Skeleton width={240} height={28} borderRadius={6} />
+            <Skeleton width={300} height={16} borderRadius={4} />
+          </>
+        ) : (
+          <>
+            <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-ink-primary sm:text-[26px]">
+              {displayName ? `${greeting}, ${displayName}` : greeting}
+            </h1>
+            <p className="text-[13px] text-ink-secondary sm:text-[14px]">
+              Start a focused session or pick up where you left off.
+            </p>
+          </>
+        )}
+      </header>
 
       {/* Welcome banner — shown only when the user has zero sessions ever */}
       {totalSessions === 0 && profile && (
         <div
-          className="mb-5 flex items-center gap-3 rounded-xl border border-brand/20 px-5 py-4"
-          style={{ background: 'rgba(75,158,255,0.06)' }}
+          className="mb-5 flex items-center gap-3 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3.5 sm:px-5"
         >
-          <span style={{ fontSize: 22 }}>🎯</span>
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
+            <Target size={18} aria-hidden="true" />
+          </div>
           <div>
             <p className="text-[15px] font-semibold text-ink-primary">Welcome to Depthly</p>
             <p className="mt-0.5 text-[13px] text-ink-secondary">
@@ -180,10 +193,10 @@ export function HomePage() {
           that lets the order-* utilities below reorder sections across what
           are visually two columns on desktop (lg:) without touching the
           desktop layout, which keeps its original two-column DOM/box structure. */}
-      <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[3fr_2fr] lg:gap-5">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)] lg:gap-5">
 
         {/* ── LEFT COLUMN ──────────────────────────────────────────────────── */}
-        <div className="contents lg:flex lg:flex-col lg:gap-3">
+        <div className="contents lg:flex lg:flex-col lg:gap-4">
 
           {/* Lightweight timer widget — full controls available at /timer */}
           <div
@@ -194,33 +207,29 @@ export function HomePage() {
           </div>
 
           {/* Today's stats row */}
-          <div className="order-4 grid grid-cols-3 gap-2.5 sm:gap-3 lg:order-none">
+          <section className="order-4 overflow-hidden rounded-xl border border-depth-border bg-depth-surface lg:order-none" aria-label="Today's progress">
             {profileLoading ? (
-              /* Skeleton stat cards */
-              <>
+              <div className="grid grid-cols-3 divide-x divide-depth-border">
                 {[0, 1, 2].map(i => (
                   <div
                     key={i}
-                    className="flex flex-col items-center gap-2 rounded-xl border border-depth-border bg-depth-surface"
-                    style={{ padding: '14px 8px' }}
+                    className="flex flex-col items-center gap-2 px-2 py-4"
                   >
                     <Skeleton width={32} height={32} borderRadius="50%" />
                     <Skeleton width={48} height={20} borderRadius={4} />
                     <Skeleton width={56} height={10} borderRadius={4} />
                   </div>
                 ))}
-              </>
+              </div>
             ) : (
-              <>
+              <div className="grid grid-cols-3 divide-x divide-depth-border">
                 <StatCard
-                  accent={STAT_COLORS.focus}
                   icon={<IconChip color={STAT_COLORS.focus} icon={<Clock style={{ width: 16, height: 16, color: STAT_COLORS.focus }} />} />}
                   value={formatMinutesToHours(focusMinutes)}
                   label="Focus today"
                 />
 
                 <StatCard
-                  accent={STAT_COLORS.sessions}
                   icon={<IconChip color={STAT_COLORS.sessions} icon={<CheckCircle style={{ width: 16, height: 16, color: STAT_COLORS.sessions }} />} />}
                   value={sessionCount}
                   label="Sessions today"
@@ -230,7 +239,6 @@ export function HomePage() {
                     target icon (not an empty/misleading 0% ring) as a
                     prompt when it doesn't. */}
                 <StatCard
-                  accent={dailyGoalMins === null ? undefined : STAT_COLORS.goal}
                   icon={
                     dailyGoalMins === null ? (
                       <IconChip color="#7A7890" icon={<Target style={{ width: 16, height: 16, color: '#7A7890' }} />} />
@@ -256,9 +264,9 @@ export function HomePage() {
                     </button>
                   )}
                 </StatCard>
-              </>
+              </div>
             )}
-          </div>
+          </section>
 
           {/* Recent sessions */}
           <div className="order-5 rounded-xl border border-depth-border bg-depth-surface p-4 lg:order-none">
@@ -270,9 +278,14 @@ export function HomePage() {
             </div>
 
             {recentSessions.length === 0 ? (
-              <p className="py-5 text-center text-[13px] text-ink-secondary">
-                No sessions yet — start the timer to record your first session
-              </p>
+              <div className="flex flex-col items-center px-4 py-6 text-center">
+                <p className="text-[13px] text-ink-secondary">
+                  Your completed focus sessions will appear here.
+                </p>
+                <Link to={PATHS.timer} className="mt-2 text-[12px] font-medium text-brand hover:underline">
+                  Start your first session →
+                </Link>
+              </div>
             ) : (
               <div className="flex flex-col gap-2">
                 {recentSessions.map(session => (
@@ -289,27 +302,10 @@ export function HomePage() {
         </div>
 
         {/* ── RIGHT COLUMN ─────────────────────────────────────────────────── */}
-        <div className="contents lg:flex lg:flex-col lg:gap-3">
+        <div className="contents lg:flex lg:flex-col lg:gap-4">
 
-          {/* Greeting */}
-          <div
-            className="order-1 rounded-xl border border-depth-border bg-depth-surface lg:order-none"
-            style={{ padding: '16px 20px' }}
-          >
-            {profileLoading ? (
-              <Skeleton width={200} height={28} borderRadius={6} />
-            ) : (
-              <p className="text-[18px] font-medium text-ink-primary">
-                {displayName ? `${greeting}, ${displayName} 👋` : `${greeting} 👋`}
-              </p>
-            )}
-          </div>
-
-          {/* Streak */}
-          <div
-            className="order-2 rounded-xl border border-depth-border bg-depth-surface lg:order-none"
-            style={{ padding: '16px 20px' }}
-          >
+          {/* Momentum */}
+          <section className="order-2 rounded-xl border border-depth-border bg-depth-surface p-5 lg:order-none" aria-labelledby="momentum-title">
             {profileLoading ? (
               <div className="flex items-center gap-3">
                 <Skeleton width={60} height={60} borderRadius="50%" />
@@ -319,36 +315,29 @@ export function HomePage() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
-                {/* Flame icon — inline style as required for streak color */}
-                <span style={{ fontSize: 28, lineHeight: 1, color: '#C8FF64' }}>🔥</span>
-                <div>
-                  <div className="flex items-baseline gap-1.5">
-                    <span
-                      className="font-data font-bold"
-                      style={{ fontSize: 36, lineHeight: 1, color: '#C8FF64' }}
-                    >
-                      {currentStreak}
-                    </span>
-                    <span className="text-[14px] text-ink-secondary">day streak</span>
+              <div>
+                <p id="momentum-title" className="text-[12px] font-medium uppercase tracking-wider text-ink-muted">Momentum</p>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="font-data text-[26px] font-semibold leading-none text-ink-primary">
+                      {currentStreak} <span className="font-sans text-[13px] font-medium text-ink-secondary">day streak</span>
+                    </p>
+                    <p className="mt-2 text-[12px] text-ink-muted">
+                      {currentStreak === 0 ? 'Complete a session today to begin.' : `Personal best: ${longestStreak} days`}
+                    </p>
                   </div>
-                  {currentStreak === 0 ? (
-                    <p className="mt-1 text-[13px] text-ink-muted">
-                      Start your streak today
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-[12px] text-ink-muted">
-                      Longest: {longestStreak} days
-                    </p>
-                  )}
+                  {currentStreak > 0 && <StreakBadge days={currentStreak} />}
                 </div>
               </div>
             )}
-          </div>
+          </section>
 
           {/* This Week mini chart */}
-          <div className="order-6 rounded-xl border border-depth-border bg-depth-surface p-5 lg:order-none">
-            <p className="mb-3 text-[13px] font-medium text-ink-primary">This Week</p>
+          <section className="order-6 rounded-xl border border-depth-border bg-depth-surface p-5 lg:order-none" aria-labelledby="week-title">
+            <div className="mb-3 flex items-baseline justify-between">
+              <p id="week-title" className="text-[13px] font-medium text-ink-primary">This week</p>
+              <span className="text-[11px] text-ink-muted">Focus minutes</span>
+            </div>
             <ResponsiveContainer width="100%" height={60}>
               <BarChart
                 data={weekChartData}
@@ -368,22 +357,28 @@ export function HomePage() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </section>
 
           {/* Quick links */}
           <div className="order-7 rounded-xl border border-depth-border bg-depth-surface p-5 lg:order-none">
             <p className="mb-3 text-[12px] font-medium uppercase tracking-wider text-ink-muted">
               Quick access
             </p>
-            <div className="grid grid-cols-2 gap-2">
-              {QUICK_LINKS.map(({ label, icon, path }) => (
+            <div className="divide-y divide-depth-border">
+              {QUICK_LINKS.map(({ label, description, icon: Icon, path }) => (
                 <Link
                   key={path}
                   to={path}
-                  className="flex flex-col gap-[10px] rounded-[10px] border border-depth-border bg-depth-raised p-4 transition-colors hover:border-brand/20 hover:bg-[#1C1C22]"
+                  className="group flex min-h-14 items-center gap-3 rounded-lg px-2 py-3 transition-colors duration-200 hover:bg-depth-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 >
-                  {icon}
-                  <span className="text-[13px] font-medium text-ink-primary">{label}</span>
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-depth-raised text-ink-secondary transition-colors duration-200 group-hover:text-brand">
+                    <Icon size={16} aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13px] font-medium text-ink-primary">{label}</p>
+                    <p className="truncate text-[11px] text-ink-muted">{description}</p>
+                  </div>
+                  <ChevronRight size={15} className="text-ink-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-ink-secondary" aria-hidden="true" />
                 </Link>
               ))}
             </div>
