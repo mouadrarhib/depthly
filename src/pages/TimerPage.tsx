@@ -1,4 +1,4 @@
-import React from 'react'
+import { Expand, ListChecks, NotebookPen, Settings2 } from 'lucide-react'
 
 import { TimerControls } from '@/components/timer/TimerControls'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
@@ -10,11 +10,11 @@ import { TimerTodoPanel } from '@/components/timer/TimerTodoPanel'
 import { useUiStore } from '@/store'
 import { useTimerStore } from '@/store/timerStore'
 
-// ── Session dots — clickable focus/break cycle switcher ──────────────────
+// ── Phase selector — clickable focus/break cycle switcher ────────────────
 
 type PhaseKey = 'focus' | 'break'
 
-function SessionDots() {
+function PhaseSelector() {
   const { mode, sessionType, isRunning, isPaused } = useTimerStore()
 
   if (mode === 'free') return null
@@ -29,78 +29,30 @@ function SessionDots() {
     }))
   }
 
-  const phases: { key: PhaseKey; label: string; color: string; glow: string }[] = [
-    { key: 'focus', label: 'Focus', color: '#3DD68C', glow: 'rgba(61,214,140,0.5)' },
-    { key: 'break', label: 'Break', color: '#4B9EFF', glow: 'rgba(75,158,255,0.5)' },
+  const phases: { key: PhaseKey; label: string }[] = [
+    { key: 'focus', label: 'Focus' },
+    { key: 'break', label: 'Break' },
   ]
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-      {phases.map(({ key, label, color, glow }, i) => {
+    <div className="flex items-center gap-1 rounded-lg border border-depth-border bg-depth-surface p-1" aria-label="Timer phase">
+      {phases.map(({ key, label }) => {
         const isActive = sessionType === key
         return (
-          <React.Fragment key={key}>
-            <button
-              onClick={() => handleSwitch(key)}
-              disabled={isActive}
-              title={isActive ? undefined : `Switch to ${label}`}
-              style={{
-                display:     'flex',
-                alignItems:  'center',
-                gap:         6,
-                background:  'none',
-                border:      'none',
-                padding:     '4px 8px',
-                borderRadius: 6,
-                cursor:      isActive ? 'default' : 'pointer',
-                opacity:     isActive ? 1 : 0.45,
-                transition:  'opacity 0.2s',
-              }}
-              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.opacity = '0.75' }}
-              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.opacity = '0.45' }}
-            >
-              <div
-                style={{
-                  width:        8,
-                  height:       8,
-                  borderRadius: '50%',
-                  flexShrink:   0,
-                  background:   isActive ? color : 'var(--color-text-faint)',
-                  transition:   'background 0.25s',
-                  boxShadow:    isActive ? `0 0 6px ${glow}` : 'none',
-                }}
-              />
-              <span
-                style={{
-                  fontSize:      11,
-                  fontWeight:    500,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  color:         isActive ? 'var(--color-text-muted)' : 'var(--color-text-faint)',
-                  transition:    'color 0.25s',
-                  userSelect:    'none',
-                }}
-              >
-                {label}
-              </span>
-            </button>
-
-            {/* Cycle arrow between the two dots */}
-            {i === 0 && (
-              <span
-                style={{
-                  fontSize:   10,
-                  color:      'var(--color-text-faint)',
-                  opacity:    0.4,
-                  lineHeight: 1,
-                  userSelect: 'none',
-                  padding:    '0 2px',
-                }}
-              >
-                →
-              </span>
-            )}
-        </React.Fragment>
+          <button
+            key={key}
+            type="button"
+            onClick={() => handleSwitch(key)}
+            disabled={isActive || isRunning || isPaused}
+            aria-pressed={isActive}
+            className={`min-w-[72px] rounded-md px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.1em] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
+              isActive
+                ? 'bg-depth-raised text-ink-primary'
+                : 'text-ink-muted hover:bg-depth-raised hover:text-ink-primary disabled:cursor-not-allowed disabled:opacity-40'
+            }`}
+          >
+            {label}
+          </button>
         )
       })}
     </div>
@@ -115,100 +67,38 @@ function BottomActionRow() {
   const toggleLog        = useUiStore((s) => s.toggleLog)
   const toggleTodo       = useUiStore((s) => s.toggleTodo)
 
-  const btnStyle: React.CSSProperties = {
-    display:      'flex',
-    alignItems:   'center',
-    gap:          6,
-    background:   'var(--color-surface-overlay)',
-    border:       '1px solid var(--color-border)',
-    borderRadius: 10,
-    padding:      '7px 12px',
-    fontSize:     12,
-    color:        'var(--color-text-muted)',
-    cursor:       'pointer',
-    transition:   'color 0.15s, background 0.15s',
-    fontWeight:   500,
-  }
+  const actions = [
+    { label: 'Configure', icon: Settings2, onClick: toggleSettings },
+    {
+      label: 'Fullscreen',
+      icon: Expand,
+      onClick: () => {
+        // Native Fullscreen API is unsupported on iOS Safari and some mobile
+        // WebViews, so the app overlay remains the reliable fallback.
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {})
+        }
+        toggleFullscreen()
+      },
+    },
+    { label: 'Log', icon: NotebookPen, onClick: toggleLog },
+    { label: 'Todo', icon: ListChecks, onClick: toggleTodo },
+  ]
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-      <button
-        style={btnStyle}
-        onClick={toggleSettings}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget as HTMLButtonElement
-          el.style.color      = 'var(--color-text)'
-          el.style.background = 'var(--color-surface-raised)'
-        }}
-        onMouseLeave={(e) => {
-          const el = e.currentTarget as HTMLButtonElement
-          el.style.color      = 'var(--color-text-muted)'
-          el.style.background = 'var(--color-surface-overlay)'
-        }}
-      >
-        <span>⚙</span> Configure
-      </button>
-
-      <button
-        style={btnStyle}
-        onClick={() => {
-          // Native Fullscreen API is unsupported on iOS Safari and some mobile
-          // WebViews (documentElement.requestFullscreen is undefined there),
-          // so it must be feature-detected — otherwise the throw aborts this
-          // handler before toggleFullscreen() runs and the app's own
-          // fullscreen overlay never opens.
-          if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(() => {})
-          }
-          toggleFullscreen()
-        }}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget as HTMLButtonElement
-          el.style.color      = 'var(--color-text)'
-          el.style.background = 'var(--color-surface-raised)'
-        }}
-        onMouseLeave={(e) => {
-          const el = e.currentTarget as HTMLButtonElement
-          el.style.color      = 'var(--color-text-muted)'
-          el.style.background = 'var(--color-surface-overlay)'
-        }}
-      >
-        <span>⛶</span> Fullscreen
-      </button>
-
-      <button
-        style={btnStyle}
-        onClick={toggleLog}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget as HTMLButtonElement
-          el.style.color      = 'var(--color-text)'
-          el.style.background = 'var(--color-surface-raised)'
-        }}
-        onMouseLeave={(e) => {
-          const el = e.currentTarget as HTMLButtonElement
-          el.style.color      = 'var(--color-text-muted)'
-          el.style.background = 'var(--color-surface-overlay)'
-        }}
-      >
-        <span>✏</span> Log
-      </button>
-
-      <button
-        style={btnStyle}
-        onClick={toggleTodo}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget as HTMLButtonElement
-          el.style.color      = 'var(--color-text)'
-          el.style.background = 'var(--color-surface-raised)'
-        }}
-        onMouseLeave={(e) => {
-          const el = e.currentTarget as HTMLButtonElement
-          el.style.color      = 'var(--color-text-muted)'
-          el.style.background = 'var(--color-surface-overlay)'
-        }}
-      >
-        <span>☑</span> Todo
-      </button>
+    <div className="flex items-center divide-x divide-depth-border overflow-hidden rounded-xl border border-depth-border bg-depth-surface p-1">
+      {actions.map(({ label, icon: Icon, onClick }) => (
+        <button
+          key={label}
+          type="button"
+          onClick={onClick}
+          title={label}
+          className="flex min-h-9 items-center justify-center gap-2 rounded-lg px-3 text-[12px] font-medium text-ink-secondary transition-colors duration-200 hover:bg-depth-raised hover:text-ink-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:min-w-[96px]"
+        >
+          <Icon size={15} strokeWidth={1.8} aria-hidden="true" />
+          <span className="hidden sm:inline">{label}</span>
+        </button>
+      ))}
     </div>
   )
 }
@@ -219,17 +109,24 @@ export function TimerPage() {
   return (
     <>
       {/* Main centered area — fills the full available space */}
-      <div className="flex min-h-full flex-col items-center justify-center gap-4 sm:gap-6">
-        <TimerModeSelector />
+      <main className="mx-auto flex h-full min-h-0 w-full max-w-[760px] flex-col items-center justify-center overflow-hidden px-1">
+        <h1 className="sr-only">Focus timer</h1>
 
-        <SessionDots />
+        <div className="mb-4 flex flex-col items-center gap-2.5 sm:mb-5 [@media(max-height:720px)]:mb-3 [@media(max-height:720px)]:gap-2">
+          <TimerModeSelector />
+          <PhaseSelector />
+        </div>
 
         <TimerDisplay />
 
-        <TimerControls />
+        <div className="mt-4 flex w-full justify-center sm:mt-5 [@media(max-height:720px)]:mt-3">
+          <TimerControls />
+        </div>
 
-        <BottomActionRow />
-      </div>
+        <div className="mt-3 sm:mt-4 [@media(max-height:720px)]:mt-2">
+          <BottomActionRow />
+        </div>
+      </main>
 
       {/* Fixed right-side slide-in panels */}
       <TimerSettings />
