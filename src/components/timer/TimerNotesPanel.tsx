@@ -99,40 +99,13 @@ function CloseBtn({ onClose }: { onClose?: () => void }) {
   return (
     <DialogPrimitive.Close
       onClick={onClose}
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        width: 28, height: 28, borderRadius: 6, border: 'none',
-        background: 'none', cursor: 'pointer', color: '#7A7890', flexShrink: 0,
-      }}
+      className="flex size-8 shrink-0 items-center justify-center rounded-lg text-ink-secondary transition-colors duration-200 hover:bg-depth-raised hover:text-ink-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       aria-label="Close"
-      onMouseEnter={(e) => {
-        ;(e.currentTarget as HTMLButtonElement).style.color = '#E8E6F0'
-        ;(e.currentTarget as HTMLButtonElement).style.background = '#222228'
-      }}
-      onMouseLeave={(e) => {
-        ;(e.currentTarget as HTMLButtonElement).style.color = '#7A7890'
-        ;(e.currentTarget as HTMLButtonElement).style.background = 'none'
-      }}
     >
       <X size={16} />
     </DialogPrimitive.Close>
   )
 }
-
-// ── Backdrop ─────────────────────────────────────────────────────────────────
-
-const Backdrop = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->((props, ref) => (
-  <DialogPrimitive.Overlay
-    ref={ref}
-    {...props}
-    className="fixed inset-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:duration-200 data-[state=closed]:duration-150"
-    style={{ zIndex: 50, background: 'rgba(0,0,0,0.5)' }}
-  />
-))
-Backdrop.displayName = 'Backdrop'
 
 // ── Log panel ─────────────────────────────────────────────────────────────────
 
@@ -181,41 +154,31 @@ export function TimerNotesPanel() {
 
   return (
     <DialogPrimitive.Root
+      modal={false}
       open={isOpen}
       onOpenChange={(open) => { if (!open) closePanel() }}
     >
       <DialogPrimitive.Portal>
-        <Backdrop />
-
         <DialogPrimitive.Content
-          className="fixed inset-y-0 right-0 flex flex-col data-[state=open]:animate-in data-[state=open]:slide-in-from-right data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:duration-200 data-[state=closed]:duration-150"
+          className="fixed bottom-0 right-0 top-14 z-30 flex w-full flex-col border-l border-depth-border bg-depth-surface outline-none data-[state=open]:animate-in data-[state=open]:slide-in-from-right data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:duration-200 data-[state=closed]:duration-150 sm:w-[400px]"
           style={{
-            zIndex: 51,
-            width: '100%',
-            maxWidth: 460,
-            background: '#141417',
-            borderLeft: '1px solid #2E2E38',
             animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
           {/* Header */}
-          <div style={{
-            padding: '28px 32px 24px',
-            borderBottom: '1px solid #2E2E38',
-            flexShrink: 0,
-          }}>
+          <div className="shrink-0 border-b border-depth-border px-6 py-5">
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
               <div>
                 <DialogPrimitive.Title style={{
-                  margin: 0, fontSize: 20, fontWeight: 500,
+                  margin: 0, fontSize: 16, fontWeight: 600,
                   color: '#E8E6F0', letterSpacing: '-0.02em', lineHeight: 1.2,
                 }}>
                   Log your session
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description style={{
-                  margin: '6px 0 0', fontSize: 13, color: '#7A7890', lineHeight: 1.5,
+                  margin: '4px 0 0', fontSize: 12, color: '#7A7890', lineHeight: 1.6,
                 }}>
-                  Track what you're focusing on during this session
+                  Add context that will stay with this session.
                 </DialogPrimitive.Description>
               </div>
               <CloseBtn />
@@ -225,7 +188,7 @@ export function TimerNotesPanel() {
           {/* Scrollable body */}
           <div style={{
             flex: 1, overflowY: 'auto',
-            padding: '28px 32px',
+            padding: 24,
             display: 'flex', flexDirection: 'column', gap: 24,
           }}>
 
@@ -283,7 +246,7 @@ export function TimerNotesPanel() {
 
           {/* Pinned footer */}
           <div style={{
-            padding: '16px 32px',
+            padding: '14px 24px',
             borderTop: '1px solid #2E2E38',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             flexShrink: 0,

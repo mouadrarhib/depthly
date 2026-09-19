@@ -110,10 +110,10 @@ const SettingsPanelContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed right-0 bottom-0 z-30 w-full sm:w-[300px] outline-none',
+        'fixed right-0 bottom-0 z-30 w-full outline-none sm:w-[400px]',
         'flex flex-col overflow-y-auto',
         'transition ease-in-out',
-        'data-[state=open]:duration-300 data-[state=closed]:duration-300',
+        'data-[state=open]:duration-200 data-[state=closed]:duration-150',
         'data-[state=open]:animate-in data-[state=open]:slide-in-from-right',
         'data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right',
         className,
@@ -181,26 +181,22 @@ export function TimerSettings() {
   const breakWidth = 100 - focusWidth
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => { if (!open) closePanel() }}>
+    <Sheet modal={false} open={isOpen} onOpenChange={(open) => { if (!open) closePanel() }}>
       <SettingsPanelContent
         style={{ top: 56, background: 'var(--color-surface-raised)', borderLeft: '1px solid var(--color-border)' }}
       >
         {/* Header */}
-        <div
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '18px 24px', borderBottom: '1px solid var(--color-border)', flexShrink: 0,
-          }}
-        >
-          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
-            Focus Settings
-          </span>
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-depth-border px-6 py-5">
+          <div>
+            <DialogPrimitive.Title className="text-[16px] font-semibold tracking-[-0.02em] text-ink-primary">
+              Focus settings
+            </DialogPrimitive.Title>
+            <DialogPrimitive.Description className="mt-1 text-[12px] leading-5 text-ink-secondary">
+              Shape this session without leaving the timer.
+            </DialogPrimitive.Description>
+          </div>
           <DialogPrimitive.Close
-            style={{
-              fontSize: 16, color: 'var(--color-text-faint)', background: 'none',
-              border: 'none', cursor: 'pointer', lineHeight: 1, padding: 4,
-              display: 'flex', alignItems: 'center',
-            }}
+            className="flex size-8 items-center justify-center rounded-lg text-ink-secondary transition-colors duration-200 hover:bg-depth-raised hover:text-ink-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             aria-label="Close settings"
           >
             <X className="h-4 w-4" />
@@ -208,7 +204,7 @@ export function TimerSettings() {
         </div>
 
         {/* Sections */}
-        <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 28, flex: 1 }}>
+        <div className="flex flex-1 flex-col gap-6 p-6">
           {/* Timer Type */}
           <div>
             <SectionLabel>Timer Type</SectionLabel>
@@ -218,7 +214,7 @@ export function TimerSettings() {
           {/* Focus Duration */}
           <div>
             <SectionLabel>Focus Duration</SectionLabel>
-            <div style={{ borderLeft: '2px solid #3DD68C', paddingLeft: 12 }}>
+            <div className="rounded-lg border border-depth-border bg-depth-surface px-3 py-2.5">
               <div className="flex items-center justify-between">
                 <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
                   {focusMins} minutes
@@ -232,7 +228,7 @@ export function TimerSettings() {
           {mode !== 'free' ? (
             <div>
               <SectionLabel>Break Duration</SectionLabel>
-              <div style={{ borderLeft: '2px solid var(--color-brand)', paddingLeft: 12 }}>
+              <div className="rounded-lg border border-depth-border bg-depth-surface px-3 py-2.5">
                 <div className="flex items-center justify-between">
                   <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
                     {breakMins} minutes
@@ -298,7 +294,7 @@ export function TimerSettings() {
                   <div
                     style={{
                       height: 6, borderRadius: 3, background: 'var(--color-brand)',
-                      width: `${focusWidth}%`, minWidth: 4, transition: 'width 0.3s',
+                      width: `${focusWidth}%`, minWidth: 4,
                     }}
                   />
                   <span style={{ fontSize: 12, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
@@ -309,7 +305,7 @@ export function TimerSettings() {
                   <div
                     style={{
                       height: 6, borderRadius: 3, background: 'var(--color-surface-overlay)',
-                      border: '1px solid var(--color-border)', width: `${breakWidth}%`, minWidth: 4, transition: 'width 0.3s',
+                      border: '1px solid var(--color-border)', width: `${breakWidth}%`, minWidth: 4,
                     }}
                   />
                   <span style={{ fontSize: 12, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>

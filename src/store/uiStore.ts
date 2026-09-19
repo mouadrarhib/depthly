@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+export type FullscreenTimerStyle = 'orbit' | 'minimal' | 'panel'
+
 interface UiState {
   sidebarOpen:      boolean
   setSidebarOpen:   (open: boolean) => void
@@ -8,6 +10,8 @@ interface UiState {
 
   isFullscreen:     boolean
   toggleFullscreen: () => void
+  fullscreenTimerStyle: FullscreenTimerStyle
+  setFullscreenTimerStyle: (style: FullscreenTimerStyle) => void
 
   isSettingsOpen:   boolean
   toggleSettings:   () => void
@@ -36,6 +40,8 @@ export const useUiStore = create<UiState>()(
 
       isFullscreen:     false,
       toggleFullscreen: () => set((s) => ({ isFullscreen: !s.isFullscreen })),
+      fullscreenTimerStyle: 'orbit',
+      setFullscreenTimerStyle: (style) => set({ fullscreenTimerStyle: style }),
 
       isSettingsOpen:   false,
       toggleSettings:   () => set((s) => ({ isSettingsOpen: !s.isSettingsOpen, isLogOpen: false, isTodoOpen: false })),
