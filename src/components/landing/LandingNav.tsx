@@ -39,9 +39,7 @@ const NAV_LINKS = [
   { label: 'Pricing', href: '#pricing' },
 ]
 
-const navLinkStyle = { fontSize: 14, color: '#7A7890', textDecoration: 'none' } as const
-
-/** Thin vertical divider — same style used between the logo and tagline. */
+/** Quiet separation between the app action and account menu. */
 const Divider = () => (
   <span
     style={{ width: 0.5, height: 20, background: '#2E2E38', flexShrink: 0, display: 'block' }}
@@ -77,53 +75,23 @@ export function LandingNav() {
   return (
     <header
       data-landing-nav
-      className="sticky top-0 z-50"
-      style={{
-        backgroundColor: 'rgba(13, 13, 16, 0.88)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: '0.5px solid #2E2E38',
-      }}
+      className="sticky top-0 z-50 border-b border-depth-border bg-depth-bg/95 backdrop-blur-md"
     >
-      <div
-        className="mx-auto flex items-center justify-between px-3 sm:px-5 md:px-8"
-        style={{ maxWidth: 1100, height: 64 }}
-      >
-        <div className="flex items-center gap-8">
-          {/* Lockup + tagline */}
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-5 md:px-8">
+        <div className="flex min-w-0 items-center gap-9">
           <Link
             to={PATHS.home}
-            className="flex min-h-11 items-center gap-3"
-            style={{ textDecoration: 'none' }}
+            aria-label="Depthly home"
+            className="inline-flex min-h-11 items-center rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
           >
             <Logo size={24} withWordmark />
-            <span
-              className="hidden md:inline"
-              style={{
-                fontSize: 12,
-                color: '#7A7890',
-                borderLeft: '1px solid #2E2E38',
-                paddingLeft: 12,
-                letterSpacing: '-0.01em',
-              }}
-            >
-              Stay focused, work deeper
-            </span>
           </Link>
-
-          {/* Full section links fit alongside the tagline at tablet widths. */}
-          <nav className="hidden items-center gap-7 md:flex">
+          <nav aria-label="Landing page sections" className="hidden items-center gap-7 md:flex">
             {NAV_LINKS.map(({ label, href }) => (
               <a
                 key={label}
                 href={href}
-                style={navLinkStyle}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#E8E6F0'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#7A7890'
-                }}
+                className="inline-flex min-h-11 items-center border-b-2 border-transparent pt-0.5 text-sm font-medium text-ink-secondary transition-colors hover:border-brand/70 hover:text-ink-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
               >
                 {label}
               </a>
@@ -132,126 +100,138 @@ export function LandingNav() {
         </div>
 
         {/* Pricing stays one tap away on phones, even when full nav is hidden. */}
-        <div className="flex items-center gap-1 min-[360px]:gap-2 md:gap-4">
+        <div className="flex min-w-0 items-center justify-end gap-2 md:gap-4">
           <a
             href="#pricing"
-            className="inline-flex min-h-11 items-center px-1 text-sm text-ink-secondary transition-colors hover:text-ink-primary md:hidden"
+            className="inline-flex min-h-11 items-center rounded-md px-1 text-sm font-medium text-ink-secondary transition-colors hover:text-ink-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand md:hidden"
           >
             Pricing
           </a>
 
-        {/* Auth CTAs */}
-        {user ? (
-          <div className="flex items-center gap-2 md:gap-4">
-            <Button asChild size="sm" className="h-11" style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}>
-              <Link to={PATHS.dashboard} state={{ fromAuth: true }}>
-                Go to app
-              </Link>
-            </Button>
+          {/* Auth CTAs */}
+          {user ? (
+            <div className="flex items-center gap-2 md:gap-4">
+              <Button
+                asChild
+                size="sm"
+                className="h-11"
+                style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}
+              >
+                <Link to={PATHS.dashboard} state={{ fromAuth: true }}>
+                  Go to app
+                </Link>
+              </Button>
 
-            <Divider />
+              <Divider />
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  aria-label="User menu"
-                  className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full"
-                  style={{
-                    backgroundColor: avatarUrl ? undefined : avatarColor(displayName),
-                    color: '#FFFFFF',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    border: 'none',
-                    padding: 0,
-                    cursor: 'pointer',
-                    transition: 'filter 0.15s ease, transform 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.filter = 'brightness(1.15)'
-                    e.currentTarget.style.transform = 'scale(1.06)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.filter = 'none'
-                    e.currentTarget.style.transform = 'scale(1)'
-                  }}
-                >
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt=""
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    initial
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent align="end" style={{ minWidth: 200 }}>
-                <DropdownMenuLabel
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 400,
-                    color: '#7A7890',
-                    padding: '8px 8px 4px',
-                  }}
-                >
-                  {user.email}
-                </DropdownMenuLabel>
-
-                <div style={{ padding: '2px 8px 8px' }}>
-                  <span
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    aria-label="User menu"
+                    className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full"
                     style={{
-                      display: 'inline-block',
-                      padding: '2px 8px',
-                      borderRadius: 20,
-                      fontSize: 11,
+                      backgroundColor: avatarUrl ? undefined : avatarColor(displayName),
+                      color: '#FFFFFF',
+                      fontSize: 13,
                       fontWeight: 600,
-                      letterSpacing: '0.04em',
-                      background:
-                        plan === 'free' ? 'rgba(122,120,144,0.15)' : 'rgba(75,158,255,0.15)',
-                      color: plan === 'free' ? '#7A7890' : '#4B9EFF',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      transition: 'filter 0.15s ease, transform 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.filter = 'brightness(1.15)'
+                      e.currentTarget.style.transform = 'scale(1.06)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.filter = 'none'
+                      e.currentTarget.style.transform = 'scale(1)'
                     }}
                   >
-                    {planLabel}
-                  </span>
-                </div>
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt=""
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      initial
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
 
-                <DropdownMenuSeparator />
+                <DropdownMenuContent align="end" style={{ minWidth: 200 }}>
+                  <DropdownMenuLabel
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 400,
+                      color: '#7A7890',
+                      padding: '8px 8px 4px',
+                    }}
+                  >
+                    {user.email}
+                  </DropdownMenuLabel>
 
-                <DropdownMenuItem onClick={() => navigate(PATHS.dashboard)}>Home</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate(PATHS.settings)}>
-                  Settings
-                </DropdownMenuItem>
+                  <div style={{ padding: '2px 8px 8px' }}>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        borderRadius: 20,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: '0.04em',
+                        background:
+                          plan === 'free' ? 'rgba(122,120,144,0.15)' : 'rgba(75,158,255,0.15)',
+                        color: plan === 'free' ? '#7A7890' : '#4B9EFF',
+                      }}
+                    >
+                      {planLabel}
+                    </span>
+                  </div>
 
-                <DropdownMenuSeparator />
+                  <DropdownMenuSeparator />
 
-                <DropdownMenuItem onClick={handleSignOut} style={{ color: '#E07878' }}>
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1 min-[360px]:gap-2 md:gap-4">
-            <Link
-              to={PATHS.login}
-              className="hidden min-h-11 items-center px-1 text-sm font-medium transition-colors min-[360px]:inline-flex"
-              style={{ color: '#7A7890', textDecoration: 'none' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#E8E6F0'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = '#7A7890'
-              }}
-            >
-              Log in
-            </Link>
-            <Button asChild size="sm" className="h-11" style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}>
-              <Link to={PATHS.signup}>Start free</Link>
-            </Button>
-          </div>
-        )}
+                  <DropdownMenuItem onClick={() => navigate(PATHS.dashboard)}>
+                    Home
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate(PATHS.settings)}>
+                    Settings
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem onClick={handleSignOut} style={{ color: '#E07878' }}>
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 md:gap-4">
+              <Link
+                to={PATHS.login}
+                className="hidden min-h-11 items-center px-1 text-sm font-medium transition-colors min-[360px]:inline-flex"
+                style={{ color: '#7A7890', textDecoration: 'none' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#E8E6F0'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#7A7890'
+                }}
+              >
+                Log in
+              </Link>
+              <Button
+                asChild
+                size="sm"
+                className="h-11"
+                style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}
+              >
+                <Link to={PATHS.signup}>Start free</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </header>
