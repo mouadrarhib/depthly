@@ -2,8 +2,9 @@ import { type FormEvent, useState } from 'react'
 
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
+import { AuthPlanSummary } from '@/components/billing/AuthPlanSummary'
 import { Button, GoogleButton, Input } from '@/components/ui'
-import { authPath, safeAuthNext } from '@/lib/authRedirect'
+import { authPath, resolveAuthNext } from '@/lib/authRedirect'
 import { supabase } from '@/lib/supabase/client'
 import { PATHS } from '@/routes/paths'
 import { useAuthStore } from '@/store'
@@ -11,7 +12,7 @@ import { useAuthStore } from '@/store'
 export function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const next = safeAuthNext(searchParams.get('next'))
+  const next = resolveAuthNext(searchParams)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -56,6 +57,8 @@ export function LoginPage() {
           </Link>
         </p>
       </div>
+
+      <AuthPlanSummary destination={next} />
 
       <div className="mt-8">
         <GoogleButton label="Continue with Google" redirectPath={next} />

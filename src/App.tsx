@@ -4,7 +4,7 @@ import type { Location } from 'react-router-dom'
 import { RouterProvider } from 'react-router-dom'
 
 import { LogoIntro } from '@/components/LogoIntro'
-import { clearOAuthPending, isOAuthPending } from '@/lib/oauthPending'
+import { clearOAuthPending, getOAuthDestination, isOAuthPending } from '@/lib/oauthPending'
 import { router } from '@/routes'
 import { useIntroStore } from '@/store'
 
@@ -21,7 +21,7 @@ function isAuthArrivalAtDashboard(location: Location) {
   // only signal that survives that trip, and it's readable synchronously
   // here so the intro is already showing on the very first paint, before
   // the dashboard underneath ever gets a chance to render.
-  return hasFromAuthState || isOAuthPending()
+  return hasFromAuthState || (isOAuthPending() && getOAuthDestination() === '/dashboard')
 }
 
 function clearNavigationState(location: Location) {

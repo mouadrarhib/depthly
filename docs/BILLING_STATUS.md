@@ -87,6 +87,22 @@ Note: the Lifetime variant (`1909499`) shows `"status": "pending"` via the Lemon
 - **As of 2026-07-16:** `order_refunded` treats every refund as a full downgrade to Free, regardless of whether it was a Lifetime purchase, a full subscription payment, or (in theory) a partial refund on an otherwise-still-active subscription — Lemon Squeezy doesn't distinguish these in a way the handler currently checks. Flagged in a code comment as a simplification to revisit if it comes up in practice, not fixed now.
 - **As of 2026-07-16 (fixed same day):** `order_refunded` originally could only resolve the user for a Lifetime purchase refund (via the `lifetime_order_` key) or via `custom_data.user_id` — a Monthly/Yearly subscription refund has neither (that `subscriptions` row is keyed by subscription id, not order id, and `order_refunded`'s payload doesn't carry a subscription id at all, only `customer_id`), so it silently resolved no user and did nothing, returning 200 with no error. Confirmed via a real dashboard-simulated test against a Monthly subscription, and via diffing the actually-deployed function source against the local file (the fix had been written the previous session but never deployed). Fixed with a third, best-effort fallback matching the order's `customer_id` against the most recently updated `subscriptions` row for that customer — this only identifies the user for the profile downgrade, it does not mark any row `'refunded'`, since it isn't necessarily the exact subscription the refunded order belongs to. Carries the same small residual risk as the `custom_data` fallback: if it resolves to a user who is a founding member through a separate, unrelated purchase, this would incorrectly strip that membership. Flagged in code, not fixed now.
 
+## Landing-to-checkout handoff (2026-11-03)
+
+Paid landing links retain the selected plan through signup, sign-in, and Google
+OAuth using a validated `/billing?plan=...&interval=...` auth destination.
+Auth pages display the selected plan, price, and next step. Billing presents the
+same selection with an explicit **Continue to secure checkout** action, which
+calls `create-checkout` with `pro_monthly`, `pro_yearly`, or `lifetime`.
+It does not create checkout sessions automatically on arrival or refresh.
+Checkout failures keep the selection and allow retry; the user can also dismiss
+it and keep their current plan. Invalid plans/periods do not select a checkout.
+Protected-route redirects preserve the destination if authentication expires.
+OAuth landing on `/dashboard` does not consume a pending Billing destination.
+
+Regression checks: `npx tsx --tsconfig tsconfig.app.json --test scripts/checkout-intent.test.ts`.
+Real OAuth authentication and live payments were not exercised for this change.
+
 ## Free Plan Limit Enforcement (as of 2026-07-10)
 
 As of migrations 021–022, these are also authoritative in Supabase:

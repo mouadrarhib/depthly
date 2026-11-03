@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { AlertTriangle, CheckCircle } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 
+import { SelectedPlanCheckout } from '@/components/billing/SelectedPlanCheckout'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,6 +18,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { useProfile } from '@/hooks/useAnalytics'
 import { useSubscriptions, useCancelSubscription } from '@/hooks/useBilling'
 import { usePlan, FREE_LIMITS } from '@/hooks/usePlan'
+import { parseCheckoutIntent } from '@/lib/checkoutIntent'
 
 const FEATURES = [
   'Unlimited projects',
@@ -63,6 +65,7 @@ export function BillingPage() {
   const [cancelResult, setCancelResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   const [searchParams, setSearchParams] = useSearchParams()
+  const selectedPlan = parseCheckoutIntent(searchParams)
   const [showCheckoutSuccess, setShowCheckoutSuccess] = useState(searchParams.get('checkout') === 'success')
 
   useEffect(() => {
@@ -151,6 +154,20 @@ export function BillingPage() {
         >
           Billing
         </h1>
+
+        {selectedPlan && !showCheckoutSuccess && (
+          <SelectedPlanCheckout
+            key={selectedPlan.planType}
+            intent={selectedPlan}
+            disabled={isPlanLoading}
+            onDismiss={() => {
+              const params = new URLSearchParams(searchParams)
+              params.delete('plan')
+              params.delete('interval')
+              setSearchParams(params, { replace: true })
+            }}
+          />
+        )}
 
         {/* Post-checkout notice — webhook may take a second or two to sync */}
         {showCheckoutSuccess && (

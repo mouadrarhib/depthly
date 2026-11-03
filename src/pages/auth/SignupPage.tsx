@@ -2,15 +2,17 @@ import { type FormEvent, useState } from 'react'
 
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
+import { AuthPlanSummary } from '@/components/billing/AuthPlanSummary'
 import { Button, GoogleButton, Input } from '@/components/ui'
-import { authPath, safeAuthNext } from '@/lib/authRedirect'
+import { authPath, resolveAuthNext } from '@/lib/authRedirect'
 import { supabase } from '@/lib/supabase/client'
 import { PATHS } from '@/routes/paths'
+import { useAuthStore } from '@/store'
 
 export function SignupPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const next = safeAuthNext(searchParams.get('next'))
+  const next = resolveAuthNext(searchParams)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,9 +24,12 @@ export function SignupPage() {
     setIsLoading(true)
     setError(null)
 
-    // Email confirmation is disabled in Supabase, so signUp() returns a
-    // session immediately — no "check your email" step needed.
-    const { error } = await supabase.auth.signUp({ email, password })
+    // Keep the selected destination if email confirmation is enabled later.
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}${next}` },
+    })
 
     if (error) {
       setError(error.message)
@@ -32,6 +37,13 @@ export function SignupPage() {
       return
     }
 
+    if (!data.session) {
+      setError('Check your email to confirm your account, then sign in to continue.')
+      setIsLoading(false)
+      return
+    }
+
+    useAuthStore.getState().setUser(data.session.user)
     navigate(next, { replace: true, state: { fromAuth: next === PATHS.dashboard } })
   }
 
@@ -51,6 +63,8 @@ export function SignupPage() {
           </Link>
         </p>
       </div>
+
+      <AuthPlanSummary destination={next} />
 
       <div className="mt-8">
         <GoogleButton label="Continue with Google" redirectPath={next} />

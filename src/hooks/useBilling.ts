@@ -1,6 +1,7 @@
 import { FunctionsHttpError } from '@supabase/supabase-js'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
+import type { CheckoutPlanType } from '@/lib/checkoutIntent'
 import { billingKeys, analyticsKeys } from '@/lib/queryKeys'
 import { supabase } from '@/lib/supabase/client'
 import { fetchSubscriptions } from '@/lib/supabase/queries/billing'
@@ -18,7 +19,10 @@ export function useSubscriptions() {
 // cancel-subscription returns { error: string } in its response body on failure.
 // supabase-js only exposes that body via error.context (the raw Response), not
 // error.message — same pattern as UpgradeModal's create-checkout error handling.
-async function extractErrorMessage(err: unknown): Promise<string> {
+async function extractErrorMessage(
+  err: unknown,
+  fallback = 'Could not cancel your subscription. Please try again.',
+): Promise<string> {
   if (err instanceof FunctionsHttpError) {
     try {
       const body = await err.context.json()
@@ -27,7 +31,7 @@ async function extractErrorMessage(err: unknown): Promise<string> {
       // context wasn't JSON — fall through to the generic message below
     }
   }
-  return err instanceof Error ? err.message : 'Could not cancel your subscription. Please try again.'
+  return err instanceof Error ? err.message : fallback
 }
 
 export function useCancelSubscription() {
@@ -48,5 +52,21 @@ export function useCancelSubscription() {
       qc.invalidateQueries({ queryKey: billingKeys.subscriptions(userId) })
       qc.invalidateQueries({ queryKey: analyticsKeys.profile(userId) })
     },
+  })
+}
+
+/** Starts checkout only after the user confirms their selected plan. */
+export function useCreateCheckout() {
+  return useMutation({
+    mutationFn: async (planType: CheckoutPlanType) => {
+      const { data, error } = await supabase.functions.invoke<{ url: string }>(
+        'create-checkout',
+        { body: { planType } },
+      )
+      if (error) throw new Error(await extractErrorMessage(error, 'Could not start checkout. Please try again.'))
+      if (!data?.url) throw new Error('Could not start checkout. Please try again.')
+      return data.url
+    },
+    onSuccess: (url) => { window.location.assign(url) },
   })
 }
