@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom'
 
+import { HeroProductPreview } from '@/components/landing/HeroProductPreview'
 import { Button } from '@/components/ui'
 import { PATHS } from '@/routes/paths'
 
 /** Public hero for students, freelancers, and independent learners. */
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden px-4 pb-16 pt-12 sm:px-5 sm:pt-16 lg:pb-20">
+    <section className="relative flex min-h-[calc(100svh-4rem)] items-center overflow-hidden px-4 pb-12 pt-12 sm:px-5 sm:pt-16 lg:pb-6">
       {/* Background dot grid — absolutely positioned to cover the full
           section, sits behind the text content (below, in the relative
           content wrapper's stacking order). Dot color uses the app's
@@ -31,7 +32,7 @@ export function HeroSection() {
         }}
       />
 
-      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-2 lg:gap-10" style={{ zIndex: 1 }}>
+      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-8 lg:grid-cols-2 lg:gap-10" style={{ zIndex: 1 }}>
         <div className="flex flex-col items-start text-left">
           <h1
             data-hero
@@ -41,9 +42,8 @@ export function HeroSection() {
             <span className="block text-brand">We&apos;ll track the time.</span>
           </h1>
 
-          <p data-hero className="mt-6 max-w-[540px] text-base leading-relaxed text-ink-secondary sm:mt-8">
-            Start a session for study, client work, or whatever you&apos;re learning. See your progress,
-            and invite friends when it helps.
+          <p data-hero className="mt-6 max-w-[540px] text-base leading-relaxed text-ink-primary/80 sm:mt-8">
+            Track focused sessions by project, work toward a daily goal, and see where your time went.
           </p>
 
           <div
@@ -62,14 +62,8 @@ export function HeroSection() {
           </span>
         </div>
 
-        <div data-hero className="relative h-[260px] overflow-hidden rounded-2xl border border-depth-border bg-depth-surface sm:h-[360px] lg:h-[520px]">
-          <img
-            src="/images/focus-work-hero.png"
-            alt=""
-            aria-hidden="true"
-            className="h-full w-full object-cover object-[65%_50%]"
-          />
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-depth-bg/40 via-transparent to-transparent" />
+        <div data-hero className="w-full min-w-0">
+          <HeroProductPreview />
         </div>
       </div>
     </section>

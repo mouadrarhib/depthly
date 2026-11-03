@@ -13,7 +13,7 @@ const ITEMS: OverviewItem[] = [
 
 export function OverviewSection() {
   return (
-    <section id="features" data-focus-path className="px-5 pb-12 pt-20 md:px-8 md:pb-4 md:pt-24">
+    <section id="features" data-focus-path className="scroll-mt-16 px-5 pb-12 pt-12 md:px-8 md:pb-4 md:pt-24">
       <div className="mx-auto max-w-6xl">
         <div data-focus-path-header className="max-w-xl">
           <h2 className="text-[clamp(28px,3.4vw,42px)] font-medium leading-[1.15] tracking-[-0.03em] text-ink-primary">

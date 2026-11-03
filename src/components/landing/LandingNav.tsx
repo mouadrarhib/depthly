@@ -93,7 +93,7 @@ export function LandingNav() {
           {/* Lockup + tagline */}
           <Link
             to={PATHS.home}
-            className="flex items-center gap-3"
+            className="flex min-h-11 items-center gap-3"
             style={{ textDecoration: 'none' }}
           >
             <Logo size={24} withWordmark />
@@ -111,7 +111,7 @@ export function LandingNav() {
             </span>
           </Link>
 
-          {/* Anchor nav links — hidden below md to keep mobile CTA layout tight */}
+          {/* Full section links fit alongside the tagline at tablet widths. */}
           <nav className="hidden items-center gap-7 md:flex">
             {NAV_LINKS.map(({ label, href }) => (
               <a
@@ -131,10 +131,19 @@ export function LandingNav() {
           </nav>
         </div>
 
+        {/* Pricing stays one tap away on phones, even when full nav is hidden. */}
+        <div className="flex items-center gap-1 min-[360px]:gap-2 md:gap-4">
+          <a
+            href="#pricing"
+            className="inline-flex min-h-11 items-center px-1 text-sm text-ink-secondary transition-colors hover:text-ink-primary md:hidden"
+          >
+            Pricing
+          </a>
+
         {/* Auth CTAs */}
         {user ? (
-          <div className="flex items-center gap-4">
-            <Button asChild size="sm" style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}>
+          <div className="flex items-center gap-2 md:gap-4">
+            <Button asChild size="sm" className="h-11" style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}>
               <Link to={PATHS.dashboard} state={{ fromAuth: true }}>
                 Go to app
               </Link>
@@ -146,10 +155,8 @@ export function LandingNav() {
               <DropdownMenuTrigger asChild>
                 <button
                   aria-label="User menu"
-                  className="flex items-center justify-center overflow-hidden rounded-full"
+                  className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full"
                   style={{
-                    width: 32,
-                    height: 32,
                     backgroundColor: avatarUrl ? undefined : avatarColor(displayName),
                     color: '#FFFFFF',
                     fontSize: 13,
@@ -226,10 +233,10 @@ export function LandingNav() {
             </DropdownMenu>
           </div>
         ) : (
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1 min-[360px]:gap-2 md:gap-4">
             <Link
               to={PATHS.login}
-              className="hidden px-2 py-1 text-sm font-medium transition-colors min-[360px]:inline-flex"
+              className="hidden min-h-11 items-center px-1 text-sm font-medium transition-colors min-[360px]:inline-flex"
               style={{ color: '#7A7890', textDecoration: 'none' }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.color = '#E8E6F0'
@@ -240,11 +247,12 @@ export function LandingNav() {
             >
               Log in
             </Link>
-            <Button asChild size="sm" style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}>
+            <Button asChild size="sm" className="h-11" style={{ backgroundColor: '#4B9EFF', color: '#FFFFFF' }}>
               <Link to={PATHS.signup}>Start free</Link>
             </Button>
           </div>
         )}
+        </div>
       </div>
     </header>
   )

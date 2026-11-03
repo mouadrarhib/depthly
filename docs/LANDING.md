@@ -28,8 +28,9 @@ to start alone and invite others only when useful.
 ## Page order
 
 1. Sticky navigation with login, signup, Features, and Pricing destinations.
-2. Hero with the two-line headline, copy covering study, client work,
-   and independent learning, a free-signup CTA, and a jump to the product flow.
+2. Hero with the two-line headline, specific copy connecting project sessions to daily goals and progress, a
+   free-signup CTA, and a jump to the product flow. A connected product preview
+   replaces the decorative study photo: completed timer → daily goal → weekly progress.
 3. Five-stage overview: Focus, Set goals, See progress, Share, Focus together.
 4. Trusted focus timer: timer-tracked sessions become trusted progress.
 5. Daily goals and Analytics: explicit goal progress, history, heatmaps, trends,
@@ -41,7 +42,7 @@ to start alone and invite others only when useful.
    reset periods, and group-scoped visibility. Friends and public/global
    rankings are optional secondary paths.
 8. Compact Projects & Tasks support block using the kanban mockup.
-9. Free, Pro, and Lifetime pricing.
+9. Free, Pro, and Lifetime pricing with a short policy-backed FAQ.
 10. Closing CTA and footer.
 
 ## Pricing claims
@@ -52,7 +53,10 @@ to start alone and invite others only when useful.
 - Pro: unlimited core usage, full Analytics history and CSV export, optional
   public-profile/global-leaderboard visibility, and up to 10 active private
   groups with up to 100 members each.
-- Lifetime/Founding inherits Pro capabilities.
+- Lifetime/Founding inherits Pro capabilities, including 10 active private
+  groups with up to 100 members each. Pro is the emphasized paid choice;
+  Lifetime has a secondary action. The FAQ explains Free limits, visibility,
+  cancellation, and the authenticated checkout handoff.
 
 Private group participation is independent of `profiles.is_public`. Free users
 can join and rank, and membership grants only group-scoped display name, avatar,
@@ -60,19 +64,31 @@ trusted focus time, session count, and goal progress visibility.
 
 ## Rendering, motion, and responsive behavior
 
+The hero preserves “Focus on the work. We'll track the time.” Its single
+connected product preview shows a completed 25-minute Research paper / Write
+outline session, 75 of a 120-minute daily goal, and a seven-day chart totaling
+five hours. These are explicitly illustrative values, not visitor data or
+customer proof. The preview has one accessible image summary and no mock
+interactive controls. It is content-driven and stacks below the copy on mobile;
+all numbers use the data font. Once the example reaches view, GSAP fills the
+goal bar and then the weekly bars in product order. The values and labels stay
+visible throughout.
+
 Hero copy and CTAs render visibly on the first paint. `useLandingAnimations`
 never waits for `.logo-intro` and never hides hero content. GSAP coordinates a
-subtle navigation entrance, opaque hero glide, ambient grid drift, depth-based
-scroll reveals for every feature section, heatmap/count-up micro-motion, and the
-footer reveal.
+subtle navigation entrance, opaque hero glide, ambient grid drift, and
+scroll-triggered entrances for the sections in reading order. The hero fills
+the first viewport, so the focus path begins only after scrolling. Section
+content is visible in the markup if animation cannot run. Analytics heatmap
+and count-up motion run once when their preview enters view.
 
 The focus path overview intentionally does not use the generic
 `data-reveal-group` animation. It has a dedicated GSAP timeline identified by
 `data-focus-path`: the heading enters first, followed by five numbered steps
 in product order: Focus, Set goals, See progress, Share, Focus together. The
 ordered rail uses simple separators instead of repeated cards and icons. Each
-step enters with a short, staggered rise when the section reaches 78% of the
-viewport. The sequence runs once and stays readable without animation.
+desktop timeline reveals the heading, then each step one by one. On phones,
+each step rises into view when its row reaches the viewport. Each entrance runs once.
 
 The Trusted focus section keeps its static timer preview and explains the
 session-to-progress link with two concise details: active-timer recovery and
@@ -101,10 +117,15 @@ projects share one board. Its tinted status columns, status dots and counts,
 priority badges, and task-card treatment follow the real Kanban components.
 
 All animation is disabled by `prefers-reduced-motion`, leaving every element in
-its normal visible layout.
+its normal visible layout. Same-page and cross-route section jumps use instant
+scrolling for reduced motion; the global smooth-scroll rule is also overridden.
 
-The 320–375px layout uses reduced navigation and hero padding, mobile-safe line
-wrapping, full-width hero CTAs, and a shortened navigation CTA. Mockups must use
+The 320–375px layout keeps a compact Pricing link beside the signup CTA;
+Log in appears from 360px upward. Header links and the signup CTA have 44px
+tap targets. Hero padding and line wrapping remain mobile-safe, with full-width
+hero CTAs. Inline feature headings and body copy appear before their preview
+on mobile; supporting detail follows the preview. Desktop keeps the alternating
+text/mockup rows. Mockups must use
 bounded widths and `min-w-0`/overflow containment so they cannot widen the page.
 
 ### Analytics viewport fit
@@ -138,6 +159,7 @@ src/pages/LandingPage.tsx
 src/components/landing/
   LandingNav.tsx
   HeroSection.tsx
+  HeroProductPreview.tsx
   OverviewSection.tsx
   FeatureSection.tsx
   TimerMockup.tsx

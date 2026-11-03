@@ -27,8 +27,8 @@ interface FeatureSectionProps {
  * Alternating detail section: mockup + feature blocks in a ~55/45 split,
  * with either a centered header above the row (eyebrow/title/subtext) or a
  * left-aligned heading/body inline in the text column. On mobile both stack
- * to one column with the mockup always on top (mockup is first in DOM;
- * desktop side is controlled by flex-row vs flex-row-reverse).
+ * to one column with the heading before the mockup and details after it.
+ * Desktop side is controlled by flex-row vs flex-row-reverse.
  *
  * By default, section height is content-driven and uses the shared
  * `sectionPad`. A viewport-fitted section keeps that mobile spacing, then
@@ -70,11 +70,20 @@ export function FeatureSection({
           />
         ) : null}
 
+        {heading && body ? (
+          <div data-reveal className="mb-8 space-y-3 md:hidden">
+            <h2 className="text-[clamp(26px,4vw,36px)] font-medium leading-[1.15] tracking-[-0.03em] text-ink-primary">
+              {heading}
+            </h2>
+            <p className="text-[15px] leading-[1.6]" style={{ color: bodyColor }}>{body}</p>
+          </div>
+        ) : null}
+
         <div
-          className={`flex flex-col items-center gap-12 md:items-center md:gap-16 ${rowClass}`}
+          className={`flex flex-col items-center gap-8 md:items-center md:gap-16 ${rowClass}`}
           style={{ marginTop: hasCenteredHeader ? 56 : 0 }}
         >
-          {/* Mockup slot — first in DOM so it stacks on top on mobile.
+          {/* Mockup follows the mobile heading and precedes the detail blocks.
               Always stretches to the row's full (content-driven) height on
               desktop and centers the mockup within it, so whichever side is
               shorter (mockup or text) centers against the taller one's
@@ -95,7 +104,7 @@ export function FeatureSection({
               <div
                 data-reveal
                 data-reveal-direction={mockupSide === 'left' ? 'right' : 'left'}
-                className={`flex flex-col ${compactCopy ? 'gap-5' : 'gap-3'}`}
+                className={`hidden md:flex md:flex-col ${compactCopy ? 'gap-5' : 'gap-3'}`}
                 style={{ textAlign: 'left' }}
               >
                 <h2

@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 
+import { AuthJourney } from '@/components/layout/AuthJourney'
 import { Logo } from '@/components/ui'
 import { PATHS } from '@/routes/paths'
 
@@ -43,11 +44,7 @@ export function AuthLayout() {
               A focused place for study, client work, and everything you are learning.
             </p>
 
-            <div className="mt-10 grid grid-cols-3 border-t border-white/20 pt-5 text-sm text-ink-primary/70">
-              <span>Focus</span>
-              <span className="text-center">Track</span>
-              <span className="text-right">Reflect</span>
-            </div>
+            <AuthJourney />
           </div>
         </div>
       </aside>

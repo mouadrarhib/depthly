@@ -15,6 +15,7 @@ import { OverviewSection } from '@/components/landing/OverviewSection'
 import { PricingSection } from '@/components/landing/PricingSection'
 import { FeatureBlock } from '@/components/landing/primitives'
 import { ProjectsSupportSection } from '@/components/landing/ProjectsSupportSection'
+import { scrollToSection } from '@/components/landing/scrollToSection'
 import { ShareProgressMockup } from '@/components/landing/ShareProgressMockup'
 import { TimerMockup } from '@/components/landing/TimerMockup'
 import { useLandingAnimations } from '@/components/landing/useLandingAnimations'
@@ -42,11 +43,11 @@ export function LandingPage() {
 
   // Footer/nav links from other routes navigate here with `scrollTo` in
   // state (e.g. clicking "Features" from /login) — land at the top first,
-  // then smooth-scroll to the target section once mounted.
+  // then scroll to the target section using the visitor's motion preference.
   useEffect(() => {
     const scrollTo = (location.state as { scrollTo?: string } | null)?.scrollTo
     if (!scrollTo) return
-    document.getElementById(scrollTo)?.scrollIntoView({ behavior: 'smooth' })
+    scrollToSection(scrollTo)
     navigate(location.pathname, { replace: true, state: null })
   }, [location, navigate])
 

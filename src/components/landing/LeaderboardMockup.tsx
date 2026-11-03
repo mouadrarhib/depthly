@@ -1,10 +1,10 @@
 import { Target } from 'lucide-react'
 
 const ENTRIES = [
-  { rank: 1, initial: 'S', name: 'Sara', hours: '9h 40m', goal: 97, sessions: 5, creator: true },
-  { rank: 2, initial: 'M', name: 'Mouad', hours: '8h 15m', goal: 83, sessions: 4, you: true },
-  { rank: 3, initial: 'A', name: 'Aya', hours: '6h 30m', goal: 65, sessions: 3 },
-  { rank: 4, initial: 'J', name: 'Jonas', hours: '5h 05m', goal: 51, sessions: 2 },
+  { rank: 1, initial: 'N', name: 'Nia', hours: '9h 40m', goal: 97, sessions: 5, creator: true },
+  { rank: 2, initial: 'L', name: 'Leo', hours: '8h 15m', goal: 83, sessions: 4, you: true },
+  { rank: 3, initial: 'I', name: 'Imani', hours: '6h 30m', goal: 65, sessions: 3 },
+  { rank: 4, initial: 'R', name: 'Ravi', hours: '5h 05m', goal: 51, sessions: 2 },
 ]
 
 /** Static example using the real group-detail header, target, and ranking patterns. */
@@ -13,7 +13,7 @@ export function LeaderboardMockup() {
     <figure className="mx-auto w-full" style={{ maxWidth: 480 }}>
       <div
         role="img"
-        aria-label="Example active weekly group leaderboard with four members. Mouad is ranked second. A shared ten-hour target and each member's goal progress, session count, and trusted focus time are shown."
+        aria-label="Example active weekly group leaderboard with four members. Leo is ranked second. A shared ten-hour target and each member's goal progress, session count, and trusted focus time are shown."
       >
         <div className="overflow-hidden rounded-[16px] border border-depth-border bg-depth-surface">
           <div className="border-b border-depth-border p-4 sm:p-5">

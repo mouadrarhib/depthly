@@ -1,6 +1,4 @@
-import type { MouseEvent } from 'react'
-
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { Logo } from '@/components/ui'
 import { PATHS } from '@/routes/paths'
@@ -33,59 +31,38 @@ const COLUMNS: { heading: string; links: FooterLink[] }[] = [
   },
 ]
 
-const linkStyle = { fontSize: 13, color: '#7A7890', textDecoration: 'none' } as const
+const linkClassName =
+  'flex min-h-11 items-center text-sm text-ink-primary/75 transition-colors hover:text-ink-primary focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand'
 
-function handleLinkHover(e: MouseEvent<HTMLAnchorElement>) {
-  e.currentTarget.style.color = '#E8E6F0'
-}
-function handleLinkUnhover(e: MouseEvent<HTMLAnchorElement>) {
-  e.currentTarget.style.color = '#7A7890'
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'instant' })
 }
 
 export function LandingFooter() {
-  const navigate = useNavigate()
-  const location = useLocation()
-
-  // Same-page anchor jump when already on the landing page; otherwise
-  // navigate there first and let LandingPage's effect scroll once mounted.
-  const handleSectionClick = (e: MouseEvent<HTMLAnchorElement>, sectionId: string) => {
-    e.preventDefault()
-    if (location.pathname === PATHS.home) {
-      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
-    } else {
-      navigate(PATHS.home, { state: { scrollTo: sectionId } })
-    }
-  }
-
   return (
-    <footer data-reveal-group className="px-5 md:px-8" style={{ borderTop: '1px solid #2E2E38' }}>
+    <footer data-reveal-group className="border-t border-depth-border bg-depth-bg px-5 md:px-8">
       <div
-        className="mx-auto flex flex-col gap-12 md:flex-row md:justify-between"
-        style={{ maxWidth: 1100, paddingTop: 56, paddingBottom: 40 }}
+        className="mx-auto grid gap-10 py-12 sm:grid-cols-[minmax(0,1fr)_auto] md:gap-16 md:py-14"
+        style={{ maxWidth: 1100 }}
       >
-        {/* Lockup + tagline */}
-        <div data-reveal className="flex flex-col gap-3">
-          <Link to={PATHS.home} style={{ textDecoration: 'none' }}>
+        <div data-reveal className="flex flex-col items-start gap-3">
+          <Link to={PATHS.home} onClick={scrollToTop} aria-label="Depthly home" className="flex min-h-11 items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
             <Logo size={26} withWordmark />
           </Link>
-          <p style={{ fontSize: 13, color: '#7A7890' }}>Stay focused, work deeper.</p>
+          <p className="max-w-xs text-sm leading-6 text-ink-primary/75">Stay focused, work deeper.</p>
         </div>
 
-        {/* Link columns */}
-        <div data-reveal className="grid grid-cols-2 gap-10 sm:grid-cols-3 md:gap-16">
+        <nav data-reveal aria-label="Footer" className="grid grid-cols-2 gap-x-8 gap-y-7 sm:grid-cols-3 sm:gap-x-12 md:gap-x-16">
           {COLUMNS.map(({ heading, links }) => (
-            <div key={heading} className="flex flex-col gap-3">
-              <span style={{ fontSize: 13, fontWeight: 500, color: '#E8E6F0' }}>{heading}</span>
+            <div key={heading} className={`flex min-w-0 flex-col ${heading === 'Legal' ? 'col-start-2 sm:col-auto' : ''}`}>
+              <h2 className="mb-2 text-sm font-medium text-ink-primary">{heading}</h2>
               {links.map((link) => {
                 if (link.kind === 'section') {
                   return (
                     <a
                       key={link.label}
                       href={`#${link.sectionId}`}
-                      style={linkStyle}
-                      onClick={(e) => handleSectionClick(e, link.sectionId)}
-                      onMouseEnter={handleLinkHover}
-                      onMouseLeave={handleLinkUnhover}
+                      className={linkClassName}
                     >
                       {link.label}
                     </a>
@@ -96,9 +73,8 @@ export function LandingFooter() {
                     <Link
                       key={link.label}
                       to={link.to}
-                      style={linkStyle}
-                      onMouseEnter={handleLinkHover}
-                      onMouseLeave={handleLinkUnhover}
+                      onClick={scrollToTop}
+                      className={linkClassName}
                     >
                       {link.label}
                     </Link>
@@ -108,9 +84,7 @@ export function LandingFooter() {
                   <a
                     key={link.label}
                     href={`mailto:${link.email}`}
-                    style={linkStyle}
-                    onMouseEnter={handleLinkHover}
-                    onMouseLeave={handleLinkUnhover}
+                    className={linkClassName}
                   >
                     {link.label}
                   </a>
@@ -118,20 +92,13 @@ export function LandingFooter() {
               })}
             </div>
           ))}
-        </div>
+        </nav>
       </div>
 
       <div
         data-reveal
-        className="mx-auto text-center"
-        style={{
-          maxWidth: 1100,
-          borderTop: '1px solid #2E2E38',
-          paddingTop: 24,
-          paddingBottom: 32,
-          fontSize: 12,
-          color: '#7A7890',
-        }}
+        className="mx-auto border-t border-depth-border py-6 text-center text-xs text-ink-primary/75 sm:text-left"
+        style={{ maxWidth: 1100 }}
       >
         © 2026 Depthly. All rights reserved.
       </div>

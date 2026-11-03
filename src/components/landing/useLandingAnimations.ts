@@ -43,108 +43,138 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
         )
       }
 
-      // Reveal the path in reading order: heading, then each stage.
+      // The example's result unfolds in the same order as the product:
+      // a finished session contributes to a goal, then to the weekly view.
+      const goalFill = root.querySelector('[data-hero-goal-fill]')
+      const weekBars = root.querySelectorAll('[data-hero-week-bar]')
+      if (goalFill && weekBars.length) {
+        const progressTimeline = gsap.timeline({
+          scrollTrigger: { trigger: goalFill, start: 'top 90%', once: true },
+        })
+        progressTimeline.fromTo(
+          goalFill,
+          { scaleX: 0.18, transformOrigin: 'left center' },
+          { scaleX: 1, duration: 0.65, ease: 'power3.out' }
+        )
+        progressTimeline.fromTo(
+          weekBars,
+          { scaleY: 0.2, transformOrigin: 'center bottom' },
+          { scaleY: 1, duration: 0.48, stagger: 0.045, ease: 'power3.out' },
+          '-=0.2'
+        )
+      }
+
+      // Reveal the path in reading order. On phones, each step waits until
+      // that row reaches the viewport instead of finishing below the fold.
       const focusPath = root.querySelector('[data-focus-path]')
       if (focusPath) {
         const pathHeader = focusPath.querySelector('[data-focus-path-header]')
         const pathSteps = focusPath.querySelectorAll('[data-focus-step]')
-        const pathTimeline = gsap.timeline({
-          scrollTrigger: { trigger: focusPath, start: 'top 78%', once: true },
-        })
 
-        if (pathHeader) {
-          pathTimeline.fromTo(
-            pathHeader,
-            { y: 24, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.55, ease: 'power3.out' }
-          )
-        }
-        if (pathSteps.length) {
+        if (window.matchMedia('(min-width: 768px)').matches) {
+          const pathTimeline = gsap.timeline({
+            scrollTrigger: { trigger: pathHeader ?? focusPath, start: 'top 85%', once: true },
+          })
+
+          if (pathHeader) {
+            pathTimeline.fromTo(
+              pathHeader,
+              { y: 22, opacity: 0 },
+              { y: 0, opacity: 1, duration: 0.48, ease: 'power3.out' }
+            )
+          }
+
           pathTimeline.fromTo(
             pathSteps,
-            { y: 24, opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.55,
-              ease: 'power3.out',
-              stagger: 0.12,
-            },
-            pathHeader ? '-=0.15' : 0
+            { y: 18, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.36, stagger: 0.3, ease: 'power3.out' }
           )
+        } else {
+          if (pathHeader) {
+            gsap.fromTo(
+              pathHeader,
+              { y: 22, opacity: 0 },
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.55,
+                ease: 'power3.out',
+                scrollTrigger: { trigger: pathHeader, start: 'top 85%', once: true },
+              }
+            )
+          }
+
+          pathSteps.forEach((step) => {
+            gsap.fromTo(
+              step,
+              { y: 18, opacity: 0 },
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.5,
+                ease: 'power3.out',
+                scrollTrigger: { trigger: step, start: 'top 88%', once: true },
+              }
+            )
+          })
         }
       }
 
-      const loadGroups: NodeListOf<Element>[] = []
-      root.querySelectorAll<HTMLElement>('[data-reveal-group]').forEach((group) => {
-        const items = group.querySelectorAll('[data-reveal]')
-        if (!items.length) return
-
-        const revealFromX = (_index: number, element: Element) => {
-          const direction = (element as HTMLElement).dataset.revealDirection
-          if (direction === 'left') return -24
-          if (direction === 'right') return 24
-          return 0
+      root.querySelectorAll('[data-pricing-graphic]').forEach((pricingGraphic) => {
+        const pricingLine = pricingGraphic.querySelector('[data-pricing-line]')
+        const pricingNodes = pricingGraphic.querySelectorAll('[data-pricing-node]')
+        const pricingTimeline = gsap.timeline({
+          scrollTrigger: { trigger: pricingGraphic, start: 'top 88%', once: true },
+        })
+        if (pricingLine) {
+          const lineLength = (pricingLine as SVGPathElement).getTotalLength()
+          pricingTimeline.fromTo(
+            pricingLine,
+            { strokeDasharray: lineLength, strokeDashoffset: lineLength },
+            { strokeDashoffset: 0, duration: 0.85, ease: 'power2.out' }
+          )
         }
-
-        const revealFromY = (_index: number, element: Element) =>
-          (element as HTMLElement).dataset.revealDirection ? 18 : 36
-
-        const revealFromScale = (_index: number, element: Element) =>
-          (element as HTMLElement).dataset.revealDirection ? 0.995 : 0.985
-
-        if (group.getBoundingClientRect().top < window.innerHeight) {
-          loadGroups.push(items)
-          return
+        if (pricingNodes.length) {
+          pricingTimeline.fromTo(
+            pricingNodes,
+            { scale: 0.94, opacity: 0, transformOrigin: 'center center' },
+            { scale: 1, opacity: 1, duration: 0.35, stagger: 0.12, ease: 'power2.out' },
+            pricingLine ? 0.12 : 0
+          )
         }
-
-        gsap.fromTo(
-          items,
-          { x: revealFromX, y: revealFromY, opacity: 0, scale: revealFromScale },
-          {
-            x: 0,
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            duration: 0.85,
-            ease: 'power3.out',
-            stagger: 0.11,
-            scrollTrigger: { trigger: group, start: 'top 82%', once: true },
-          }
-        )
       })
 
-      loadGroups.forEach((items) =>
-        gsap.set(items, {
-          x: (_index: number, element: Element) => {
-            const direction = (element as HTMLElement).dataset.revealDirection
-            if (direction === 'left') return -24
-            if (direction === 'right') return 24
-            return 0
-          },
-          y: (_index: number, element: Element) =>
-            (element as HTMLElement).dataset.revealDirection ? 18 : 30,
-          opacity: 0,
-          scale: (_index: number, element: Element) =>
-            (element as HTMLElement).dataset.revealDirection ? 0.995 : 0.99,
-        })
-      )
-
-      const supportingEntrance = gsap.timeline()
-      loadGroups.forEach((items, index) => {
-        supportingEntrance.to(
-          items,
+      const answersLine = root.querySelector('[data-answers-line]')
+      if (answersLine) {
+        gsap.fromTo(
+          answersLine,
+          { strokeDasharray: 90, strokeDashoffset: 90 },
           {
-            x: 0,
-            y: 0,
-            opacity: 1,
-            scale: 1,
+            strokeDashoffset: 0,
             duration: 0.8,
-            ease: 'power3.out',
-            stagger: 0.1,
-          },
-          0.35 + index * 0.2
+            ease: 'power2.out',
+            scrollTrigger: { trigger: answersLine, start: 'top 88%', once: true },
+          }
         )
+      }
+
+      // Each section reveals in its own reading order as its content enters.
+      // Elements remain visible in the markup if JavaScript or GSAP fails.
+      root.querySelectorAll('[data-reveal-group]').forEach((group) => {
+        group.querySelectorAll<HTMLElement>('[data-reveal]').forEach((item) => {
+          if (!item.getClientRects().length) return
+          gsap.fromTo(
+            item,
+            { y: 20, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.58,
+              ease: 'power3.out',
+              scrollTrigger: { trigger: item, start: 'top 88%', once: true },
+            }
+          )
+        })
       })
 
       root.querySelectorAll<HTMLElement>('[data-heatmap]').forEach((map) => {
@@ -156,9 +186,9 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
           {
             scale: 1,
             opacity: 1,
-            duration: 0.45,
+            duration: 0.38,
             ease: 'back.out(1.7)',
-            stagger: { each: 0.018, from: 'start' },
+            stagger: { each: 0.012, from: 'start' },
             scrollTrigger: { trigger: map, start: 'top 82%', once: true },
           }
         )
