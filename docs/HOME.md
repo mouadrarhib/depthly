@@ -10,31 +10,30 @@ stats, recent activity, and quick navigation.
 
 ## Layout
 
-Two-column responsive grid (`lg:grid-cols-[3fr_2fr]`).
-Single column on mobile.
+Two-column responsive grid (`lg:grid-cols-[1.7fr_0.87fr]`).
+Single column on mobile; the daily goal and week chart share a row on medium screens.
 
-### Left column — 60 %
+### Left column — focus and recent work
 
 | Section | Component(s) | Data source |
 |---------|-------------|-------------|
-| Timer widget | `<TimerWidget />` (`src/components/home/TimerWidget.tsx`) in a `depth-surface` card | `timerStore`, `useSaveSession` |
-| Today's stats row | 3 inline stat cards | `useDailySummary(today)`, `useGoals()` |
-| Recent sessions list | `<SessionRow />` × 5 | `useSessionsPaginated(0)` |
+| Timer workspace | `<TimerWidget />` with live project/task selectors, timer ring, controls, and notes/todo panels | `timerStore`, `useSaveSession`, project/task queries |
+| Recent sessions list | `<SessionRow />` × 3 | `useSessionsPaginated(0)` |
 
-**Today's stats cards**
+**Header activity summary**
 
-- **Focus Today** — `formatMinutesToHours(focus_minutes)` from `daily_summaries`
-- **Sessions Today** — `session_count` from `daily_summaries`
-- **Daily Goal** — `<ProgressRing>` (goal %) or "—  Set goal →" link when no goal set
+- **Focus today** — `focus_minutes` from `daily_summaries`
+- **Sessions today** — `session_count` from `daily_summaries`
 
-### Right column — 40 %
+### Right column — progress and destinations
 
 | Section | Data source |
 |---------|-------------|
-| Greeting card | `profile.display_name` from `useProfile()` |
-| Streak card | `profile.current_streak`, `profile.longest_streak` |
+| Daily goal | `useGoals()` and today's focus minutes; progress bar or set-goal action |
 | This Week mini chart | `useDailySummariesRange(weekStart, weekEnd)` — 7-bar Recharts `BarChart`, today highlighted brand-blue |
-| Quick links grid | Static links: Analytics, Leaderboard, Projects, Sessions |
+| Keep moving links | Static links: Projects, Analytics, Sessions |
+
+The greeting uses `profile.display_name`. Streak remains visible in the global top bar.
 
 ---
 
@@ -42,10 +41,10 @@ Single column on mobile.
 
 | Hook | Purpose |
 |------|---------|
-| `useProfile()` | display_name, streak, total_sessions for welcome/empty-state logic |
-| `useDailySummary(today)` | focus_minutes, session_count for today's stat cards |
-| `useGoals()` | daily_goal_minutes for the goal progress ring |
-| `useSessionsPaginated(0)` | First page of sessions; sliced to 5 for the recent list |
+| `useProfile()` | display_name and total_sessions for greeting/empty-state logic |
+| `useDailySummary(today)` | focus_minutes and session_count for the header and daily goal |
+| `useGoals()` | daily_goal_minutes for the progress bar |
+| `useSessionsPaginated(0)` | First page of sessions; sliced to 3 for the recent list |
 | `useDailySummariesRange(weekStart, weekEnd)` | 7-day focus minutes for the mini bar chart |
 
 ---
@@ -54,9 +53,7 @@ Single column on mobile.
 
 While `useProfile()` is loading (`profileLoading === true`):
 
-- **Greeting card** — `<Skeleton width={200} height={28} />`
-- **Streak card** — `<Skeleton width={60} height={60} borderRadius="50%" />` + two line skeletons
-- **Stats cards row** — 3 skeleton cards (icon + value + label placeholders)
+- **Greeting** — heading and supporting-line skeletons
 
 ---
 

@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils'
 import { useUiStore } from '@/store'
 import { useTimerStore } from '@/store/timerStore'
 
-import { TimerProjectSelector } from './TimerProjectSelector'
 
 type TimerMode      = 'pomodoro' | 'custom' | 'free'
 type PomodoroPreset = '25/5' | '50/10' | '90/20' | 'custom'
@@ -316,11 +315,6 @@ export function TimerSettings() {
             </div>
           ) : null}
 
-          {/* Project & Task */}
-          <div>
-            <SectionLabel>Project &amp; Task</SectionLabel>
-            <TimerProjectSelector />
-          </div>
         </div>
       </SettingsPanelContent>
     </Sheet>

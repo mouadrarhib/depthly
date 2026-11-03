@@ -23,29 +23,8 @@ export function TimerControls() {
           disabled={isSaving || hasCompleted}
           className={cn(
             base,
-            'h-[48px] w-full max-w-[220px] rounded-[14px] text-[14px] font-semibold tracking-wide sm:h-[52px] sm:text-[15px]'
+            'min-h-[52px] w-full max-w-[232px] rounded-xl bg-brand px-5 text-[14px] font-semibold text-depth-bg hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-primary sm:text-[15px]'
           )}
-          style={{
-            background: 'rgba(75, 158, 255, 0.08)',
-            border: '1px solid rgba(75, 158, 255, 0.22)',
-            color: '#B8D4FF',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
-          }}
-          onMouseEnter={(e) => {
-            const el = e.currentTarget
-            el.style.background = 'rgba(75, 158, 255, 0.14)'
-            el.style.borderColor = 'rgba(75, 158, 255, 0.38)'
-            el.style.color = '#D0E4FF'
-            el.style.boxShadow =
-              'inset 0 1px 0 rgba(255,255,255,0.06), 0 0 22px rgba(75,158,255,0.12)'
-          }}
-          onMouseLeave={(e) => {
-            const el = e.currentTarget
-            el.style.background = 'rgba(75, 158, 255, 0.08)'
-            el.style.borderColor = 'rgba(75, 158, 255, 0.22)'
-            el.style.color = '#B8D4FF'
-            el.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.04)'
-          }}
         >
           {isBreakIdle ? 'Start Break' : 'Start Focus Session'}
         </button>

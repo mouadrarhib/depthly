@@ -1,10 +1,11 @@
 import { useState } from 'react'
 
-import { CheckSquare, FileText } from 'lucide-react'
+import { CheckSquare, FileText, Pause, Play, Square } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { TimerNotesPanel } from '@/components/timer/TimerNotesPanel'
+import { TimerProjectSelector } from '@/components/timer/TimerProjectSelector'
 import { TimerTodoPanel } from '@/components/timer/TimerTodoPanel'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { useSaveSession } from '@/hooks/useSaveSession'
@@ -12,40 +13,32 @@ import { PATHS } from '@/routes/paths'
 import { useUiStore } from '@/store'
 import { useTimerStore } from '@/store/timerStore'
 
-const RING = 220
-const SCALE = RING / 340
-
-function fmt(sec: number, free: boolean): string {
+function formatTime(seconds: number, free: boolean): string {
   if (free) {
-    const h = Math.floor(sec / 3600)
-    const m = Math.floor((sec % 3600) / 60)
-    const s = sec % 60
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const remainingSeconds = seconds % 60
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
   }
-  const m = Math.floor(sec / 60)
-  const s = sec % 60
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
 }
 
 export function TimerWidget() {
-  const { elapsed, duration, mode, sessionType, isRunning, isPaused, sessionCount } =
-    useTimerStore()
-
-  const { start, pause, resume, saveAndStop, skipBreak, isSaving, isSessionLimitReached } =
-    useSaveSession()
+  const { elapsed, duration, mode, sessionType, isRunning, isPaused, sessionCount } = useTimerStore()
+  const { start, pause, resume, saveAndStop, skipBreak, isSaving, isSessionLimitReached } = useSaveSession()
+  const toggleLog = useUiStore((state) => state.toggleLog)
+  const toggleTodo = useUiStore((state) => state.toggleTodo)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
 
-  const toggleLog = useUiStore((s) => s.toggleLog)
-  const toggleTodo = useUiStore((s) => s.toggleTodo)
-
   const isFree = mode === 'free'
-  const progress = isFree || duration === 0 ? 0 : elapsed / duration
-  const remaining = isFree ? elapsed : Math.max(0, duration - elapsed)
-  const ringColor = sessionType === 'focus' ? '#3DD68C' : 'var(--color-brand)'
   const isIdle = !isRunning && !isPaused
   const isBreakIdle = isIdle && sessionType === 'break'
   const hasCompleted = !isFree && duration > 0 && elapsed >= duration
-  const fontSz = Math.round((isFree ? 48 : 72) * SCALE)
+  const progress = isFree || duration === 0 ? 0 : elapsed / duration
+  const remaining = isFree ? elapsed : Math.max(0, duration - elapsed)
+  const modeLabel = mode === 'pomodoro' ? 'Pomodoro' : mode === 'custom' ? 'Custom' : 'Free'
 
   const handleStart = () => {
     if (sessionType === 'focus' && isSessionLimitReached) {
@@ -56,297 +49,93 @@ export function TimerWidget() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-      {/* Mode · session type label */}
-      <span
-        style={{
-          fontSize: 11,
-          fontWeight: 500,
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: 'var(--color-text-faint)',
-        }}
-      >
-        {mode === 'pomodoro' ? 'Pomodoro' : mode === 'custom' ? 'Custom' : 'Free'}
-        {' · '}
-        {sessionType === 'focus' ? 'Focus' : 'Break'}
-      </span>
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-center xl:gap-10">
+      <div className="min-w-0">
+        <p className="text-xs font-medium uppercase tracking-[0.12em] text-ink-secondary">
+          {modeLabel} · {sessionType === 'focus' ? 'Focus session' : 'Break'}
+        </p>
+        <h2 className="mt-5 text-[26px] font-semibold leading-tight tracking-[-0.03em] text-ink-primary sm:text-[30px]">
+          {isIdle ? 'Start with your next task.' : isPaused ? 'Your session is paused.' : 'Stay with the work.'}
+        </h2>
+        <p className="mt-2 max-w-[38ch] text-sm leading-6 text-ink-secondary">
+          {isIdle
+            ? 'Choose what you are working on, then give it your full attention.'
+            : 'Your focused time is being tracked and will count toward your progress.'}
+        </p>
 
-      {/* Progress ring */}
-      <ProgressRing progress={progress} isRunning={isRunning} size={RING} color={ringColor}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <span
-            className="font-data"
-            style={{
-              fontSize: fontSz,
-              fontWeight: 600,
-              letterSpacing: '-0.02em',
-              color: 'var(--color-text)',
-              lineHeight: 1,
-            }}
-          >
-            {fmt(remaining, isFree)}
-          </span>
-          <span
-            style={{
-              fontSize: Math.max(9, Math.round(11 * SCALE)),
-              fontWeight: 500,
-              color: 'var(--color-text-muted)',
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              marginTop: Math.round(8 * SCALE),
-            }}
-          >
-            {sessionType === 'focus' ? 'FOCUS' : 'BREAK'}
-          </span>
-          <span
-            style={{
-              fontSize: Math.max(9, Math.round(12 * SCALE)),
-              color: 'var(--color-text-faint)',
-              marginTop: 4,
-            }}
-          >
-            {sessionCount} session{sessionCount === 1 ? '' : 's'} today
-          </span>
+        <div className="mt-7 max-w-[320px]">
+          <TimerProjectSelector />
         </div>
-      </ProgressRing>
 
-      {/* Controls */}
-      {isIdle ? (
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
-          <button
-            onClick={handleStart}
-            disabled={isSaving}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: RING,
-              height: 48,
-              borderRadius: 14,
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-              background: 'rgba(75,158,255,0.08)',
-              border: '1px solid rgba(75,158,255,0.22)',
-              color: '#B8D4FF',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
-            }}
-            onMouseEnter={(e) => {
-              const el = e.currentTarget
-              el.style.background = 'rgba(75,158,255,0.14)'
-              el.style.borderColor = 'rgba(75,158,255,0.38)'
-              el.style.color = '#D0E4FF'
-            }}
-            onMouseLeave={(e) => {
-              const el = e.currentTarget
-              el.style.background = 'rgba(75,158,255,0.08)'
-              el.style.borderColor = 'rgba(75,158,255,0.22)'
-              el.style.color = '#B8D4FF'
-            }}
-          >
-            {isBreakIdle ? 'Start Break' : 'Start Focus Session'}
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          {isIdle ? (
+            <button
+              type="button"
+              onClick={handleStart}
+              disabled={isSaving}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-depth-bg transition-colors hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-primary disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Play size={16} fill="currentColor" aria-hidden="true" />
+              {isBreakIdle ? 'Start break' : 'Start focus session'}
+            </button>
+          ) : isPaused ? (
+            <>
+              <button type="button" onClick={resume} disabled={isSaving || hasCompleted} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-depth-bg hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-primary disabled:opacity-50">
+                <Play size={16} fill="currentColor" aria-hidden="true" /> Resume
+              </button>
+              <button type="button" onClick={saveAndStop} disabled={isSaving || hasCompleted} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-depth-border px-4 text-sm font-medium text-ink-primary hover:bg-depth-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:opacity-50">
+                <Square size={14} aria-hidden="true" /> Stop
+              </button>
+            </>
+          ) : (
+            <>
+              <button type="button" onClick={pause} disabled={isSaving || hasCompleted} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-depth-bg hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-primary disabled:opacity-50">
+                <Pause size={16} fill="currentColor" aria-hidden="true" /> Pause
+              </button>
+              <button type="button" onClick={saveAndStop} disabled={isSaving || hasCompleted} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-depth-border px-4 text-sm font-medium text-ink-primary hover:bg-depth-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:opacity-50">
+                <Square size={14} aria-hidden="true" /> Stop
+              </button>
+            </>
+          )}
+          {sessionType === 'break' && (
+            <button type="button" onClick={skipBreak} disabled={isSaving} className="min-h-12 rounded-xl px-3 text-sm text-ink-secondary hover:text-ink-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:opacity-50">
+              Skip break
+            </button>
+          )}
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-xs">
+          <button type="button" onClick={toggleLog} className="inline-flex min-h-9 items-center gap-1.5 text-ink-secondary hover:text-ink-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <FileText size={14} aria-hidden="true" /> Log
           </button>
-          {isBreakIdle ? (
-            <Btn onClick={skipBreak} variant="neutral" disabled={isSaving}>
-              Skip Break
-            </Btn>
-          ) : null}
+          <button type="button" onClick={toggleTodo} className="inline-flex min-h-9 items-center gap-1.5 text-ink-secondary hover:text-ink-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <CheckSquare size={14} aria-hidden="true" /> Todo
+          </button>
+          <Link to={PATHS.timer} className="inline-flex min-h-9 items-center text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            Open full timer →
+          </Link>
         </div>
-      ) : isPaused ? (
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
-          <Btn onClick={resume} variant="blue" disabled={isSaving || hasCompleted}>
-            Resume
-          </Btn>
-          <Btn onClick={saveAndStop} variant="red" disabled={isSaving || hasCompleted}>
-            Stop
-          </Btn>
-          {sessionType === 'break' ? (
-            <Btn onClick={skipBreak} variant="neutral" disabled={isSaving}>
-              Skip Break
-            </Btn>
-          ) : null}
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
-          <Btn onClick={pause} variant="neutral" disabled={isSaving || hasCompleted}>
-            Pause
-          </Btn>
-          <Btn onClick={saveAndStop} variant="red" disabled={isSaving || hasCompleted}>
-            Stop
-          </Btn>
-          {sessionType === 'break' ? (
-            <Btn onClick={skipBreak} variant="neutral" disabled={isSaving}>
-              Skip Break
-            </Btn>
-          ) : null}
-        </div>
-      )}
-
-      {/* Log / Todo — same panels as /timer, shared uiStore + timerStore state */}
-      <div style={{ display: 'flex', gap: 8 }}>
-        <ChipBtn onClick={toggleLog}>
-          <FileText size={13} />
-          Log
-        </ChipBtn>
-        <ChipBtn onClick={toggleTodo}>
-          <CheckSquare size={13} />
-          Todo
-        </ChipBtn>
       </div>
 
-      {/* Link to full timer (fullscreen + settings stay /timer-only) */}
-      <Link
-        to={PATHS.timer}
-        style={{
-          fontSize: 12,
-          color: 'var(--color-text-muted)',
-          textDecoration: 'none',
-          letterSpacing: '0.01em',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = 'var(--color-brand)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = 'var(--color-text-muted)'
-        }}
-      >
-        Full timer →
-      </Link>
+      <div className="flex justify-center lg:justify-end">
+        <ProgressRing progress={progress} isRunning={isRunning} size={220} strokeWidth={9} color={sessionType === 'focus' ? '#4B9EFF' : '#3DD68C'}>
+          <div className="flex flex-col items-center">
+            <span className="font-data text-[42px] font-semibold leading-none tracking-[-0.03em] text-ink-primary">
+              {formatTime(remaining, isFree)}
+            </span>
+            <span className="mt-2 text-[11px] font-medium uppercase tracking-[0.15em] text-ink-secondary">
+              {isPaused ? 'Paused' : isRunning ? 'In progress' : 'Ready to focus'}
+            </span>
+            <span className="mt-2 text-xs text-ink-secondary">
+              {sessionCount} session{sessionCount === 1 ? '' : 's'} today
+            </span>
+          </div>
+        </ProgressRing>
+      </div>
 
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="sessions" />
-
       <TimerNotesPanel />
       <TimerTodoPanel />
     </div>
-  )
-}
-
-// ── Small helper so control buttons don't repeat 20 lines of inline style ──
-
-type BtnVariant = 'blue' | 'red' | 'neutral'
-
-const VARIANT_STYLES: Record<
-  BtnVariant,
-  {
-    bg: string
-    border: string
-    color: string
-    hoverBg: string
-    hoverBorder: string
-    hoverColor: string
-  }
-> = {
-  blue: {
-    bg: 'rgba(75,158,255,0.08)',
-    border: 'rgba(75,158,255,0.22)',
-    color: '#B8D4FF',
-    hoverBg: 'rgba(75,158,255,0.14)',
-    hoverBorder: 'rgba(75,158,255,0.38)',
-    hoverColor: '#D0E4FF',
-  },
-  red: {
-    bg: 'rgba(242,92,92,0.06)',
-    border: 'rgba(242,92,92,0.18)',
-    color: '#E07878',
-    hoverBg: 'rgba(242,92,92,0.11)',
-    hoverBorder: 'rgba(242,92,92,0.3)',
-    hoverColor: '#F09090',
-  },
-  neutral: {
-    bg: 'rgba(255,255,255,0.04)',
-    border: 'rgba(255,255,255,0.09)',
-    color: '#7A7890',
-    hoverBg: 'rgba(255,255,255,0.07)',
-    hoverBorder: 'rgba(255,255,255,0.14)',
-    hoverColor: '#B0AECB',
-  },
-}
-
-function Btn({
-  onClick,
-  variant,
-  children,
-  disabled = false,
-}: {
-  onClick: () => void
-  variant: BtnVariant
-  children: React.ReactNode
-  disabled?: boolean
-}) {
-  const v = VARIANT_STYLES[variant]
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 44,
-        minWidth: 100,
-        padding: '0 18px',
-        borderRadius: 12,
-        fontSize: 14,
-        fontWeight: 600,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.5 : 1,
-        transition: 'all 0.15s',
-        background: v.bg,
-        border: `1px solid ${v.border}`,
-        color: v.color,
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget
-        el.style.background = v.hoverBg
-        el.style.borderColor = v.hoverBorder
-        el.style.color = v.hoverColor
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget
-        el.style.background = v.bg
-        el.style.borderColor = v.border
-        el.style.color = v.color
-      }}
-    >
-      {children}
-    </button>
-  )
-}
-
-// ── Small chip button — matches BottomActionRow's Configure/Fullscreen style ──
-
-function ChipBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        background: 'var(--color-surface-overlay)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 10,
-        padding: '7px 12px',
-        fontSize: 12,
-        fontWeight: 500,
-        color: 'var(--color-text-muted)',
-        cursor: 'pointer',
-        transition: 'color 0.15s, background 0.15s',
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget
-        el.style.color = 'var(--color-text)'
-        el.style.background = 'var(--color-surface-raised)'
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget
-        el.style.color = 'var(--color-text-muted)'
-        el.style.background = 'var(--color-surface-overlay)'
-      }}
-    >
-      {children}
-    </button>
   )
 }

@@ -20,7 +20,7 @@ function computeSize(): number {
   if (w < 360) return 210
   if (w < 480) return 250
   if (w < 768) return 290
-  return 340
+  return 290
 }
 
 function useRingSize(): number {
@@ -44,8 +44,7 @@ export function TimerDisplay() {
   const typeLabel  = sessionType === 'focus' ? 'FOCUS' : 'BREAK'
   const countLabel = `${sessionCount} session${sessionCount === 1 ? '' : 's'} today`
 
-  // Focus = green, Break = blue
-  const ringColor = sessionType === 'focus' ? '#3DD68C' : 'var(--color-brand)'
+  const ringColor = sessionType === 'focus' ? 'var(--color-brand)' : '#7A7890'
 
   // Scale font proportionally to ring size (baseline: 340px ring → 72px / 48px)
   const scale    = ringSize / 340

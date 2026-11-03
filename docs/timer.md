@@ -28,16 +28,17 @@ AppLayout
 │                               Mounted once here (not per timer page) — see §4.
 └── TimerStatusToast         — global recovery, save, and timer-action feedback
 
-TimerPage
+TimerPage — two-column timer workspace
 ├── useSaveSession()         — TanStack Query mutation → trusted start, pause,
 │                               resume, finish, and cancel timer RPCs
 │
 ├── TimerModeSelector        — shadcn Tabs: Pomodoro / Custom / Free
 ├── SessionDots              — 2 dots showing focus ● / break ○ position
 ├── TimerDisplay             — ProgressRing + countdown + label
-│   └── ProgressRing         — SVG stroke ring (340px, 6px stroke)
+│   └── ProgressRing         — responsive SVG stroke ring (290px desktop)
 ├── TimerControls            — Start / Pause / Resume / Stop / Skip Break buttons
-├── BottomActionRow          — Configure / Fullscreen / Log (soon) / Todo (soon)
+├── TimerTools               — Log / Todo / Fullscreen / Session settings
+├── TimerContext             — live project/task selectors and current rhythm
 │
 ├── TimerSettings            — shadcn Sheet (slides in from right, no overlay)
 │   ├── TypePills            — Timer / Free switcher
@@ -45,7 +46,6 @@ TimerPage
 │   ├── Switch (shadcn)      — Auto-start toggles
 │   ├── Preset pills         — 25/5, 50/10, 90/20, Custom (Pomodoro mode only)
 │   ├── Session Preview bar  — visual focus/break ratio
-│   └── TimerProjectSelector — native <select> for project + task
 │
 └── TimerFullscreen          — native OS fullscreen overlay (z-50)
     ├── TimerDisplay
@@ -300,7 +300,6 @@ Animation: `slide-in-from-right / slide-out-to-right`, `duration-300` (via tailw
 | Auto-start      | Switch (shadcn)      | Auto-start Break / Auto-start Focus toggles                                          |
 | Presets         | Pill buttons         | 25/5, 50/10, 90/20, Custom — Pomodoro mode only                                      |
 | Session Preview | Custom bar           | Visual ratio of focus/break duration                                                 |
-| Project & Task  | TimerProjectSelector | Native `<select>` elements                                                           |
 
 ---
 
@@ -360,13 +359,11 @@ Buttons disabled at min/max boundaries.
 
 **File:** `src/pages/TimerPage.tsx`
 
-Root of the timer feature. It composes the mode selector, phase selector, display, controls, settings, notes/todo panels, and fullscreen view. Natural completion and restore logic intentionally live in the single global `useTimerEffects()` instance rather than this route component.
+Root of the timer feature. The left workspace contains mode and phase selectors, the display, controls, and tools. The right rail exposes live project/task selectors, current focus/break durations, and a fullscreen action. On narrow screens the rail stacks beneath the timer. Settings, notes/todo panels, and fullscreen view remain mounted. Natural completion and restore logic intentionally live in the single global `useTimerEffects()` instance rather than this route component.
 
 `TimerControls` owns its Start/Pause/Resume/Stop mutation. The route does not create a second Stop mutation, ensuring that the button's pending state matches the request it triggered.
 
-**SessionDots:** Two 8px circles, brand-colored when active, `surface-overlay` when inactive. Hidden in free mode.
-
-**BottomActionRow:** Configure, Fullscreen, Log, and Todo.
+**TimerTools:** Log, Todo, Fullscreen, and Session settings. Project and task selection moved from the settings sheet into the right rail.
 
 ---
 

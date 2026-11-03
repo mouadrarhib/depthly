@@ -5,23 +5,20 @@ import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { TimerFullscreen } from '@/components/timer/TimerFullscreen'
 import { TimerModeSelector } from '@/components/timer/TimerModeSelector'
 import { TimerNotesPanel } from '@/components/timer/TimerNotesPanel'
+import { TimerProjectSelector } from '@/components/timer/TimerProjectSelector'
 import { TimerSettings } from '@/components/timer/TimerSettings'
 import { TimerTodoPanel } from '@/components/timer/TimerTodoPanel'
 import { useUiStore } from '@/store'
 import { useTimerStore } from '@/store/timerStore'
 
-// ── Phase selector — clickable focus/break cycle switcher ────────────────
-
 type PhaseKey = 'focus' | 'break'
 
 function PhaseSelector() {
   const { mode, sessionType, isRunning, isPaused } = useTimerStore()
-
   if (mode === 'free') return null
 
-  const handleSwitch = (phase: PhaseKey) => {
-    if (phase === sessionType) return
-    if (isRunning || isPaused) return
+  const switchPhase = (phase: PhaseKey) => {
+    if (phase === sessionType || isRunning || isPaused) return
     useTimerStore.setState((state) => ({
       sessionType: phase,
       duration: phase === 'break' ? state.breakDuration : state.focusDuration,
@@ -29,73 +26,54 @@ function PhaseSelector() {
     }))
   }
 
-  const phases: { key: PhaseKey; label: string }[] = [
-    { key: 'focus', label: 'Focus' },
-    { key: 'break', label: 'Break' },
-  ]
-
   return (
-    <div className="flex items-center gap-1 rounded-lg border border-depth-border bg-depth-surface p-1" aria-label="Timer phase">
-      {phases.map(({ key, label }) => {
-        const isActive = sessionType === key
-        return (
-          <button
-            key={key}
-            type="button"
-            onClick={() => handleSwitch(key)}
-            disabled={isActive || isRunning || isPaused}
-            aria-pressed={isActive}
-            className={`min-w-[72px] rounded-md px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.1em] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
-              isActive
-                ? 'bg-depth-raised text-ink-primary'
-                : 'text-ink-muted hover:bg-depth-raised hover:text-ink-primary disabled:cursor-not-allowed disabled:opacity-40'
-            }`}
-          >
-            {label}
-          </button>
-        )
-      })}
+    <div className="flex items-center gap-1 rounded-xl border border-depth-border bg-depth-raised p-1" aria-label="Timer phase">
+      {(['focus', 'break'] as const).map((phase) => (
+        <button
+          key={phase}
+          type="button"
+          onClick={() => switchPhase(phase)}
+          disabled={phase === sessionType || isRunning || isPaused}
+          aria-pressed={phase === sessionType}
+          className={`min-h-9 min-w-24 rounded-lg px-3 text-xs font-semibold capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${phase === sessionType ? 'bg-depth-border text-ink-primary' : 'text-ink-secondary hover:text-ink-primary disabled:cursor-not-allowed disabled:opacity-50'}`}
+        >
+          {phase}
+        </button>
+      ))}
     </div>
   )
 }
 
-// ── Bottom action row ─────────────────────────────────────────────────────
+function openFullscreen(toggleFullscreen: () => void) {
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {})
+  }
+  toggleFullscreen()
+}
 
-function BottomActionRow() {
-  const toggleSettings   = useUiStore((s) => s.toggleSettings)
-  const toggleFullscreen = useUiStore((s) => s.toggleFullscreen)
-  const toggleLog        = useUiStore((s) => s.toggleLog)
-  const toggleTodo       = useUiStore((s) => s.toggleTodo)
-
+function TimerTools() {
+  const toggleSettings = useUiStore((state) => state.toggleSettings)
+  const toggleFullscreen = useUiStore((state) => state.toggleFullscreen)
+  const toggleLog = useUiStore((state) => state.toggleLog)
+  const toggleTodo = useUiStore((state) => state.toggleTodo)
   const actions = [
-    { label: 'Configure', icon: Settings2, onClick: toggleSettings },
-    {
-      label: 'Fullscreen',
-      icon: Expand,
-      onClick: () => {
-        // Native Fullscreen API is unsupported on iOS Safari and some mobile
-        // WebViews, so the app overlay remains the reliable fallback.
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen().catch(() => {})
-        }
-        toggleFullscreen()
-      },
-    },
     { label: 'Log', icon: NotebookPen, onClick: toggleLog },
     { label: 'Todo', icon: ListChecks, onClick: toggleTodo },
+    { label: 'Fullscreen', icon: Expand, onClick: () => openFullscreen(toggleFullscreen) },
+    { label: 'Session settings', icon: Settings2, onClick: toggleSettings },
   ]
 
   return (
-    <div className="flex items-center divide-x divide-depth-border overflow-hidden rounded-xl border border-depth-border bg-depth-surface p-1">
+    <div className="grid grid-cols-4 gap-1 border-t border-depth-border pt-4">
       {actions.map(({ label, icon: Icon, onClick }) => (
         <button
           key={label}
           type="button"
           onClick={onClick}
-          title={label}
-          className="flex min-h-9 items-center justify-center gap-2 rounded-lg px-3 text-[12px] font-medium text-ink-secondary transition-colors duration-200 hover:bg-depth-raised hover:text-ink-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:min-w-[96px]"
+          aria-label={label}
+          className="flex min-h-11 items-center justify-center gap-2 rounded-lg px-1 text-xs font-medium text-ink-secondary transition-colors hover:bg-depth-raised hover:text-ink-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
-          <Icon size={15} strokeWidth={1.8} aria-hidden="true" />
+          <Icon size={16} aria-hidden="true" />
           <span className="hidden sm:inline">{label}</span>
         </button>
       ))}
@@ -103,39 +81,92 @@ function BottomActionRow() {
   )
 }
 
-// ── Timer page ─────────────────────────────────────────────────────────────
+function TimerContext() {
+  const { mode, focusDuration, breakDuration, isRunning, isPaused } = useTimerStore()
+  const toggleSettings = useUiStore((state) => state.toggleSettings)
+  const toggleFullscreen = useUiStore((state) => state.toggleFullscreen)
+
+  return (
+    <aside className="flex min-w-0 flex-col gap-4 lg:gap-5" aria-label="Timer context">
+      <section className="rounded-2xl border border-depth-border bg-depth-surface p-5">
+        <h2 className="text-base font-semibold text-ink-primary">What are you working on?</h2>
+        <p className="mt-1 text-xs leading-5 text-ink-secondary">Connect this session to your work.</p>
+        <div className="mt-6 space-y-2">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-ink-secondary">Project and task</p>
+          <TimerProjectSelector />
+        </div>
+        <p className="mt-4 text-xs text-ink-secondary">You can also focus without a project.</p>
+      </section>
+
+      <section className="rounded-2xl border border-depth-border bg-depth-surface p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-ink-primary">Session rhythm</h2>
+            <p className="mt-1 text-xs text-ink-secondary">{mode === 'free' ? 'Count up at your own pace' : mode === 'custom' ? 'Custom durations' : 'Current Pomodoro preset'}</p>
+          </div>
+          <button type="button" onClick={toggleSettings} className="inline-flex min-h-9 items-center text-xs font-medium text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Edit</button>
+        </div>
+        {mode === 'free' ? (
+          <p className="mt-6 border-t border-depth-border pt-5 text-sm text-ink-secondary">The timer counts up until you stop the session.</p>
+        ) : (
+          <div className="mt-5 space-y-4 border-t border-depth-border pt-5 text-sm">
+            <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-ink-primary"><span className="size-2.5 rounded-full bg-brand" />Focus</span><span className="font-data text-ink-primary">{Math.round(focusDuration / 60)} min</span></div>
+            <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-ink-primary"><span className="size-2.5 rounded-full bg-ink-secondary" />Break</span><span className="font-data text-ink-primary">{Math.round(breakDuration / 60)} min</span></div>
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-depth-border bg-depth-surface p-5">
+        <h2 className="text-base font-semibold text-ink-primary">Stay in the moment</h2>
+        <p className="mt-2 text-xs leading-5 text-ink-secondary">Fullscreen gives your timer a quieter view when you are ready to work.</p>
+        <button type="button" onClick={() => openFullscreen(toggleFullscreen)} className="mt-5 inline-flex min-h-9 items-center text-xs font-semibold text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open fullscreen →</button>
+        {(isRunning || isPaused) && <p className="mt-2 text-xs text-ink-secondary">Your session continues across the app.</p>}
+      </section>
+    </aside>
+  )
+}
 
 export function TimerPage() {
+  const { mode, focusDuration, breakDuration } = useTimerStore()
+  const toggleSettings = useUiStore((state) => state.toggleSettings)
+
   return (
     <>
-      {/* Main centered area — fills the full available space */}
-      <main className="mx-auto flex h-full min-h-0 w-full max-w-[760px] flex-col items-center justify-center overflow-hidden px-1">
-        <h1 className="sr-only">Focus timer</h1>
+      <div className="mx-auto w-full max-w-[1180px] space-y-5 py-2 sm:space-y-6 sm:py-5">
+        <header className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-[26px] font-semibold tracking-[-0.03em] text-ink-primary sm:text-[30px]">Make space to focus.</h1>
+            <p className="mt-1 text-sm text-ink-secondary">Choose your rhythm, connect your work, and begin.</p>
+          </div>
+          <button type="button" onClick={toggleSettings} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-depth-border bg-depth-raised px-4 text-sm font-medium text-ink-primary hover:bg-depth-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <Settings2 size={16} aria-hidden="true" /> Configure
+          </button>
+        </header>
 
-        <div className="mb-4 flex flex-col items-center gap-2.5 sm:mb-5 [@media(max-height:720px)]:mb-3 [@media(max-height:720px)]:gap-2">
-          <TimerModeSelector />
-          <PhaseSelector />
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(300px,0.87fr)] lg:gap-5">
+          <section className="flex min-w-0 flex-col rounded-2xl border border-depth-border bg-depth-surface p-4 sm:p-6 lg:min-h-[680px]" aria-label="Focus timer">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-depth-border pb-5">
+              <TimerModeSelector />
+              <p className="text-xs text-ink-secondary">
+                {mode === 'free' ? 'Count up freely' : `${Math.round(focusDuration / 60)} min focus · ${Math.round(breakDuration / 60)} min break`}
+              </p>
+            </div>
+            <div className="flex flex-1 flex-col items-center justify-center py-8">
+              <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-secondary">Session phase</p>
+              <PhaseSelector />
+              <div className="mt-8"><TimerDisplay /></div>
+              <div className="mt-7 flex w-full justify-center"><TimerControls /></div>
+            </div>
+            <TimerTools />
+          </section>
+          <TimerContext />
         </div>
+      </div>
 
-        <TimerDisplay />
-
-        <div className="mt-4 flex w-full justify-center sm:mt-5 [@media(max-height:720px)]:mt-3">
-          <TimerControls />
-        </div>
-
-        <div className="mt-3 sm:mt-4 [@media(max-height:720px)]:mt-2">
-          <BottomActionRow />
-        </div>
-      </main>
-
-      {/* Fixed right-side slide-in panels */}
       <TimerSettings />
       <TimerNotesPanel />
       <TimerTodoPanel />
-
-      {/* Fixed fullscreen overlay */}
       <TimerFullscreen />
-
     </>
   )
 }

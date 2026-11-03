@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title description">
+  <title id="title">Depthly dashboard design concept</title>
+  <desc id="description">A professional dark dashboard concept with a prominent focus timer, daily progress, recent sessions, and a weekly activity chart. Illustrative sample data.</desc>
+  <defs>
+    <style>
+      text { font-family: Inter, Arial, sans-serif; fill: #E8E6F0; }
+      .muted { fill: #9290A4; }
+      .quiet { fill: #69677B; }
+      .mono { font-family: 'JetBrains Mono', monospace; }
+      .small { font-size: 12px; }
+      .label { font-size: 13px; font-weight: 600; }
+      .rule { stroke: #2E2E38; stroke-width: 1; }
+    </style>
+    <linearGradient id="focusSurface" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#181E2A"/><stop offset="1" stop-color="#141417"/>
+    </linearGradient>
+    <clipPath id="timerClip"><circle cx="872" cy="393" r="108"/></clipPath>
+  </defs>
+
+  <rect width="1440" height="900" fill="#0D0D10"/>
+  <rect width="224" height="900" fill="#121317"/>
+  <path d="M224 0V900M224 64H1440" class="rule"/>
+
+  <!-- Navigation -->
+  <circle cx="32" cy="31" r="13" fill="none" stroke="#E8E6F0" stroke-width="1.4"/>
+  <circle cx="32" cy="31" r="8" fill="none" stroke="#7A7890" stroke-width="1"/>
+  <circle cx="32" cy="31" r="2.8" fill="#4B9EFF"/>
+  <text x="56" y="37" font-size="17" font-weight="650">Depthly</text>
+  <text x="24" y="103" class="small quiet" letter-spacing="1.5">WORKSPACE</text>
+  <rect x="12" y="116" width="200" height="42" rx="9" fill="#1C2B40"/>
+  <rect x="12" y="126" width="3" height="22" rx="1.5" fill="#4B9EFF"/>
+  <g fill="none" stroke="#4B9EFF" stroke-width="1.5"><rect x="29" y="130" width="5" height="5" rx="1"/><rect x="38" y="130" width="5" height="5" rx="1"/><rect x="29" y="139" width="5" height="5" rx="1"/><rect x="38" y="139" width="5" height="5" rx="1"/></g>
+  <text x="60" y="143" font-size="14" font-weight="600">Home</text>
+  <g class="muted" font-size="14"><text x="60" y="195">Timer</text><text x="60" y="238">Projects</text><text x="60" y="281">Sessions</text><text x="60" y="324">Analytics</text><text x="60" y="367">Leaderboard</text><text x="60" y="410">Billing</text></g>
+  <g fill="none" stroke="#9290A4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="36" cy="190" r="8"/><path d="M36 185v5l3 2"/>
+    <path d="M28 231h6l2 2h8v8H28z"/>
+    <circle cx="36" cy="276" r="8"/><path d="M36 271v5l4 2"/>
+    <path d="M29 321v-7m7 7v-13m7 13v-10"/>
+    <path d="M30 356h12v7H30zM32 363l4 5 4-5"/>
+    <rect x="29" y="402" width="14" height="10" rx="2"/>
+  </g>
+  <path d="M0 804H224" class="rule"/>
+  <circle cx="35" cy="837" r="16" fill="#253249"/><text x="35" y="842" text-anchor="middle" font-size="13" font-weight="600">M</text>
+  <text x="60" y="835" class="label">Med</text><text x="60" y="852" class="small muted">Founding plan</text>
+  <text x="29" y="885" class="small muted">Settings</text><text x="184" y="885" class="small muted">↗</text>
+
+  <!-- Top bar -->
+  <text x="256" y="38" font-size="15" font-weight="600">Home</text>
+  <text x="314" y="38" class="small muted">Your focused workspace</text>
+  <text x="1172" y="38" class="small muted">Tuesday, 3 November</text>
+  <circle cx="1386" cy="32" r="16" fill="#253249"/><text x="1386" y="37" text-anchor="middle" font-size="13" font-weight="600">M</text>
+
+  <!-- Header -->
+  <text x="256" y="117" font-size="30" font-weight="600" letter-spacing="-1">Good afternoon, Med</text>
+  <text x="256" y="145" font-size="14" class="muted">Make room for one focused block of work.</text>
+  <rect x="1135" y="92" width="273" height="58" rx="11" fill="#141417" stroke="#2E2E38"/>
+  <text x="1154" y="115" class="small muted">TODAY SO FAR</text>
+  <text x="1154" y="137" class="mono" font-size="16" font-weight="600">66 min</text>
+  <path d="M1266 103V139" class="rule"/>
+  <text x="1285" y="115" class="small muted">SESSIONS</text>
+  <text x="1285" y="137" class="mono" font-size="16" font-weight="600">3</text>
+
+  <!-- Focus surface -->
+  <rect x="256" y="174" width="750" height="396" rx="16" fill="url(#focusSurface)" stroke="#2E2E38"/>
+  <text x="288" y="209" class="small muted" letter-spacing="1.2">FOCUS SESSION</text>
+  <text x="288" y="259" font-size="28" font-weight="600" letter-spacing="-.7">Start with your next task.</text>
+  <text x="288" y="287" font-size="14" class="muted">A quiet timer that keeps your work connected to progress.</text>
+  <rect x="288" y="327" width="280" height="57" rx="10" fill="#20232C" stroke="#3A3B48"/>
+  <text x="305" y="348" class="small muted">PROJECT</text><text x="305" y="370" class="label">LanguageCert</text><path d="m542 352 6 6 6-6" fill="none" stroke="#9290A4" stroke-width="1.5"/>
+  <rect x="288" y="394" width="280" height="57" rx="10" fill="#20232C" stroke="#3A3B48"/>
+  <text x="305" y="415" class="small muted">TASK</text><text x="305" y="437" class="label">Reading + Listening</text><path d="m542 419 6 6 6-6" fill="none" stroke="#9290A4" stroke-width="1.5"/>
+  <rect x="288" y="477" width="236" height="52" rx="10" fill="#4B9EFF"/>
+  <path d="m312 493 16 10-16 10z" fill="#0D0D10"/>
+  <text x="345" y="509" fill="#0D0D10" font-size="15" font-weight="650" style="fill:#0D0D10">Start focus session</text>
+  <text x="544" y="509" class="small muted">Open full timer →</text>
+  <circle cx="872" cy="393" r="108" fill="#111924" stroke="#344154" stroke-width="12"/>
+  <circle cx="872" cy="393" r="108" fill="none" stroke="#4B9EFF" stroke-width="12" stroke-linecap="round" stroke-dasharray="270 680" transform="rotate(-90 872 393)"/>
+  <circle cx="872" cy="393" r="89" fill="none" stroke="#283342" stroke-width="1"/>
+  <text x="872" y="385" text-anchor="middle" class="mono" font-size="48" font-weight="600">25:00</text>
+  <text x="872" y="412" text-anchor="middle" class="small muted" letter-spacing="1.8">READY TO FOCUS</text>
+  <text x="872" y="436" text-anchor="middle" class="small quiet">Pomodoro</text>
+
+  <!-- Right: daily goal -->
+  <rect x="1024" y="174" width="384" height="188" rx="16" fill="#141417" stroke="#2E2E38"/>
+  <text x="1048" y="208" font-size="16" font-weight="600">Daily goal</text>
+  <text x="1048" y="238" class="small muted">Keep your target in view as you work.</text>
+  <text x="1048" y="295" class="mono" font-size="30" font-weight="600">66 <tspan font-size="15" fill="#9290A4">/ 120 min</tspan></text>
+  <rect x="1048" y="314" width="336" height="8" rx="4" fill="#292C35"/>
+  <rect x="1048" y="314" width="185" height="8" rx="4" fill="#4B9EFF"/>
+  <text x="1048" y="344" class="small muted">54 min to your target</text>
+  <text x="1378" y="344" text-anchor="end" class="small" style="fill:#4B9EFF">55%</text>
+
+  <!-- Right: weekly focus -->
+  <rect x="1024" y="380" width="384" height="190" rx="16" fill="#141417" stroke="#2E2E38"/>
+  <text x="1048" y="414" font-size="16" font-weight="600">This week</text>
+  <text x="1384" y="414" text-anchor="end" class="small muted">Focus minutes</text>
+  <path d="M1048 519H1384" stroke="#34343D" stroke-width="1"/>
+  <g fill="#354258"><rect x="1063" y="480" width="24" height="39" rx="4"/><rect x="1108" y="461" width="24" height="58" rx="4"/><rect x="1198" y="490" width="24" height="29" rx="4"/><rect x="1243" y="474" width="24" height="45" rx="4"/></g>
+  <rect x="1153" y="446" width="24" height="73" rx="4" fill="#4B9EFF"/>
+  <g fill="#282A31"><rect x="1288" y="503" width="24" height="16" rx="4"/><rect x="1333" y="503" width="24" height="16" rx="4"/></g>
+  <g class="small muted" text-anchor="middle"><text x="1075" y="545">M</text><text x="1120" y="545">T</text><text x="1165" y="545">W</text><text x="1210" y="545">T</text><text x="1255" y="545">F</text><text x="1300" y="545">S</text><text x="1345" y="545">S</text></g>
+
+  <!-- Recent sessions -->
+  <rect x="256" y="588" width="750" height="273" rx="16" fill="#141417" stroke="#2E2E38"/>
+  <text x="280" y="624" font-size="17" font-weight="600">Recent sessions</text>
+  <text x="982" y="624" text-anchor="end" class="small" style="fill:#4B9EFF">View all →</text>
+  <path d="M280 645H982M280 713H982M280 781H982" class="rule"/>
+  <g class="mono small muted"><text x="280" y="682">11:37</text><text x="280" y="750">11:21</text><text x="280" y="818">10:37</text></g>
+  <g fill="#4B9EFF"><circle cx="354" cy="677" r="3"/><circle cx="354" cy="745" r="3"/><circle cx="354" cy="813" r="3"/></g>
+  <g font-size="14" font-weight="600"><text x="370" y="679">Reading + Listening</text><text x="370" y="747">Vocabulary review</text><text x="370" y="815">Practice exam</text></g>
+  <g class="small muted"><text x="370" y="697">LanguageCert</text><text x="370" y="765">LanguageCert</text><text x="370" y="833">LanguageCert</text></g>
+  <g class="mono" font-size="14" text-anchor="end"><text x="956" y="686">12 min</text><text x="956" y="754">12 min</text><text x="956" y="822">42 min</text></g>
+
+  <!-- Right: momentum / links -->
+  <rect x="1024" y="588" width="384" height="273" rx="16" fill="#141417" stroke="#2E2E38"/>
+  <text x="1048" y="624" font-size="17" font-weight="600">Keep moving</text>
+  <text x="1048" y="650" class="small muted">Your next useful places.</text>
+  <path d="M1048 669H1384M1048 729H1384M1048 789H1384" class="rule"/>
+  <g class="label"><text x="1048" y="704">Projects</text><text x="1048" y="764">Analytics</text><text x="1048" y="824">Sessions</text></g>
+  <g class="small muted"><text x="1048" y="720">Choose what to work on</text><text x="1048" y="780">Review focus patterns</text><text x="1048" y="840">Browse your history</text></g>
+  <g class="small muted" text-anchor="end"><text x="1384" y="707">→</text><text x="1384" y="767">→</text><text x="1384" y="827">→</text></g>
+  <text x="1408" y="885" text-anchor="end" font-size="11" class="quiet">Concept only · illustrative data</text>
+</svg>
