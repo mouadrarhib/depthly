@@ -42,8 +42,12 @@ export function HeroSection() {
             <span className="block text-brand">We&apos;ll track the time.</span>
           </h1>
 
-          <p data-hero className="mt-6 max-w-[540px] text-base leading-relaxed text-ink-primary/80 sm:mt-8">
-            Track focused sessions by project, work toward a daily goal, and see where your time went.
+          <p
+            data-hero
+            className="mt-6 max-w-[540px] text-base leading-relaxed text-ink-primary/80 sm:mt-8"
+          >
+            Whether you&apos;re studying or working with clients, track focused sessions by task,
+            work toward a daily goal, and see where your time goes.
           </p>
 
           <div

@@ -14,7 +14,6 @@ import { LeaderboardMockup } from '@/components/landing/LeaderboardMockup'
 import { OverviewSection } from '@/components/landing/OverviewSection'
 import { PricingSection } from '@/components/landing/PricingSection'
 import { FeatureBlock } from '@/components/landing/primitives'
-import { ProjectsSupportSection } from '@/components/landing/ProjectsSupportSection'
 import { scrollToSection } from '@/components/landing/scrollToSection'
 import { ShareProgressMockup } from '@/components/landing/ShareProgressMockup'
 import { TimerMockup } from '@/components/landing/TimerMockup'
@@ -160,9 +159,6 @@ export function LandingPage() {
             </div>
           </div>
         </FeatureSection>
-
-        {/* 5 — Projects and tasks support the focus loop */}
-        <ProjectsSupportSection />
 
         <PricingSection />
 

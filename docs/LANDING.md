@@ -31,7 +31,8 @@ to start alone and invite others only when useful.
 2. Hero with the two-line headline, specific copy connecting project sessions to daily goals and progress, a
    free-signup CTA, and a jump to the product flow. A connected product preview
    replaces the decorative study photo: completed timer → daily goal → weekly progress.
-3. Five-stage overview: Focus, Set goals, See progress, Share, Focus together.
+3. Four-step workflow overview: keep related work in a project, choose a task,
+   focus on it, and see that session add to personal progress.
 4. Trusted focus timer: timer-tracked sessions become trusted progress.
 5. Daily goals and Analytics: explicit goal progress, history, heatmaps, trends,
    and project breakdowns.
@@ -41,9 +42,8 @@ to start alone and invite others only when useful.
    partners, freelancer peers, and accountability friends, plus shared goals,
    reset periods, and group-scoped visibility. Friends and public/global
    rankings are optional secondary paths.
-8. Compact Projects & Tasks support block using the kanban mockup.
-9. Free, Pro, and Lifetime pricing with a short policy-backed FAQ.
-10. Closing CTA and footer.
+8. Free, Pro, and Lifetime pricing with a short policy-backed FAQ.
+9. Closing CTA and footer.
 
 ## Pricing claims
 
@@ -65,7 +65,7 @@ trusted focus time, session count, and goal progress visibility.
 ## Rendering, motion, and responsive behavior
 
 The hero preserves “Focus on the work. We'll track the time.” Its single
-connected product preview shows a completed 25-minute Research paper / Write
+connected product preview shows a completed 25-minute Project Alpha / Research
 outline session, 75 of a 120-minute daily goal, and a seven-day chart totaling
 five hours. These are explicitly illustrative values, not visitor data or
 customer proof. The preview has one accessible image summary and no mock
@@ -84,11 +84,11 @@ and count-up motion run once when their preview enters view.
 
 The focus path overview intentionally does not use the generic
 `data-reveal-group` animation. It has a dedicated GSAP timeline identified by
-`data-focus-path`: the heading enters first, followed by five numbered steps
-in product order: Focus, Set goals, See progress, Share, Focus together. The
-ordered rail uses simple separators instead of repeated cards and icons. Each
-desktop timeline reveals the heading, then each step one by one. On phones,
-each step rises into view when its row reaches the viewport. Each entrance runs once.
+`data-focus-path`: the heading and explanatory copy enter first, followed by
+four linked previews in product order: project, task, focus session, and
+progress. Each desktop timeline reveals the heading, then each step one by one.
+On phones, each step rises into view when its row reaches the viewport. Each
+entrance runs once. The labels and example are illustrative.
 
 The Trusted focus section keeps its static timer preview and explains the
 session-to-progress link with two concise details: active-timer recovery and
@@ -109,12 +109,10 @@ explains daily, creation-anchored seven-day, and monthly rounds, optional
 goals, member-only visibility, and Free participation without a public profile.
 The static preview does not present an unusable invite button.
 
-The Projects and Tasks support section is a short, unboxed transition before
-pricing. Its example kanban board contains tasks from one research project and
-shows focus time on individual tasks and the project. The example is labeled
-and has an accessible image description; it does not imply tasks from separate
-projects share one board. Its tinted status columns, status dots and counts,
-priority badges, and task-card treatment follow the real Kanban components.
+The project and task relationship is explained in the workflow overview, so a
+separate Projects & Tasks section is omitted to keep the landing page concise.
+The timer preview repeats the same example project and task to connect the
+workflow to the real product surface.
 
 All animation is disabled by `prefers-reduced-motion`, leaving every element in
 its normal visible layout. Same-page and cross-route section jumps use instant
@@ -185,7 +183,7 @@ src/components/landing/
 - The document has one vertical scroll owner and no nested page-level scrollbar
   while animations are waiting or running.
 - Hero content remains readable with normal and reduced motion.
-- The focus-path heading and all five steps animate in order when scrolled into
+- The focus-path heading and all four steps animate in order when scrolled into
   view and remain static and visible with reduced motion enabled.
 - The complete Analytics composition is visible at once with both columns
   vertically centered at 1920×1080 and 1536×864; it also remains within the

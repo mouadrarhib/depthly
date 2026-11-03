@@ -74,6 +74,15 @@ export function TimerMockup() {
         </span>
       </div>
 
+      <div className="mb-6 w-full max-w-[300px] rounded-lg border border-depth-border bg-depth-surface px-4 py-3 text-left">
+        <p className="text-[10px] font-medium uppercase tracking-wide text-ink-secondary">
+          Project · Task
+        </p>
+        <p className="mt-1 text-sm font-medium text-ink-primary">
+          Project Alpha <span className="text-ink-secondary">·</span> Research outline
+        </p>
+      </div>
+
       <ProgressRing progress={progress} size={240} strokeWidth={6} color="#4B9EFF">
         <div className="flex flex-col items-center">
           <span

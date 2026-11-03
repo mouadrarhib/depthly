@@ -19,7 +19,7 @@ export function HeroProductPreview() {
     <figure className="m-0 w-full min-w-0">
       <Card
         role="img"
-        aria-label="Example Depthly progress: a completed 25-minute session for Research paper, Write outline. Today's focus is 75 of a 120-minute daily goal. The seven-day chart totals five hours."
+        aria-label="Example Depthly progress: a completed 25-minute Research outline session in Project Alpha. Today's focus is 75 of a 120-minute daily goal. The seven-day chart totals five hours."
         className="overflow-hidden rounded-xl border-depth-border bg-depth-surface p-5 shadow-none sm:p-7"
       >
         <div className="flex items-center justify-between gap-3 text-sm text-ink-primary/80">
@@ -33,8 +33,8 @@ export function HeroProductPreview() {
           <p className="font-data text-5xl font-medium leading-none tracking-tight text-ink-primary sm:text-6xl">
             25:00
           </p>
-          <p className="mt-4 text-base font-medium text-ink-primary">Write outline</p>
-          <p className="mt-1 text-sm text-ink-primary/75">Research paper</p>
+          <p className="mt-4 text-base font-medium text-ink-primary">Research outline</p>
+          <p className="mt-1 text-sm text-ink-primary/75">Project Alpha</p>
         </div>
 
         <div data-hero-goal className="border-t border-depth-border py-5">

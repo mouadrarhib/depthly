@@ -25,7 +25,7 @@ const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 // picker's PRESET_COLORS (ProjectModal.tsx), skipping the streak green
 // (#C8FF64), which is reserved for StreakBadge.
 const PROJECTS: { name: string; minutes: number; color: string }[] = [
-  { name: 'Client Work', minutes: 140, color: '#4B9EFF' },
+  { name: 'Project Alpha', minutes: 140, color: '#4B9EFF' },
   { name: 'Side Project', minutes: 95, color: '#F5A623' },
   { name: 'Deep Work', minutes: 60, color: '#A78BFA' },
   { name: 'Learning', minutes: 35, color: '#3DD68C' },

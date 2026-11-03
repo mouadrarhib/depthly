@@ -84,11 +84,22 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
             )
           }
 
-          pathTimeline.fromTo(
-            pathSteps,
-            { y: 18, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.36, stagger: 0.3, ease: 'power3.out' }
-          )
+          pathSteps.forEach((step) => {
+            pathTimeline.fromTo(
+              step,
+              { y: 14, opacity: 0 },
+              { y: 0, opacity: 1, duration: 0.42, ease: 'power3.out' }
+            )
+            const connector = step.querySelector('[data-focus-connector]')
+            if (connector) {
+              pathTimeline.fromTo(
+                connector,
+                { opacity: 0, scale: 0.55 },
+                { opacity: 1, scale: 1, duration: 0.22, ease: 'power2.out' },
+                '-=0.08'
+              )
+            }
+          })
         } else {
           if (pathHeader) {
             gsap.fromTo(
@@ -105,17 +116,22 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
           }
 
           pathSteps.forEach((step) => {
-            gsap.fromTo(
+            const stepTimeline = gsap.timeline({
+              scrollTrigger: { trigger: step, start: 'top 88%', once: true },
+            })
+            stepTimeline.fromTo(
               step,
-              { y: 18, opacity: 0 },
-              {
-                y: 0,
-                opacity: 1,
-                duration: 0.5,
-                ease: 'power3.out',
-                scrollTrigger: { trigger: step, start: 'top 88%', once: true },
-              }
+              { y: 14, opacity: 0 },
+              { y: 0, opacity: 1, duration: 0.42, ease: 'power3.out' }
             )
+            const connector = step.querySelector('[data-focus-connector]')
+            if (connector)
+              stepTimeline.fromTo(
+                connector,
+                { opacity: 0, scale: 0.55 },
+                { opacity: 1, scale: 1, duration: 0.22, ease: 'power2.out' },
+                '-=0.06'
+              )
           })
         }
       }
