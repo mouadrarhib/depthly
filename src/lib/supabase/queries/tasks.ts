@@ -11,6 +11,12 @@ export type CreateTaskInput = {
   status?: 'todo' | 'in_progress' | 'done'
   priority?: 'low' | 'medium' | 'high' | 'urgent'
   due_date?: string
+  planned_start_date?: string | null
+  planned_end_date?: string | null
+  scheduled_date?: string | null
+  repeat_days?: number[] | null
+  repeat_start_date?: string | null
+  repeat_end_date?: string | null
   estimated_pomodoros?: number
   list_order: number
   kanban_order: number
@@ -22,6 +28,12 @@ export type UpdateTaskInput = {
   status?: 'todo' | 'in_progress' | 'done'
   priority?: 'low' | 'medium' | 'high' | 'urgent'
   due_date?: string | null
+  planned_start_date?: string | null
+  planned_end_date?: string | null
+  scheduled_date?: string | null
+  repeat_days?: number[] | null
+  repeat_start_date?: string | null
+  repeat_end_date?: string | null
   estimated_pomodoros?: number | null
   list_order?: number
   kanban_order?: number
@@ -39,23 +51,33 @@ export async function fetchTasksByProject(projectId: string): Promise<Task[]> {
   return data
 }
 
+export async function fetchPlannerTasks(userId: string): Promise<Task[]> {
+  const tasks: Task[] = []
+  const pageSize = 500
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + pageSize - 1)
+
+    if (error) throw error
+    tasks.push(...data)
+    if (data.length < pageSize) break
+  }
+  return tasks
+}
+
 export async function fetchTaskById(id: string): Promise<Task> {
-  const { data, error } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('id', id)
-    .single()
+  const { data, error } = await supabase.from('tasks').select('*').eq('id', id).single()
 
   if (error) throw error
   return data
 }
 
 export async function createTask(data: CreateTaskInput): Promise<Task> {
-  const { data: task, error } = await supabase
-    .from('tasks')
-    .insert(data)
-    .select()
-    .single()
+  const { data: task, error } = await supabase.from('tasks').insert(data).select().single()
 
   if (error) throw error
   return task
@@ -74,10 +96,7 @@ export async function updateTask(id: string, data: UpdateTaskInput): Promise<Tas
 }
 
 export async function deleteTask(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('tasks')
-    .delete()
-    .eq('id', id)
+  const { error } = await supabase.from('tasks').delete().eq('id', id)
 
   if (error) throw error
 }
@@ -113,6 +132,12 @@ export async function duplicateTask(id: string): Promise<Task> {
       status: original.status,
       priority: original.priority,
       due_date: original.due_date,
+      planned_start_date: original.planned_start_date,
+      planned_end_date: original.planned_end_date,
+      scheduled_date: original.scheduled_date,
+      repeat_days: original.repeat_days,
+      repeat_start_date: original.repeat_start_date,
+      repeat_end_date: original.repeat_end_date,
       estimated_pomodoros: original.estimated_pomodoros,
       list_order: original.list_order + 0.5,
       kanban_order: original.kanban_order + 0.5,

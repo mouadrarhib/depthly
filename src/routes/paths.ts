@@ -26,6 +26,7 @@ export const PATHS = {
   timer:     '/timer',
   settings:  '/settings',
   projects:  '/projects',
+  planner:   '/planner',
   sessions:  '/sessions',
   analytics:   '/analytics',
   leaderboard: '/leaderboard',

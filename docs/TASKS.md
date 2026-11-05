@@ -25,6 +25,10 @@ Table: `tasks`
 | `status` | `task_status_type` | `'todo'` | Enum: `'todo' \| 'in_progress' \| 'done'` |
 | `priority` | `task_priority_type` | `'medium'` | Enum: `'low' \| 'medium' \| 'high' \| 'urgent'` |
 | `due_date` | `string \| null` | `null` | ISO date string `YYYY-MM-DD` (no time component) |
+| `planned_start_date`, `planned_end_date` | `string \| null` | `null` | Optional inclusive work-planning window; both set or both empty |
+| `scheduled_date` | `string \| null` | `null` | Intended work day, separate from the deadline |
+| `repeat_days` | `number[] \| null` | `null` | ISO weekdays selected for recurrence (Monday 1 through Sunday 7) |
+| `repeat_start_date`, `repeat_end_date` | `string \| null` | `null` | Start and optional end of the repeating schedule |
 | `list_order` | `number` (float) | generated | Sort position in list view |
 | `kanban_order` | `number` (float) | generated | Sort position within a kanban column |
 | `estimated_pomodoros` | `number \| null` | `null` | User-set focus session estimate |

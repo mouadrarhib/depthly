@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+<title id="title">Depthly monthly task planner concept</title><desc id="desc">A full month calendar for November 2026 with tasks placed on dates. November 5 is selected, and its tasks, unfinished work, and a focus action appear in a side panel.</desc>
+<defs><style>
+text{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.h{fill:#E8E6F0;font-weight:650;letter-spacing:-.025em}.b{fill:#D6D4E0}.m{fill:#9996AB}.f{fill:#777489}.blue{fill:#4B9EFF}.line{stroke:#30313A;stroke-width:1}.panel{fill:#15161C;stroke:#30313A;stroke-width:1}.pill{fill:#233650}.task{animation:enter .5s cubic-bezier(.16,1,.3,1) both}@keyframes enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){.task{animation:none}}
+</style></defs>
+<rect width="1440" height="900" fill="#0D0D10"/><rect width="224" height="900" fill="#131419"/><path d="M224 0V900M0 56H1440" class="line"/>
+<circle cx="29" cy="28" r="13" fill="none" stroke="#A7A8B7" stroke-width="1.3"/><circle cx="29" cy="28" r="8" fill="none" stroke="#A7A8B7"/><circle cx="29" cy="28" r="2" fill="#4B9EFF"/><text x="51" y="33" class="h" font-size="15">Depthly</text>
+<text x="248" y="34" class="h" font-size="14">Planner</text><path d="M310 17V39" class="line"/><text x="326" y="33" class="f" font-size="12">Your focused workspace</text><circle cx="1390" cy="28" r="15" fill="#29496E"/><text x="1390" y="33" fill="#E8E6F0" font-size="13" text-anchor="middle">M</text>
+<g font-size="14" class="m"><text x="48" y="94">Home</text><text x="48" y="140">Timer</text><text x="48" y="186">Projects</text><text x="48" y="232">Sessions</text><text x="48" y="278">Analytics</text><text x="48" y="324">Leaderboard</text><text x="48" y="370">Billing</text></g>
+<rect x="8" y="203" width="208" height="40" rx="9" fill="#1F3148" stroke="#315478"/><rect x="8" y="203" width="3" height="40" rx="1.5" fill="#4B9EFF"/><text x="48" y="229" fill="#DDEBFF" font-size="14" font-weight="600">Planner</text><text x="20" y="229" fill="#8BC1FF" font-size="15">▦</text>
+<path d="M0 789H224" class="line"/><circle cx="31" cy="824" r="14" fill="#29496E"/><text x="31" y="829" fill="#E8E6F0" font-size="13" text-anchor="middle">M</text><text x="53" y="824" class="b" font-size="13">Med</text><text x="53" y="840" class="f" font-size="11">Founding plan</text><text x="22" y="878" class="m" font-size="13">Settings</text>
+<text x="264" y="111" class="h" font-size="30">Plan your month</text><text x="264" y="140" class="m" font-size="14">Give your tasks a place in the week, then decide what to focus on today.</text>
+<rect x="1103" y="84" width="305" height="43" rx="10" class="panel"/><text x="1152" y="111" class="m" font-size="13" text-anchor="middle">Today</text><text x="1251" y="111" class="m" font-size="13" text-anchor="middle">Week</text><rect x="1310" y="88" width="94" height="35" rx="7" fill="#243A56"/><text x="1357" y="111" fill="#9BC9FF" font-size="13" font-weight="600" text-anchor="middle">Month</text>
+<text x="264" y="191" class="h" font-size="19">November 2026</text><text x="433" y="191" class="m" font-size="14">‹    ›</text><rect x="976" y="164" width="98" height="34" rx="8" fill="#4B9EFF"/><text x="1025" y="186" fill="#0D1723" font-size="12" text-anchor="middle" font-weight="700">+ Add task</text>
+<rect x="264" y="214" width="810" height="560" rx="13" class="panel"/>
+
+<text x="276.0" y="237" class="m" font-size="11" font-weight="600">MON</text>
+<text x="391.7" y="237" class="m" font-size="11" font-weight="600">TUE</text>
+<text x="507.4" y="237" class="m" font-size="11" font-weight="600">WED</text>
+<text x="623.1" y="237" class="m" font-size="11" font-weight="600">THU</text>
+<text x="738.9" y="237" class="m" font-size="11" font-weight="600">FRI</text>
+<text x="854.6" y="237" class="m" font-size="11" font-weight="600">SAT</text>
+<text x="970.3" y="237" class="m" font-size="11" font-weight="600">SUN</text>
+<path d="M379.7 247V774" class="line"/>
+<path d="M495.4 247V774" class="line"/>
+<path d="M611.1 247V774" class="line"/>
+<path d="M726.9 247V774" class="line"/>
+<path d="M842.6 247V774" class="line"/>
+<path d="M958.3 247V774" class="line"/>
+<path d="M264 334.8H1074" class="line"/>
+<path d="M264 422.6H1074" class="line"/>
+<path d="M264 510.4H1074" class="line"/>
+<path d="M264 598.2H1074" class="line"/>
+<path d="M264 686.0H1074" class="line"/>
+<text x="277.0" y="272.0" fill="#666577" font-size="14" font-weight="600">26</text>
+<text x="392.7" y="272.0" fill="#666577" font-size="14" font-weight="600">27</text>
+<text x="508.4" y="272.0" fill="#666577" font-size="14" font-weight="600">28</text>
+<text x="624.1" y="272.0" fill="#666577" font-size="14" font-weight="600">29</text>
+<text x="739.9" y="272.0" fill="#666577" font-size="14" font-weight="600">30</text>
+<text x="855.6" y="272.0" fill="#666577" font-size="14" font-weight="600">31</text>
+<text x="971.3" y="272.0" fill="#E8E6F0" font-size="14" font-weight="600">1</text>
+<text x="277.0" y="359.8" fill="#E8E6F0" font-size="14" font-weight="600">2</text>
+<g class="task"><rect x="273.0" y="368.8" width="97.7" height="19" rx="5" fill="#243A56"/><text x="280.0" y="381.8" fill="#C9DBF0" font-size="10">Client website</text></g>
+<text x="392.7" y="359.8" fill="#E8E6F0" font-size="14" font-weight="600">3</text>
+<g class="task"><rect x="388.7" y="368.8" width="97.7" height="19" rx="5" fill="#243A56"/><text x="395.7" y="381.8" fill="#C9DBF0" font-size="10">Review feedback</text></g>
+<text x="508.4" y="359.8" fill="#E8E6F0" font-size="14" font-weight="600">4</text>
+<rect x="614.1" y="337.8" width="109.7" height="81.8" rx="8" fill="#1E314A" stroke="#4B9EFF"/>
+<text x="624.1" y="359.8" fill="#9BC9FF" font-size="14" font-weight="600">5</text>
+<g class="task"><rect x="620.1" y="368.8" width="97.7" height="19" rx="5" fill="#28466A"/><text x="627.1" y="381.8" fill="#C9DBF0" font-size="10">Draft homepage</text></g>
+<g class="task"><rect x="620.1" y="391.8" width="97.7" height="19" rx="5" fill="#384236"/><text x="627.1" y="404.8" fill="#C9DBF0" font-size="10">Send proposal</text></g>
+<text x="739.9" y="359.8" fill="#E8E6F0" font-size="14" font-weight="600">6</text>
+<g class="task"><rect x="735.9" y="368.8" width="97.7" height="19" rx="5" fill="#243A56"/><text x="742.9" y="381.8" fill="#C9DBF0" font-size="10">Kickoff notes</text></g>
+<text x="855.6" y="359.8" fill="#E8E6F0" font-size="14" font-weight="600">7</text>
+<text x="971.3" y="359.8" fill="#E8E6F0" font-size="14" font-weight="600">8</text>
+<text x="277.0" y="447.6" fill="#E8E6F0" font-size="14" font-weight="600">9</text>
+<g class="task"><rect x="273.0" y="456.6" width="97.7" height="19" rx="5" fill="#243A56"/><text x="280.0" y="469.6" fill="#C9DBF0" font-size="10">Polish mobile</text></g>
+<text x="392.7" y="447.6" fill="#E8E6F0" font-size="14" font-weight="600">10</text>
+<text x="508.4" y="447.6" fill="#E8E6F0" font-size="14" font-weight="600">11</text>
+<text x="624.1" y="447.6" fill="#E8E6F0" font-size="14" font-weight="600">12</text>
+<g class="task"><rect x="620.1" y="456.6" width="97.7" height="19" rx="5" fill="#243A56"/><text x="627.1" y="469.6" fill="#C9DBF0" font-size="10">Project review</text></g>
+<text x="739.9" y="447.6" fill="#E8E6F0" font-size="14" font-weight="600">13</text>
+<text x="855.6" y="447.6" fill="#E8E6F0" font-size="14" font-weight="600">14</text>
+<text x="971.3" y="447.6" fill="#E8E6F0" font-size="14" font-weight="600">15</text>
+<text x="277.0" y="535.4" fill="#E8E6F0" font-size="14" font-weight="600">16</text>
+<g class="task"><rect x="273.0" y="544.4" width="97.7" height="19" rx="5" fill="#243A56"/><text x="280.0" y="557.4" fill="#C9DBF0" font-size="10">Write case study</text></g>
+<text x="392.7" y="535.4" fill="#E8E6F0" font-size="14" font-weight="600">17</text>
+<text x="508.4" y="535.4" fill="#E8E6F0" font-size="14" font-weight="600">18</text>
+<g class="task"><rect x="504.4" y="544.4" width="97.7" height="19" rx="5" fill="#243A56"/><text x="511.4" y="557.4" fill="#C9DBF0" font-size="10">Client check-in</text></g>
+<text x="624.1" y="535.4" fill="#E8E6F0" font-size="14" font-weight="600">19</text>
+<text x="739.9" y="535.4" fill="#E8E6F0" font-size="14" font-weight="600">20</text>
+<text x="855.6" y="535.4" fill="#E8E6F0" font-size="14" font-weight="600">21</text>
+<text x="971.3" y="535.4" fill="#E8E6F0" font-size="14" font-weight="600">22</text>
+<text x="277.0" y="623.2" fill="#E8E6F0" font-size="14" font-weight="600">23</text>
+<g class="task"><rect x="273.0" y="632.2" width="97.7" height="19" rx="5" fill="#3A3540"/><text x="280.0" y="645.2" fill="#C9DBF0" font-size="10">Send invoice</text></g>
+<text x="392.7" y="623.2" fill="#E8E6F0" font-size="14" font-weight="600">24</text>
+<text x="508.4" y="623.2" fill="#E8E6F0" font-size="14" font-weight="600">25</text>
+<text x="624.1" y="623.2" fill="#E8E6F0" font-size="14" font-weight="600">26</text>
+<g class="task"><rect x="620.1" y="632.2" width="97.7" height="19" rx="5" fill="#243A56"/><text x="627.1" y="645.2" fill="#C9DBF0" font-size="10">Plan December</text></g>
+<text x="739.9" y="623.2" fill="#E8E6F0" font-size="14" font-weight="600">27</text>
+<text x="855.6" y="623.2" fill="#E8E6F0" font-size="14" font-weight="600">28</text>
+<text x="971.3" y="623.2" fill="#E8E6F0" font-size="14" font-weight="600">29</text>
+<text x="277.0" y="711.0" fill="#E8E6F0" font-size="14" font-weight="600">30</text>
+<text x="392.7" y="711.0" fill="#666577" font-size="14" font-weight="600">1</text>
+<text x="508.4" y="711.0" fill="#666577" font-size="14" font-weight="600">2</text>
+<text x="624.1" y="711.0" fill="#666577" font-size="14" font-weight="600">3</text>
+<text x="739.9" y="711.0" fill="#666577" font-size="14" font-weight="600">4</text>
+<text x="855.6" y="711.0" fill="#666577" font-size="14" font-weight="600">5</text>
+<text x="971.3" y="711.0" fill="#666577" font-size="14" font-weight="600">6</text>
+<rect x="1094" y="214" width="314" height="560" rx="13" class="panel"/>
+<text x="1116" y="250" class="h" font-size="19">Thursday, Nov 5</text><text x="1116" y="273" class="m" font-size="12">Your work for this day</text><path d="M1116 291H1386" class="line"/>
+<text x="1116" y="325" class="h" font-size="14">Draft homepage copy</text><text x="1116" y="345" class="m" font-size="11">Client website · Due Friday</text><rect x="1116" y="363" width="270" height="37" rx="8" fill="#243A56" stroke="#3E6698"/><text x="1251" y="387" fill="#B4D7FF" font-size="12" text-anchor="middle" font-weight="600">▶  Start focus</text>
+<path d="M1116 420H1386" class="line"/><text x="1116" y="452" class="b" font-size="13">Send updated proposal</text><text x="1116" y="473" class="m" font-size="11">Studio refresh · Due today</text><text x="1116" y="503" class="blue" font-size="12">Start focus  →</text>
+<path d="M1116 527H1386" class="line"/><text x="1116" y="558" class="h" font-size="14">Still to do</text><text x="1116" y="581" class="m" font-size="11">Prepare kickoff notes was planned yesterday.</text><rect x="1116" y="598" width="130" height="31" rx="7" fill="#253B56"/><text x="1181" y="618" fill="#A9D2FF" font-size="11" text-anchor="middle">Move to today</text><text x="1262" y="618" class="m" font-size="11">Choose a day →</text>
+<path d="M1116 650H1386" class="line"/><text x="1116" y="683" class="h" font-size="14">Plan without a day</text><text x="1116" y="706" class="m" font-size="11">2 more tasks in this week’s plan</text><text x="1116" y="734" class="blue" font-size="12">Review suggestions  →</text>
+<text x="264" y="825" class="f" font-size="12">Illustrative concept · dates and tasks are example data</text></svg>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import {
   BarChart2,
+  CalendarDays,
   Clock,
   CreditCard,
   FolderOpen,
@@ -39,6 +40,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Home', path: PATHS.dashboard, Icon: LayoutDashboard, tour: 'home' },
   { label: 'Timer', path: PATHS.timer, Icon: Clock, tour: 'timer' },
   { label: 'Projects', path: PATHS.projects, Icon: FolderOpen, tour: 'projects' },
+  { label: 'Planner', path: PATHS.planner, Icon: CalendarDays },
   { label: 'Sessions', path: PATHS.sessions, Icon: History, tour: 'sessions' },
   { label: 'Analytics', path: PATHS.analytics, Icon: BarChart2, tour: 'analytics' },
   { label: 'Leaderboard', path: PATHS.leaderboard, Icon: Trophy, tour: 'leaderboard' },

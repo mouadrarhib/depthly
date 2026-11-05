@@ -14,6 +14,7 @@ import { JoinGroupLeaderboardPage } from '@/pages/JoinGroupLeaderboardPage'
 import { LandingPage } from '@/pages/LandingPage'
 import { LeaderboardPage } from '@/pages/LeaderboardPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { PlannerPage } from '@/pages/PlannerPage'
 import { PrivacyPage } from '@/pages/PrivacyPage'
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
@@ -52,6 +53,7 @@ export const router = createBrowserRouter(
             { path: '/timer',        element: <ErrorBoundary><TimerPage /></ErrorBoundary> },
             { path: '/settings',     element: <ErrorBoundary><SettingsPage /></ErrorBoundary> },
             { path: '/projects',     element: <ErrorBoundary><ProjectsPage /></ErrorBoundary> },
+            { path: '/planner',      element: <ErrorBoundary><PlannerPage /></ErrorBoundary> },
             { path: '/projects/:id', element: <ErrorBoundary><ProjectDetailPage /></ErrorBoundary> },
             { path: '/sessions',     element: <ErrorBoundary><SessionsPage /></ErrorBoundary> },
             { path: '/analytics',    element: <ErrorBoundary><AnalyticsPage /></ErrorBoundary> },

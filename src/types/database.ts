@@ -474,6 +474,14 @@ export type Database = {
           },
         ]
       }
+      task_occurrences: {
+        Row: { id: string; task_id: string; user_id: string; occurrence_date: string; state: string; completed_at: string | null; created_at: string }
+        Insert: { id?: string; task_id: string; user_id: string; occurrence_date: string; state: string; completed_at?: string | null; created_at?: string }
+        Update: { id?: string; task_id?: string; user_id?: string; occurrence_date?: string; state?: string; completed_at?: string | null; created_at?: string }
+        Relationships: [
+          { foreignKeyName: "task_occurrences_task_id_user_id_fkey"; columns: ["task_id", "user_id"]; isOneToOne: false; referencedRelation: "tasks"; referencedColumns: ["id", "user_id"] }
+        ]
+      }
       tasks: {
         Row: {
           actual_pomodoros: number
@@ -481,6 +489,12 @@ export type Database = {
           created_at: string
           description: string | null
           due_date: string | null
+          planned_start_date: string | null
+          planned_end_date: string | null
+          scheduled_date: string | null
+          repeat_days: number[] | null
+          repeat_start_date: string | null
+          repeat_end_date: string | null
           estimated_pomodoros: number | null
           id: string
           kanban_order: number
@@ -498,6 +512,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          planned_start_date?: string | null
+          planned_end_date?: string | null
+          scheduled_date?: string | null
+          repeat_days?: number[] | null
+          repeat_start_date?: string | null
+          repeat_end_date?: string | null
           estimated_pomodoros?: number | null
           id?: string
           kanban_order?: number
@@ -515,6 +535,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          planned_start_date?: string | null
+          planned_end_date?: string | null
+          scheduled_date?: string | null
+          repeat_days?: number[] | null
+          repeat_start_date?: string | null
+          repeat_end_date?: string | null
           estimated_pomodoros?: number | null
           id?: string
           kanban_order?: number

@@ -20,6 +20,8 @@ export const timerKeys = {
 
 export const taskKeys = {
   all: ['tasks'] as const,
+  planner: (userId: string) => ['tasks', 'planner', userId] as const,
+  occurrences: (userId: string, start: string, end: string) => ['task-occurrences', userId, start, end] as const,
   byProject: (projectId: string) => ['tasks', 'project', projectId] as const,
   detail: (id: string) => ['tasks', id] as const,
   sessionMins: (projectId: string) => ['tasks', 'session-mins', projectId] as const,

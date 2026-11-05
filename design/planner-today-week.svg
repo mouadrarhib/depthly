@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">Depthly Today and weekly planner concept</title>
+  <desc id="desc">Illustrative dark dashboard. A weekly calendar sits above today's planned tasks. Unfinished work and suggested tasks appear in a right column. A task can start a focus session directly.</desc>
+  <defs>
+    <style>
+      text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .heading { fill:#E8E6F0; font-weight:650; letter-spacing:-.035em; }
+      .body { fill:#D6D4E0; }
+      .muted { fill:#9693A9; }
+      .faint { fill:#777489; }
+      .blue { fill:#4B9EFF; }
+      .line { stroke:#30313A; stroke-width:1; }
+      .surface { fill:#15161C; stroke:#30313A; stroke-width:1; }
+      .soft { fill:#1A1D25; }
+      .label { font-size:12px; font-weight:600; }
+      .small { font-size:13px; }
+      .bodytext { font-size:14px; }
+      .card { animation: enter .55s cubic-bezier(.16,1,.3,1) both; }
+      .card:nth-of-type(2) { animation-delay:.1s; }
+      .card:nth-of-type(3) { animation-delay:.2s; }
+      .today-marker { animation: breathe 2.8s ease-in-out infinite; transform-origin:703px 272px; }
+      @keyframes enter { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+      @keyframes breathe { 50% { opacity:.65; transform:scale(1.08); } }
+      @media (prefers-reduced-motion: reduce) { .card,.today-marker { animation:none; } }
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="#0D0D10"/>
+
+  <!-- Existing app shell -->
+  <rect x="0" y="0" width="224" height="900" fill="#131419"/>
+  <path d="M224 0V900M0 56H1440" class="line"/>
+  <circle cx="29" cy="28" r="13" fill="none" stroke="#A7A8B7" stroke-width="1.3"/>
+  <circle cx="29" cy="28" r="8" fill="none" stroke="#A7A8B7" stroke-width="1"/>
+  <circle cx="29" cy="28" r="2" fill="#4B9EFF"/>
+  <text x="51" y="33" fill="#E8E6F0" font-size="15" font-weight="600">Depthly</text>
+  <text x="248" y="34" fill="#E8E6F0" font-size="14" font-weight="600">Home</text>
+  <path d="M310 17V39" class="line"/>
+  <text x="326" y="33" class="faint" font-size="12">Your focused workspace</text>
+  <circle cx="1390" cy="28" r="15" fill="#274568"/>
+  <text x="1390" y="33" fill="#DDEBFF" font-size="13" text-anchor="middle" font-weight="700">M</text>
+  <text x="1250" y="33" class="faint" font-size="12">◷  75m focus</text>
+
+  <rect x="8" y="69" width="208" height="40" rx="9" fill="#1F3148" stroke="#315478"/>
+  <rect x="8" y="69" width="3" height="40" rx="1.5" fill="#4B9EFF"/>
+  <g class="bodytext" fill="#9997AC">
+    <text x="48" y="95">Home</text><text x="48" y="141">Timer</text><text x="48" y="187">Projects</text>
+    <text x="48" y="233">Sessions</text><text x="48" y="279">Analytics</text><text x="48" y="325">Leaderboard</text><text x="48" y="371">Billing</text>
+  </g>
+  <text x="47" y="95" fill="#DDEBFF" font-size="14" font-weight="600">Home</text>
+  <g fill="none" stroke="#85869A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="20" y="82" width="6" height="6" rx="1"/><rect x="29" y="82" width="6" height="6" rx="1"/><rect x="20" y="91" width="6" height="6" rx="1"/><rect x="29" y="91" width="6" height="6" rx="1"/>
+    <circle cx="27" cy="136" r="7"/><path d="M27 132v4l3 2"/>
+    <path d="M20 180h8l2 3h5v9H20zM20 225h14M22 221v-4M25 225v4M32 225v-5"/>
+    <path d="M21 279v-5m5 5v-9m5 9v-13m5 13v-7"/>
+    <path d="M24 314h9v4c0 4-2 6-5 7-3-1-5-3-5-7v-4zM22 314h-3c0 4 2 5 5 5M33 314h3c0 4-2 5-5 5"/>
+    <rect x="20" y="362" width="15" height="10" rx="2"/><path d="M20 366h15"/>
+  </g>
+  <path d="M0 789H224" class="line"/>
+  <circle cx="31" cy="824" r="14" fill="#29496E"/><text x="31" y="829" fill="#E8E6F0" font-size="13" text-anchor="middle" font-weight="700">M</text>
+  <text x="53" y="824" class="body" font-size="13" font-weight="600">Med</text><text x="53" y="840" class="faint" font-size="11">Founding plan</text>
+  <text x="22" y="878" class="muted" font-size="13">⚙  Settings</text>
+
+  <!-- Page heading and controls -->
+  <text x="264" y="116" class="heading" font-size="30">Plan your focus</text>
+  <text x="264" y="145" class="muted" font-size="14">Choose what matters today. Keep the rest in view.</text>
+  <rect x="1103" y="87" width="305" height="43" rx="10" class="surface"/>
+  <rect x="1107" y="91" width="91" height="35" rx="7" fill="#243A56"/>
+  <text x="1152" y="114" fill="#8BC1FF" font-size="13" text-anchor="middle" font-weight="600">Today</text>
+  <text x="1251" y="114" class="muted" font-size="13" text-anchor="middle">Week</text>
+  <text x="1353" y="114" class="muted" font-size="13" text-anchor="middle">Month</text>
+
+  <!-- Week planner -->
+  <text x="264" y="203" class="heading" font-size="17">This week</text>
+  <text x="264" y="225" class="faint" font-size="12">Nov 2–8  ·  8 tasks planned</text>
+  <text x="1312" y="207" class="muted" font-size="12">‹</text>
+  <text x="1351" y="207" class="body" font-size="12">Today</text>
+  <text x="1400" y="207" class="muted" font-size="12">›</text>
+  <rect x="264" y="244" width="1144" height="126" rx="14" class="surface"/>
+  <g class="line"><path d="M427 245V369M590 245V369M753 245V369M916 245V369M1079 245V369M1242 245V369"/></g>
+  <g font-size="12" font-weight="600" class="muted">
+    <text x="284" y="270">MON</text><text x="447" y="270">TUE</text><text x="610" y="270">WED</text><text x="773" y="270">THU</text><text x="936" y="270">FRI</text><text x="1099" y="270">SAT</text><text x="1262" y="270">SUN</text>
+  </g>
+  <g font-size="22" font-weight="600" fill="#E8E6F0">
+    <text x="284" y="305">2</text><text x="447" y="305">3</text><text x="610" y="305">4</text><text x="773" y="305">5</text><text x="936" y="305">6</text><text x="1099" y="305">7</text><text x="1262" y="305">8</text>
+  </g>
+  <rect x="768" y="252" width="140" height="107" rx="10" fill="#1E314A" stroke="#4B9EFF" stroke-width="1.2"/>
+  <text x="773" y="270" fill="#8BC1FF" font-size="12" font-weight="600">THU</text><text x="773" y="305" fill="#E8E6F0" font-size="22" font-weight="700">5</text>
+  <circle class="today-marker" cx="883" cy="273" r="4" fill="#4B9EFF"/>
+  <g font-size="11" class="muted"><text x="284" y="343">2 tasks</text><text x="447" y="343">1 task</text><text x="610" y="343">1 task</text><text x="773" y="343" fill="#9BC9FF">3 tasks</text><text x="936" y="343">1 task</text><text x="1099" y="343">No tasks</text><text x="1262" y="343">No tasks</text></g>
+  <g fill="#4B9EFF"><circle cx="284" cy="321" r="3"/><circle cx="295" cy="321" r="3"/><circle cx="447" cy="321" r="3"/><circle cx="610" cy="321" r="3"/><circle cx="773" cy="321" r="3"/><circle cx="784" cy="321" r="3"/><circle cx="795" cy="321" r="3"/><circle cx="936" cy="321" r="3"/></g>
+
+  <!-- Today column -->
+  <text x="264" y="420" class="heading" font-size="21">Today’s plan</text>
+  <text x="264" y="442" class="muted" font-size="13">Three tasks you chose for today</text>
+  <rect x="850" y="400" width="144" height="37" rx="8" fill="#4B9EFF"/>
+  <text x="922" y="424" fill="#09121E" font-size="13" font-weight="700" text-anchor="middle">+ Add task</text>
+
+  <g class="card">
+    <rect x="264" y="462" width="730" height="104" rx="12" class="surface"/>
+    <circle cx="289" cy="495" r="10" fill="none" stroke="#666B7C" stroke-width="1.5"/>
+    <text x="310" y="493" class="body" font-size="15" font-weight="600">Draft homepage copy</text>
+    <text x="310" y="516" class="muted" font-size="12">Client website  ·  Due Friday</text>
+    <rect x="310" y="532" width="78" height="20" rx="6" fill="#273A54"/>
+    <text x="349" y="546" fill="#9AC7FF" font-size="11" text-anchor="middle">High priority</text>
+    <rect x="846" y="490" width="128" height="36" rx="8" fill="#243A56" stroke="#3E6698"/>
+    <text x="910" y="513" fill="#B4D7FF" font-size="12" font-weight="600" text-anchor="middle">▶  Start focus</text>
+  </g>
+  <g class="card">
+    <rect x="264" y="578" width="730" height="104" rx="12" class="surface"/>
+    <circle cx="289" cy="611" r="10" fill="none" stroke="#666B7C" stroke-width="1.5"/>
+    <text x="310" y="609" class="body" font-size="15" font-weight="600">Review design feedback</text>
+    <text x="310" y="632" class="muted" font-size="12">Client website  ·  Planned this week</text>
+    <rect x="310" y="647" width="64" height="20" rx="6" fill="#272A35"/>
+    <text x="342" y="661" class="muted" font-size="11" text-anchor="middle">Medium</text>
+    <text x="968" y="625" class="blue" font-size="12" text-anchor="end">Start focus  →</text>
+  </g>
+  <g class="card">
+    <rect x="264" y="694" width="730" height="104" rx="12" class="surface"/>
+    <circle cx="289" cy="727" r="10" fill="none" stroke="#666B7C" stroke-width="1.5"/>
+    <text x="310" y="725" class="body" font-size="15" font-weight="600">Send updated proposal</text>
+    <text x="310" y="748" class="muted" font-size="12">Studio refresh  ·  Due today</text>
+    <rect x="310" y="763" width="94" height="20" rx="6" fill="#473735"/>
+    <text x="357" y="777" fill="#E8A998" font-size="11" text-anchor="middle">Due today</text>
+    <text x="968" y="741" class="blue" font-size="12" text-anchor="end">Start focus  →</text>
+  </g>
+
+  <!-- Decision and suggestion column -->
+  <rect x="1014" y="403" width="394" height="194" rx="12" class="surface"/>
+  <text x="1036" y="434" class="heading" font-size="16">Still to do</text>
+  <text x="1036" y="455" class="muted" font-size="12">Yesterday’s unfinished work stays visible.</text>
+  <path d="M1036 471H1386" class="line"/>
+  <text x="1036" y="501" class="body" font-size="13" font-weight="600">Prepare kickoff notes</text>
+  <text x="1036" y="521" class="muted" font-size="11">Client website  ·  Planned yesterday</text>
+  <rect x="1036" y="541" width="135" height="32" rx="7" fill="#253B56"/>
+  <text x="1103" y="562" fill="#A9D2FF" font-size="11" font-weight="600" text-anchor="middle">Move to today</text>
+  <text x="1200" y="562" class="muted" font-size="11">Choose another day  →</text>
+
+  <rect x="1014" y="613" width="394" height="185" rx="12" class="surface"/>
+  <text x="1036" y="644" class="heading" font-size="16">Suggested from this week</text>
+  <text x="1036" y="665" class="muted" font-size="12">Pick one if you have room today.</text>
+  <path d="M1036 680H1386" class="line"/>
+  <text x="1036" y="711" class="body" font-size="13" font-weight="600">Polish mobile layout</text>
+  <text x="1036" y="731" class="muted" font-size="11">Client website  ·  Due Monday</text>
+  <rect x="1036" y="750" width="117" height="31" rx="7" fill="#232833" stroke="#363E4E"/>
+  <text x="1094" y="770" fill="#B9C7D9" font-size="11" font-weight="600" text-anchor="middle">Add to today</text>
+  <text x="1170" y="770" class="muted" font-size="11">Suggested because the due date is near</text>
+
+  <text x="264" y="852" class="faint" font-size="12">Illustrative concept · dates, tasks, and progress are example data</text>
+</svg>

@@ -40,6 +40,7 @@ const PAGE_TITLES: Record<string, string> = {
   [PATHS.dashboard]: 'Home',
   [PATHS.timer]: 'Timer',
   [PATHS.projects]: 'Projects',
+  [PATHS.planner]: 'Planner',
   [PATHS.sessions]: 'Sessions',
   [PATHS.analytics]: 'Analytics',
   [PATHS.leaderboard]: 'Leaderboard',
