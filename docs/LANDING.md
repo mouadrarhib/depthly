@@ -31,8 +31,8 @@ to start alone and invite others only when useful.
 2. Hero with the two-line headline, specific copy connecting project sessions to daily goals and progress, a
    free-signup CTA, and a jump to the product flow. A connected product preview
    replaces the decorative study photo: completed timer → daily goal → weekly progress.
-3. Four-step workflow overview: keep related work in a project, choose a task,
-   focus on it, and see that session add to personal progress.
+3. Three-part Planner workflow overview: plan work for the week or month, focus
+   on a planned task, and see its time add to a goal and weekly history.
 4. Trusted focus timer: timer-tracked sessions become trusted progress.
 5. Daily goals and Analytics: explicit goal progress, history, heatmaps, trends,
    and project breakdowns.
@@ -65,8 +65,8 @@ trusted focus time, session count, and goal progress visibility.
 ## Rendering, motion, and responsive behavior
 
 The hero preserves “Focus on the work. We'll track the time.” Its single
-connected product preview shows a completed 25-minute Project Alpha / Research
-outline session, 75 of a 120-minute daily goal, and a seven-day chart totaling
+connected product preview shows a completed 25-minute Client website / Draft
+homepage copy session, 75 of a 120-minute daily goal, and a seven-day chart totaling
 five hours. These are explicitly illustrative values, not visitor data or
 customer proof. The preview has one accessible image summary and no mock
 interactive controls. It is content-driven and stacks below the copy on mobile;
@@ -77,18 +77,19 @@ visible throughout.
 Hero copy and CTAs render visibly on the first paint. `useLandingAnimations`
 never waits for `.logo-intro` and never hides hero content. GSAP coordinates a
 subtle navigation entrance, opaque hero glide, ambient grid drift, and
-scroll-triggered entrances for the sections in reading order. The hero fills
-the first viewport, so the focus path begins only after scrolling. Section
+scroll-triggered entrances for the sections in reading order. The desktop hero
+uses content-led height so the focus path follows without a large empty gap. Section
 content is visible in the markup if animation cannot run. Analytics heatmap
 and count-up motion run once when their preview enters view.
 
 The focus path overview intentionally does not use the generic
 `data-reveal-group` animation. It has a dedicated GSAP timeline identified by
 `data-focus-path`: the heading and explanatory copy enter first, followed by
-four linked previews in product order: project, task, focus session, and
-progress. Each desktop timeline reveals the heading, then each step one by one.
-On phones, each step rises into view when its row reaches the viewport. Each
-entrance runs once. The labels and example are illustrative.
+three linked previews in product order: weekly planning, a focus session linked
+to a planned task, and the resulting goal and weekly history. Each desktop
+timeline reveals the heading, then each step one by one. On phones, each step
+rises into view when its row reaches the viewport. Each entrance runs once. The
+labels, dates, goal, and session values are illustrative.
 
 The Trusted focus section keeps its static timer preview and explains the
 session-to-progress link with two concise details: active-timer recovery and

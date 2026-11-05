@@ -71,6 +71,41 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
         const pathHeader = focusPath.querySelector('[data-focus-path-header]')
         const pathSteps = focusPath.querySelectorAll('[data-focus-step]')
 
+        const animatePreview = (timeline: gsap.core.Timeline, step: Element) => {
+          const tasks = step.querySelectorAll('[data-path-task]')
+          const timer = step.querySelector('[data-path-timer]')
+          const goal = step.querySelector('[data-path-goal]')
+          const bars = step.querySelectorAll('[data-path-bar]')
+          if (tasks.length)
+            timeline.fromTo(
+              tasks,
+              { x: 10, opacity: 0 },
+              { x: 0, opacity: 1, duration: 0.35, stagger: 0.1, ease: 'power3.out' },
+              '-=0.12'
+            )
+          if (timer)
+            timeline.fromTo(
+              timer,
+              { strokeDashoffset: 136 },
+              { strokeDashoffset: 0, duration: 0.65, ease: 'power3.out' },
+              '-=0.12'
+            )
+          if (goal)
+            timeline.fromTo(
+              goal,
+              { scaleX: 0, transformOrigin: 'left center' },
+              { scaleX: 1, duration: 0.55, ease: 'power3.out' },
+              '-=0.12'
+            )
+          if (bars.length)
+            timeline.fromTo(
+              bars,
+              { scaleY: 0, transformOrigin: 'center bottom' },
+              { scaleY: 1, duration: 0.4, stagger: 0.045, ease: 'power3.out' },
+              '-=0.15'
+            )
+        }
+
         if (window.matchMedia('(min-width: 768px)').matches) {
           const pathTimeline = gsap.timeline({
             scrollTrigger: { trigger: pathHeader ?? focusPath, start: 'top 85%', once: true },
@@ -90,6 +125,7 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
               { y: 14, opacity: 0 },
               { y: 0, opacity: 1, duration: 0.42, ease: 'power3.out' }
             )
+            animatePreview(pathTimeline, step)
             const connector = step.querySelector('[data-focus-connector]')
             if (connector) {
               pathTimeline.fromTo(
@@ -124,6 +160,7 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
               { y: 14, opacity: 0 },
               { y: 0, opacity: 1, duration: 0.42, ease: 'power3.out' }
             )
+            animatePreview(stepTimeline, step)
             const connector = step.querySelector('[data-focus-connector]')
             if (connector)
               stepTimeline.fromTo(

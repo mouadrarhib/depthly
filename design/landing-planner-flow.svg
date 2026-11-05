@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="820" viewBox="0 0 1440 820" role="img" aria-labelledby="title description">
+<title id="title">Depthly landing page workflow with Planner</title>
+<desc id="description">A proposed replacement for the current workflow overview. Three linked panels show a client website project with tasks planned for Thursday, a focus session linked to Draft homepage copy, and the resulting 25 minutes added to progress. The section retains the current headline and dark design.</desc>
+<defs><style>
+text{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.h{fill:#E8E6F0;font-weight:600;letter-spacing:-.025em}.b{fill:#D6D4E0}.m{fill:#A5A2B5}.f{fill:#858299}.blue{fill:#80BDFF}.line{stroke:#30313A;stroke-width:1}.card{fill:#15161C;stroke:#30313A;stroke-width:1}.data{font-family:"JetBrains Mono",ui-monospace,monospace}.flow{animation:flow 3s ease-in-out infinite}@keyframes flow{0%,100%{opacity:.5}50%{opacity:1}}@media(prefers-reduced-motion:reduce){.flow{animation:none}}
+</style>
+<symbol id="calendar" viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 9h14M7 3v4M13 3v4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+<symbol id="repeat" viewBox="0 0 20 20"><path d="M4 7h10l-2.3-2.3M16 13H6l2.3 2.3M14 7c2 0 3 1.2 3 3M6 13c-2 0-3-1.2-3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="clock" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+<symbol id="chart" viewBox="0 0 20 20"><path d="M3 16V5M3 16h14M7 13V9M11 13V6M15 13V3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</defs>
+<rect width="1440" height="820" fill="#0D0D10"/>
+<rect width="1440" height="64" fill="#101115"/><path d="M0 64H1440" class="line"/>
+<circle cx="169" cy="32" r="12" fill="none" stroke="#A7A8B7"/><circle cx="169" cy="32" r="7" fill="none" stroke="#A7A8B7"/><circle cx="169" cy="32" r="2" fill="#4B9EFF"/><text x="193" y="37" class="h" font-size="16">Depthly</text><text x="303" y="37" class="f" font-size="12">Stay focused, work deeper</text><text x="507" y="37" class="m" font-size="14">Features</text><text x="591" y="37" class="m" font-size="14">Pricing</text><text x="1157" y="37" class="m" font-size="14">Log in</text><rect x="1230" y="11" width="102" height="42" rx="8" fill="#4B9EFF"/><text x="1281" y="37" fill="#0D1723" font-size="13" font-weight="700" text-anchor="middle">Start free</text>
+<text x="160" y="159" class="h" font-size="39">Choose a task. Track your focus. See your progress.</text>
+<text x="160" y="192" class="m" font-size="16">Plan tasks for the week or month. Depthly shows what is planned today, keeps unfinished work</text>
+<text x="160" y="218" class="m" font-size="16">in view, and links every focus session to its task and project.</text>
+<rect x="160" y="273" width="345" height="403" rx="16" class="card"/>
+<g color="#86BCFF"><use href="#calendar" x="183" y="296" width="20" height="20"/></g><text x="211" y="312" class="blue" font-size="14" font-weight="600">Plan the work</text>
+<text x="183" y="348" class="h" font-size="19">Client website</text><text x="183" y="370" class="m" font-size="12">Project · tasks stay together</text>
+<path d="M183 390H482" class="line"/>
+<g font-size="11" font-weight="600" text-anchor="middle"><text x="206" y="416" class="f">MON</text><text x="252" y="416" class="f">TUE</text><text x="298" y="416" class="f">WED</text><rect x="320" y="400" width="46" height="53" rx="8" fill="#28466A" stroke="#4B9EFF"/><text x="343" y="416" fill="#B7D9FF">THU</text><text x="390" y="416" class="f">FRI</text><text x="436" y="416" class="f">SAT</text><text x="474" y="416" class="f">SUN</text></g>
+<g class="data" font-size="13" text-anchor="middle"><text x="206" y="443" class="m">2</text><text x="252" y="443" class="m">3</text><text x="298" y="443" class="m">4</text><text x="343" y="443" fill="#DDEBFF">5</text><text x="390" y="443" class="m">6</text><text x="436" y="443" class="m">7</text><text x="474" y="443" class="m">8</text></g>
+<text x="183" y="485" class="h" font-size="13">Thursday’s tasks</text>
+<rect x="183" y="501" width="299" height="46" rx="8" fill="#233A57"/><circle cx="201" cy="524" r="7" fill="none" stroke="#8FC3FF" stroke-width="1.5"/><text x="216" y="529" fill="#E2EAF6" font-size="13">Draft homepage copy</text>
+<rect x="183" y="555" width="299" height="46" rx="8" fill="#1E232D"/><g color="#84B9F5"><use href="#repeat" x="195" y="568" width="16" height="16"/></g><text x="216" y="583" class="b" font-size="12">Review client inbox</text><text x="363" y="583" class="m" font-size="11">Weekdays</text>
+<path d="M183 620H482" class="line"/><text x="183" y="648" class="m" font-size="12">Missed task? It stays visible in the Planner.</text>
+<g class="flow"><path d="M516 475H545" fill="none" stroke="#5D9BDB" stroke-width="1.5"/><path d="m540 469 6 6-6 6" fill="none" stroke="#5D9BDB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+<rect x="558" y="273" width="324" height="403" rx="16" class="card"/>
+<g color="#86BCFF"><use href="#clock" x="581" y="296" width="20" height="20"/></g><text x="609" y="312" class="blue" font-size="14" font-weight="600">Focus on one task</text>
+<text x="581" y="348" class="h" font-size="19">Draft homepage copy</text><text x="581" y="370" class="m" font-size="12">Client website · Thursday’s plan</text>
+<path d="M581 390H859" class="line"/>
+<circle cx="720" cy="500" r="83" fill="none" stroke="#2B2D37" stroke-width="7"/><path d="M720 417a83 83 0 0 1 73 44" fill="none" stroke="#4B9EFF" stroke-width="7" stroke-linecap="round"/>
+<text x="720" y="503" class="h data" font-size="39" text-anchor="middle">25:00</text><text x="720" y="528" class="m" font-size="11" letter-spacing="2" text-anchor="middle">FOCUS SESSION</text>
+<path d="M581 620H859" class="line"/><text x="581" y="648" class="m" font-size="12">The session stays linked to this task.</text>
+<g class="flow"><path d="M893 475H922" fill="none" stroke="#5D9BDB" stroke-width="1.5"/><path d="m917 469 6 6-6 6" fill="none" stroke="#5D9BDB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+<rect x="935" y="273" width="345" height="403" rx="16" class="card"/>
+<g color="#86BCFF"><use href="#chart" x="958" y="296" width="20" height="20"/></g><text x="986" y="312" class="blue" font-size="14" font-weight="600">See the time add up</text>
+<text x="958" y="348" class="h" font-size="19">25 min added</text><text x="958" y="370" class="m" font-size="12">To Draft homepage copy</text>
+<path d="M958 390H1257" class="line"/>
+<text x="958" y="425" class="b" font-size="13">Daily goal</text><text x="1257" y="425" class="b data" font-size="12" text-anchor="end">75 / 120 min</text><rect x="958" y="440" width="299" height="8" rx="4" fill="#292B34"/><rect x="958" y="440" width="187" height="8" rx="4" fill="#4B9EFF"/>
+<path d="M958 473H1257" class="line"/><text x="958" y="502" class="b" font-size="13">Your week</text><text x="1257" y="502" class="m data" font-size="12" text-anchor="end">5h focused</text>
+<path d="M958 589H1257" class="line"/><g fill="#304A6B"><rect x="966" y="556" width="27" height="33" rx="4"/><rect x="1008" y="538" width="27" height="51" rx="4"/><rect x="1050" y="580" width="27" height="9" rx="3"/><rect x="1092" y="524" width="27" height="65" rx="4"/><rect x="1134" y="565" width="27" height="24" rx="4"/><rect x="1176" y="547" width="27" height="42" rx="4"/></g><rect x="1218" y="528" width="27" height="61" rx="4" fill="#4B9EFF"/><g class="f data" font-size="10" text-anchor="middle"><text x="979" y="607">M</text><text x="1021" y="607">T</text><text x="1063" y="607">W</text><text x="1105" y="607">T</text><text x="1147" y="607">F</text><text x="1189" y="607">S</text><text x="1231" y="607">S</text></g>
+<text x="958" y="648" class="m" font-size="12">Your task and goal history update together.</text>
+<text x="160" y="729" class="f" font-size="12">Illustrative product flow · example project, task, and focus time</text>
+</svg>
