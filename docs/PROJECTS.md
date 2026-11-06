@@ -56,10 +56,11 @@ Displays active and archived project grids for the current user. A segmented
 `Active / Archived` control switches the visible collection without changing
 routes; each segment shows its project count.
 
-- **Grid layout**: 1 column (mobile) → 2 (sm) → 3 (lg), gap-5
-- **Sort modes**: "Last used" (default) and "Alphabetical", presented as a labeled segmented control. Sorting is client-side on the selected collection. Last-used nulls sort to the end with an alphabetical fallback.
+- **View switch**: List (default) and Cards share search, filters, sorting, project actions, and the same stats cache. Cards use the existing ProjectCard in a responsive one/two/three-column grid. Both views scroll within the desktop content area.
+- **List layout**: aligned columns on desktop; labeled stacked rows on mobile. The desktop list scrolls within the remaining page height with sticky column headings; mobile uses normal page scrolling.
+- **Sort modes**: Last focused (default), Name A–Z, Newest created, Oldest created, and Most focus time. Sorting is client-side; null last-focused values sort last.
 - **Search**: Filters the currently selected Active or Archived collection by project name using a case-insensitive substring match. Search is client-side, includes a single clear action, and shows a dedicated no-results state without changing the selected status or sort mode. The field sits beside the status control on desktop and uses a full row on narrow mobile screens.
-- **Loading state**: 6 animated skeleton cards while `useProjects` is fetching.
+- **Loading state**: skeleton rows while the collection or filter-required activity stats load. Errors provide a Retry action.
 - **Empty state**: Centered message + "New Project" button.
 - **Create**: Opens `ProjectModal` in create mode.
 - **Edit**: Opens `ProjectModal` in edit mode with existing values pre-filled.
@@ -68,7 +69,11 @@ routes; each segment shows its project count.
 - **Navigate to detail**: The whole card is an accessible button target that navigates to `/projects/:id`; the actions menu remains independently interactive.
 - **Projects guide**: A contextual driver.js walkthrough auto-starts once per user after the global Quick Guide has been completed. It is replayable from Help while on `/projects`.
 
-Stats for each card are fetched individually per-project via `useProjectStats` inside a `ProjectCardWrapper` component (so each card loads its own stats independently).
+Activity stats use TanStack Query `useQueries` with the existing `projectKeys.stats` cache and `getProjectStats` query. Per-row unavailable stats are displayed explicitly; stats-dependent filtering and sorting wait for stats and expose errors instead of treating missing data as zero.
+
+A collapsible guide explains Project → Tasks → Focus sessions. Each row exposes an explicit open-project prompt, creation date, completion, total focus, last focus, and the existing edit/archive/restore/delete menu. Tour targets are preserved.
+
+The Filters panel combines task state (unfinished, completed, no tasks), focus activity (this week, not this week, never), and creation date (today, last 7/30 calendar days, custom). Weeks start Monday in the browser's local timezone. Custom ranges include both dates; either endpoint may be omitted. Reversed ranges show an error. Selected filters appear as removable chips with Clear filters. Search and filters combine within Active or Archived. No schema changes are required.
 
 ---
 
@@ -161,9 +166,9 @@ desktop breakpoint to prevent squeezed content or horizontal page overflow.
 
 **Renders:** shadcn `Dialog` with:
 
-- Name input (max 50 chars, validated on submit)
-- Color picker: 10 preset hex colors, displayed as 28px circular buttons with a ring selection indicator
-- Icon picker: 16 preset emoji in an 8-column grid, selected item gets `depth-raised` background + brand border
+- Name input (max 50 chars, validated on submit), visible character count and naming guidance, with linked accessible errors
+- Color picker: 10 named colors in 44px selection targets, with a visible check and pressed state. Existing non-preset colors are preserved.
+- Icon picker: 16 named Lucide icons (four columns on mobile, eight on desktop), with 44px targets and pressed states; No icon is supported. Existing emoji identifiers remain stored and are mapped by the shared ProjectIcon component; unknown identifiers retain their original glyph.
 
 **State reset:** `useEffect` on `[open]` resets all fields to project values (edit) or defaults (create), and calls `mutation.reset()` on both create and update mutations to clear stale error state.
 
@@ -446,3 +451,50 @@ data from the Topbar.
 
 **Seen flag:** `localStorage['depthly_projects_tour_seen_{userId}']`. Closing the
 guide early counts as seen, matching the global Quick Guide behavior.
+
+
+## Project workspace refinement
+
+Project details use a shared compact header, exact focus duration at all sizes,
+and labeled task-completion/session summaries. Project editing and archiving
+remain in the project-actions menu. A short explanation distinguishes task
+completion from recorded session time.
+
+The Tasks tab owns search, status, and priority filters and passes them into
+both List and Kanban; switching views preserves selections. The Filters panel
+is collapsible, with active-filter information and Clear filters. Add task is
+available in both views. The existing Pro gate for Kanban is preserved.
+
+List rows retain completion, edit, duplicate, and delete actions. Task titles
+are keyboard-operable buttons. Completed tasks collapse by default when all
+statuses are displayed, and can be expanded without changing their status.
+Explicitly filtering to Done displays matching tasks immediately. Column
+labels clarify priority, due date, Pomodoro count, and focus time; Pomodoro
+counts are not relabeled as all session counts.
+
+Kanban uses equal-width columns across the desktop workspace and stacked
+columns on mobile. Empty columns explain their purpose and offer Add task.
+Drag-and-drop keeps the existing status/order mutation behavior.
+
+Sessions have a named history heading, displayed count and duration (the latest
+50 focus sessions, labeled as recent rather than all-time), and
+labeled Task / Date & start time / Duration columns. On mobile, date and time
+sit under the task. Selecting a session retains the existing detail/edit
+modals. Task and session queries expose Retry on failures. No schema changes.
+
+The desktop task List fills the remaining workspace height and scrolls its task
+rows independently. Project context, tabs, search, filters, and column labels stay
+visible. The list scroll region is keyboard-focusable. Mobile retains document
+scrolling; Sessions and Kanban retain their existing scrolling behavior.
+
+
+### Project appearance form
+
+Create and Edit share a responsive modal with a live name/color/icon preview.
+The body scrolls independently on short screens while the footer stays visible.
+Pending saves disable fields and closing to prevent duplicate or interrupted
+submissions. Server errors stay in the form and entered values are preserved.
+Editing a project preserves its existing icon (including null) and color until
+changed. New projects default to Blue and Briefcase. Project cards, list rows,
+and detail headers use the shared line-icon renderer; no schema migration is
+needed. Editing appearance does not replace tasks or sessions.

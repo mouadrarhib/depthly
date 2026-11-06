@@ -1,9 +1,6 @@
-import { Clock, BarChart2, Flame, Award, Timer, Calendar } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
-import {
-  ProjectBreakdownCard,
-  type ProjectEntry,
-} from '@/components/analytics/ProjectBreakdownCard'
+import { Button } from '@/components/ui/button'
 import { useProfile, useSessionsAllTime } from '@/hooks/useAnalytics'
 import { usePlan } from '@/hooks/usePlan'
 import { formatMinutesToHours } from '@/lib/utils/analytics'
@@ -12,223 +9,229 @@ import {
   getLongestFocusStreak,
   sessionsToDailyTotals,
 } from '@/lib/utils/analyticsSessions'
+import { PATHS } from '@/routes/paths'
 import type { AnalyticsProjectScope } from '@/types/app'
 
-const cardStyle: React.CSSProperties = {
-  backgroundColor: '#141417',
-  border: '1px solid #2E2E38',
-  borderRadius: 14,
-  padding: 16,
-}
-
-function computeAvgPerDay(totalMinutes: number, memberSince: string): string {
-  const joined = new Date(memberSince)
-  const now = new Date()
-  const days = Math.max(1, Math.floor((now.getTime() - joined.getTime()) / 86_400_000))
-  return formatMinutesToHours(Math.round(totalMinutes / days))
-}
-
-function formatMemberSince(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-}
-
-// ─── card header — matches DailyView's/MonthlyView's/YearlyView's CardHeader exactly ───
-
-interface CardHeaderProps {
-  icon: React.ReactNode
-  title: string
-}
-function CardHeader({ icon, title }: CardHeaderProps) {
-  return (
-    <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {icon}
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#E8E6F0' }}>{title}</span>
-      </div>
-      <div style={{ height: 1, backgroundColor: '#2E2E38', margin: '8px 0' }} />
-    </>
-  )
-}
-
-interface StatCardProps {
-  icon: React.ReactNode
-  title: string
-  value: React.ReactNode
-  label: string
-  valueSize?: number
-}
-
-function StatCard({ icon, title, value, label, valueSize = 28 }: StatCardProps) {
-  return (
-    <div style={cardStyle}>
-      <CardHeader icon={icon} title={title} />
-      <div style={{ color: '#7A7890', fontSize: 12 }}>{label}</div>
-      <div
-        className="font-data"
-        style={{
-          fontSize: valueSize,
-          fontWeight: 600,
-          color: '#E8E6F0',
-          marginTop: 4,
-          lineHeight: 1.1,
-          letterSpacing: '-0.02em',
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  )
-}
-
-function SkeletonCard() {
-  return (
-    <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div
-          className="animate-pulse bg-depth-raised"
-          style={{ width: 26, height: 26, borderRadius: 6 }}
-        />
-        <div className="animate-pulse rounded bg-depth-raised" style={{ height: 13, width: 90 }} />
-      </div>
-      <div
-        className="animate-pulse rounded bg-depth-raised"
-        style={{ height: 1, margin: '8px 0' }}
-      />
-      <div
-        className="animate-pulse rounded bg-depth-raised"
-        style={{ height: 11, width: 70, marginBottom: 8 }}
-      />
-      <div className="animate-pulse rounded bg-depth-raised" style={{ height: 32, width: 100 }} />
-    </div>
+// Count local calendar days, including today and days with no sessions.
+function calendarDaysSince(value: string) {
+  const start = new Date(value)
+  const end = new Date()
+  return Math.max(
+    1,
+    Math.round(
+      (Date.UTC(end.getFullYear(), end.getMonth(), end.getDate()) -
+        Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) /
+        86_400_000
+    ) + 1
   )
 }
 
 export function OverviewView({ projectId, projectLabel }: AnalyticsProjectScope) {
-  const { data: profile, isLoading: loadingProfile } = useProfile()
-  const { data: sessions, isLoading: loadingSessions } = useSessionsAllTime(projectId)
+  const profileQuery = useProfile()
+  const query = useSessionsAllTime(projectId)
   const { isPro } = usePlan()
-
-  const isProjectFiltered = projectId !== undefined
-  const isLoading = loadingSessions || (!isProjectFiltered && loadingProfile)
-
-  // Lifetime project breakdown — aggregated across every focus session ever logged
-  const projectMap = new Map<string, Omit<ProjectEntry, 'pct'>>()
-  for (const s of sessions ?? []) {
-    const pid = s.project_id ?? '__none__'
-    const name = s.projects?.name ?? 'No project'
-    const color = s.projects?.color ?? '#7A7890'
-    const cur = projectMap.get(pid)
-    if (cur) cur.minutes += s.duration_mins
-    else projectMap.set(pid, { name, color, minutes: s.duration_mins })
-  }
-  const totalProjectMinutes = [...projectMap.values()].reduce((s, p) => s + p.minutes, 0)
-  const projectPieData: ProjectEntry[] = [...projectMap.values()]
-    .sort((a, b) => b.minutes - a.minutes)
-    .map((p) => ({
-      ...p,
-      pct: totalProjectMinutes > 0 ? Math.round((p.minutes / totalProjectMinutes) * 100) : 0,
-    }))
-
-  const dailyTotals = [...sessionsToDailyTotals(sessions ?? []).values()]
-  const firstSessionDate = [...(sessions ?? [])].sort((a, b) =>
-    a.started_at.localeCompare(b.started_at)
-  )[0]?.started_at
-  const totalFocusMinutes = (sessions ?? []).reduce(
-    (total, session) => total + session.duration_mins,
-    0,
+  const sessions = query.data ?? []
+  const total = sessions.reduce((sum, session) => sum + session.duration_mins, 0)
+  const firstSession = sessions.reduce<string | null>(
+    (first, session) => (!first || session.started_at < first ? session.started_at : first),
+    null
   )
-  const totalSessions = sessions?.length ?? 0
+  const freeStart = new Date()
+  freeStart.setHours(0, 0, 0, 0)
+  freeStart.setDate(freeStart.getDate() - 6)
+  const rangeStart = isPro
+    ? (firstSession ?? profileQuery.data?.member_since ?? new Date().toISOString())
+    : freeStart.toISOString()
+  const dailyTotals = [...sessionsToDailyTotals(sessions).values()]
   const currentStreak = getCurrentFocusStreak(dailyTotals)
   const longestStreak = getLongestFocusStreak(dailyTotals)
-  const freeWindowStart = new Date()
-  freeWindowStart.setDate(freeWindowStart.getDate() - 6)
-  const memberSince = isPro
-    ? (firstSessionDate ?? profile?.member_since ?? new Date().toISOString())
-    : freeWindowStart.toISOString()
-  const rangeLabel = isPro ? 'all-time' : 'last 7 days'
-
+  const rangeLabel = isPro ? 'All time' : 'Last 7 days'
+  const projectMap = new Map<string, { name: string; color: string; minutes: number }>()
+  for (const session of sessions) {
+    const id = session.project_id ?? '__none__'
+    const existing = projectMap.get(id)
+    if (existing) existing.minutes += session.duration_mins
+    else
+      projectMap.set(id, {
+        name: session.projects?.name ?? 'No project',
+        color: session.projects?.color ?? '#9490aa',
+        minutes: session.duration_mins,
+      })
+  }
+  const projects = [...projectMap.entries()].sort((a, b) => b[1].minutes - a[1].minutes)
+  if (query.isPending)
+    return (
+      <div aria-label="Loading overview" className="space-y-6">
+        <div className="h-36 animate-pulse rounded-xl bg-depth-raised" />
+        <div className="h-80 animate-pulse rounded-xl bg-depth-raised" />
+      </div>
+    )
+  if (query.isError)
+    return (
+      <div
+        role="alert"
+        className="rounded-xl border border-depth-border p-8 text-center text-sm text-ink-primary"
+      >
+        <p>We couldn’t load your focus overview.</p>
+        <Button variant="ghost" onClick={() => void query.refetch()}>
+          Try again
+        </Button>
+      </div>
+    )
+  const stats = [
+    {
+      title: 'Total focus',
+      value: formatMinutesToHours(total),
+      note: isPro ? 'Time from your focus sessions' : 'Focus time in the last 7 days',
+    },
+    { title: 'Focus sessions', value: sessions.length, note: 'Completed focus sessions' },
+    {
+      title: 'Average per day',
+      value: formatMinutesToHours(Math.round(total / calendarDaysSince(rangeStart))),
+      note: 'Includes days without a session',
+    },
+    {
+      title: 'Current streak',
+      value: `${currentStreak} ${currentStreak === 1 ? 'day' : 'days'}`,
+      note: `Longest streak: ${longestStreak} ${longestStreak === 1 ? 'day' : 'days'}${isPro ? '' : ' in this range'}`,
+    },
+  ]
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {isLoading || (!isProjectFiltered && !profile) ? (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-primary/70">
+        <p>
+          {rangeLabel}
+          {projectId !== undefined ? ` · ${projectLabel}` : ' · All projects'}
+        </p>
+        <p>
+          {isPro
+            ? firstSession
+              ? `First focus session · ${new Date(firstSession).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}`
+              : 'No focus sessions yet'
+            : 'Showing your accessible analytics range'}
+        </p>
+      </div>
+      <section
+        aria-label="Focus summary"
+        className="grid grid-cols-1 overflow-hidden rounded-xl border border-depth-border bg-depth-surface sm:grid-cols-2 xl:grid-cols-4"
+      >
+        {stats.map((stat, index) => (
+          <div
+            key={stat.title}
+            className={`min-w-0 border-depth-border p-5 sm:p-6 ${index ? 'border-t' : ''} ${index === 1 ? 'sm:border-l sm:border-t-0' : ''} ${index === 3 ? 'sm:border-l' : ''} xl:border-t-0 ${index ? 'xl:border-l' : ''}`}
+          >
+            <h2 className="text-sm font-medium text-ink-primary/80">{stat.title}</h2>
+            <p className="font-data mt-4 break-words text-[clamp(24px,2.5vw,30px)] leading-tight tracking-tight text-ink-primary">
+              {stat.value}
+            </p>
+            <p className="mt-4 text-xs leading-5 text-ink-primary/70">{stat.note}</p>
+          </div>
+        ))}
+      </section>
+      <section
+        className="overflow-hidden rounded-xl border border-depth-border bg-depth-surface"
+        aria-labelledby="overview-project-breakdown"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-depth-border px-5 py-5 sm:px-6">
+          <div>
+            <h2 id="overview-project-breakdown" className="text-lg font-medium text-ink-primary">
+              Focus by project
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-ink-primary/75">
+              {projectId === undefined
+                ? 'See which projects you’ve spent the most time on.'
+                : `Focus time recorded for ${projectLabel}.`}
+            </p>
+          </div>
+          <span className="text-xs text-ink-primary/70">{rangeLabel}</span>
+        </div>
+        {projects.length ? (
           <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
+            <div
+              className="max-h-[32rem] overflow-y-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
+              role="region"
+              aria-label="Project focus breakdown"
+              tabIndex={0}
+            >
+              <table className="w-full table-fixed text-left text-sm">
+                <thead className="sticky top-0 z-10 bg-depth-surface text-xs text-ink-primary/70">
+                  <tr>
+                    <th scope="col" className="w-[45%] px-5 py-4 font-medium sm:w-[28%] sm:px-6">
+                      Project
+                    </th>
+                    <th scope="col" className="hidden w-[40%] py-4 font-medium sm:table-cell">
+                      <span className="sr-only">Share of total focus</span>
+                    </th>
+                    <th scope="col" className="w-[30%] px-2 py-4 text-right font-medium sm:w-[18%]">
+                      Focus time
+                    </th>
+                    <th
+                      scope="col"
+                      className="w-[25%] px-5 py-4 text-right font-medium sm:w-[14%] sm:px-6"
+                    >
+                      % of total
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {projects.map(([id, entry]) => {
+                    const share = total > 0 ? (entry.minutes / total) * 100 : 0
+                    return (
+                      <tr key={id} className="border-t border-depth-border/50">
+                        <th scope="row" className="px-5 py-3 font-normal sm:px-6">
+                          <span className="flex items-start gap-2">
+                            <span
+                              className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
+                              style={{ backgroundColor: entry.color }}
+                              aria-hidden="true"
+                            />
+                            <span className="min-w-0 break-words text-ink-primary">
+                              {entry.name}
+                            </span>
+                          </span>
+                        </th>
+                        <td className="hidden py-3 sm:table-cell" aria-hidden="true">
+                          <div className="h-3 overflow-hidden rounded bg-depth-raised">
+                            <div
+                              className="h-full rounded"
+                              style={{ width: `${share}%`, backgroundColor: entry.color }}
+                            />
+                          </div>
+                        </td>
+                        <td className="font-data px-2 py-3 text-right text-xs text-ink-primary sm:text-sm">
+                          {formatMinutesToHours(entry.minutes)}
+                        </td>
+                        <td className="font-data px-5 py-3 text-right text-xs text-ink-primary/75 sm:px-6">
+                          {share.toFixed(1)}%
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="border-t border-depth-border px-5 py-3 text-xs leading-5 text-ink-primary/70 sm:px-6">
+              Sessions without a linked project appear under “No project”.
+            </p>
           </>
         ) : (
-          <>
-            <StatCard
-              icon={<Clock size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Focus Time"
-              value={formatMinutesToHours(totalFocusMinutes)}
-              label={rangeLabel}
-            />
-            <StatCard
-              icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Focus Sessions"
-              value={totalSessions}
-              label={`${rangeLabel} sessions`}
-            />
-            <StatCard
-              icon={<Flame size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Current Streak"
-              value={
-                <>
-                  {currentStreak}
-                  <span style={{ fontSize: 13, fontWeight: 400, marginLeft: 4 }}>days</span>
-                </>
-              }
-              label={isPro ? 'current streak' : 'streak in accessible range'}
-            />
-            <StatCard
-              icon={<Award size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Longest Streak"
-              value={
-                <>
-                  {longestStreak}
-                  <span style={{ fontSize: 13, fontWeight: 400, marginLeft: 4 }}>days</span>
-                </>
-              }
-              label={isPro ? 'longest streak' : 'best in accessible range'}
-            />
-            <StatCard
-              icon={<Timer size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Avg Per Day"
-              value={computeAvgPerDay(totalFocusMinutes, memberSince)}
-              label="avg per day"
-            />
-            <StatCard
-              icon={<Calendar size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title={isPro ? (isProjectFiltered ? 'First Session' : 'Member Since') : 'Range Starts'}
-              valueSize={16}
-              value={formatMemberSince(memberSince)}
-              label={isPro ? (isProjectFiltered ? 'first filtered session' : 'member since') : 'accessible analytics'}
-            />
-          </>
+          <div className="px-5 py-12 text-center">
+            <p className="text-sm text-ink-primary">
+              No focus sessions in this range{projectId !== undefined ? ` for ${projectLabel}` : ''}
+              .
+            </p>
+            <p className="mt-2 text-xs text-ink-primary/70">
+              Record a focus session to see how your time adds up.
+            </p>
+            <Link
+              to={PATHS.timer}
+              className="mt-3 inline-flex min-h-11 items-center text-sm text-brand"
+            >
+              Open timer →
+            </Link>
+          </div>
         )}
-      </div>
-
-      {/* Focus Time by Project — lifetime */}
-      <ProjectBreakdownCard
-        pieData={projectPieData}
-        isLoading={isLoading}
-        title={isProjectFiltered ? `${projectLabel} Focus` : 'Focus Time by Project'}
-        subtitle={
-          isProjectFiltered
-            ? `${isPro ? 'All-time' : 'Last 7 days'} focus logged for ${projectLabel}`
-            : `See how you've spent your focus time across every project, ${rangeLabel}`
-        }
-        emptyText={
-          isProjectFiltered
-            ? `No focus sessions for ${projectLabel} yet.`
-            : 'No focus sessions logged yet.'
-        }
-      />
+      </section>
     </div>
   )
 }

@@ -1,6 +1,4 @@
 import { useState } from 'react'
-
-import { Lock } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import {
   BarChart,
@@ -11,623 +9,409 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-  LabelList,
 } from 'recharts'
-import type { XAxisTickContentProps } from 'recharts'
-
-import {
-  ProjectBreakdownCard,
-  type ProjectEntry,
-} from '@/components/analytics/ProjectBreakdownCard'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
+import { GoalDialog } from '@/components/goals/GoalDialog'
+import { Button } from '@/components/ui/button'
 import { useDailySummariesRange, useSessionsForWeek } from '@/hooks/useAnalytics'
+import { sessionsToDailyTotals } from '@/lib/utils/analyticsSessions'
 import { useGoals } from '@/hooks/useGoals'
 import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
-import type { SessionProjectSliceWithDate } from '@/lib/supabase/queries/analytics'
 import {
-  getDaysInWeek,
   formatPeriodKey,
-  navigatePeriod,
   formatMinutesToHours,
   getGoalProgress,
+  getDaysInWeek,
 } from '@/lib/utils/analytics'
-import { sessionsToDailyTotals } from '@/lib/utils/analyticsSessions'
 import { PATHS } from '@/routes/paths'
 import type { AnalyticsProjectScope } from '@/types/app'
 
 interface WeeklyViewProps extends AnalyticsProjectScope {
   date: Date
+  onSelectDay?: (date: Date) => void
 }
-
-interface DayProjectSlice {
-  name: string
-  color: string
-  minutes: number
-}
-
-interface DayEntry {
-  day: string
-  date: string
-  dateObj: Date
-  focus_minutes: number
-  session_count: number
-  isToday: boolean
-  isFuture: boolean
-  projects: DayProjectSlice[]
-}
-
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
-// ─── card style ───────────────────────────────────────────────────────────────
-
-const card: React.CSSProperties = {
-  backgroundColor: '#141417',
-  border: '1px solid #2E2E38',
-  borderRadius: 14,
-  padding: 14,
-}
-
-// ─── skeletons ────────────────────────────────────────────────────────────────
-
-function SummaryCardSkeleton() {
-  return (
-    <div style={{ ...card, height: '100%', boxSizing: 'border-box' }}>
-      <div
-        className="animate-pulse rounded bg-depth-raised"
-        style={{ height: 16, width: '60%', margin: '0 auto 16px' }}
-      />
-      <div
-        className="animate-pulse rounded bg-depth-raised"
-        style={{ height: 1, marginBottom: 20 }}
-      />
-      <div style={{ display: 'flex', flexDirection: 'row', gap: 12 }}>
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 8,
-              flex: 1,
-              minWidth: 0,
-            }}
-          >
-            <div
-              className="animate-pulse rounded bg-depth-raised"
-              style={{ height: 12, width: '60%' }}
-            />
-            <div
-              className="animate-pulse rounded bg-depth-raised"
-              style={{ height: 32, width: '70%' }}
-            />
-            <div
-              className="animate-pulse rounded bg-depth-raised"
-              style={{ height: 12, width: '80%' }}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function ChartCardSkeleton() {
-  return (
-    <div style={card}>
-      <div className="animate-pulse rounded bg-depth-raised" style={{ height: 130 }} />
-    </div>
-  )
-}
-
-// ─── tooltip ─────────────────────────────────────────────────────────────────
-
-interface TooltipPayload {
-  value: number
-  payload: DayEntry
-}
-
-interface ChartTooltipProps {
-  active?: boolean
-  payload?: TooltipPayload[]
-}
-
-function ChartTooltip({ active, payload }: ChartTooltipProps) {
-  if (!active || !payload?.length) return null
-  const entry = payload[0].payload
-  const dayName = entry.dateObj.toLocaleDateString('en-US', { weekday: 'long' })
-  const dateStr = entry.dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  const sess = entry.session_count
-  return (
-    <div
-      style={{
-        backgroundColor: '#141417',
-        border: '1px solid #2E2E38',
-        borderRadius: 8,
-        padding: '10px 14px',
-        maxWidth: 180,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-      }}
-    >
-      <div style={{ fontSize: 13, color: '#E8E6F0', fontWeight: 500, marginBottom: 4 }}>
-        {dayName}, {dateStr}
-      </div>
-      <div className="font-data" style={{ fontSize: 16, color: '#4B9EFF' }}>
-        {formatMinutesToHours(entry.focus_minutes)}
-      </div>
-      <div style={{ fontSize: 12, color: '#7A7890', marginTop: 2 }}>
-        {sess} session{sess !== 1 ? 's' : ''}
-      </div>
-      {entry.projects.length > 0 && (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 3,
-            marginTop: 8,
-            paddingTop: 8,
-            borderTop: '1px solid #2E2E38',
-          }}
-        >
-          {entry.projects.map((p) => (
-            <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  backgroundColor: p.color,
-                  flexShrink: 0,
-                }}
-              />
-              <span
-                style={{
-                  fontSize: 11,
-                  color: '#7A7890',
-                  flex: 1,
-                  minWidth: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {p.name}
-              </span>
-              <span className="font-data" style={{ fontSize: 11, color: '#E8E6F0', flexShrink: 0 }}>
-                {formatMinutesToHours(p.minutes)}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─── helpers ─────────────────────────────────────────────────────────────────
-
-function getMonday(date: Date): Date {
-  const d = new Date(date)
-  const day = d.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  d.setDate(d.getDate() + diff)
-  d.setHours(0, 0, 0, 0)
-  return d
-}
-
-// ─── main component ───────────────────────────────────────────────────────────
-
-export function WeeklyView({ date, projectId, projectLabel }: WeeklyViewProps) {
-  const monday = getMonday(date)
-  const days = getDaysInWeek(monday)
-  const mondayKey = formatPeriodKey(days[0], 'daily')
-  const sundayKey = formatPeriodKey(days[6], 'daily')
-
-  const prevMonday = getMonday(navigatePeriod(monday, 'weekly', 'prev'))
-  const prevDays = getDaysInWeek(prevMonday)
-  const prevMonKey = formatPeriodKey(prevDays[0], 'daily')
-  const prevSunKey = formatPeriodKey(prevDays[6], 'daily')
-
-  const { data: summaries, isLoading: loadingThis } = useDailySummariesRange(mondayKey, sundayKey)
-  const { data: prevSummaries, isLoading: loadingPrev } = useDailySummariesRange(
-    prevMonKey,
-    prevSunKey
-  )
-  const isProjectFiltered = projectId !== undefined
-  const { data: weekSessions, isLoading: loadingWeekSessions } = useSessionsForWeek(
-    mondayKey,
-    sundayKey,
-    projectId
-  )
-  const { data: prevWeekSessions, isLoading: loadingPrevWeekSessions } = useSessionsForWeek(
-    prevMonKey,
-    prevSunKey,
-    projectId,
-    isProjectFiltered
-  )
-  const { data: goals } = useGoals()
-
-  const isLoading =
-    loadingThis ||
-    loadingPrev ||
-    loadingWeekSessions ||
-    (isProjectFiltered && loadingPrevWeekSessions)
-  const todayKey = formatPeriodKey(new Date(), 'daily')
+export function WeeklyView({ date, projectId, projectLabel, onSelectDay }: WeeklyViewProps) {
+  const days = getDaysInWeek(date)
+  const startKey = formatPeriodKey(days[0], 'daily')
+  const endKey = formatPeriodKey(days[6], 'daily')
+  const previousDate = new Date(days[0])
+  previousDate.setDate(previousDate.getDate() - 7)
+  const previousDays = getDaysInWeek(previousDate)
+  const prevStart = formatPeriodKey(previousDays[0], 'daily')
+  const prevEnd = formatPeriodKey(previousDays[6], 'daily')
+  const summaryQuery = useDailySummariesRange(startKey, endKey)
+  const sessionQuery = useSessionsForWeek(startKey, endKey, projectId)
+  const prevQuery = useDailySummariesRange(prevStart, prevEnd)
+  const prevSessions = useSessionsForWeek(prevStart, prevEnd, projectId, projectId !== undefined)
+  const goalQuery = useGoals()
   const { windowDays, isPro } = useAnalyticsWindow()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
-
+  const [goalDialogOpen, setGoalDialogOpen] = useState(false)
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - (windowDays - 1))
   const cutoffKey = formatPeriodKey(cutoff, 'daily')
-  const showOverlay = !isPro && mondayKey < cutoffKey
-
-  const overallSummaryMap = new Map((summaries ?? []).map((s) => [s.date, s]))
-  const summaryMap = isProjectFiltered
-    ? sessionsToDailyTotals(weekSessions ?? [])
-    : overallSummaryMap
-  const prevMap = isProjectFiltered
-    ? sessionsToDailyTotals(prevWeekSessions ?? [])
-    : new Map((prevSummaries ?? []).map((s) => [s.date, s]))
-
-  const thisWeekMinutes = days.reduce(
-    (sum, d) => sum + (summaryMap.get(formatPeriodKey(d, 'daily'))?.focus_minutes ?? 0),
+  const todayKey = formatPeriodKey(new Date(), 'daily')
+  const locked = !isPro && startKey < cutoffKey
+  const previousAccessible = isPro || prevStart >= cutoffKey
+  const sessions = sessionQuery.data ?? []
+  const overallMap = new Map((summaryQuery.data ?? []).map((item) => [item.date, item]))
+  const selectedMap = projectId !== undefined ? sessionsToDailyTotals(sessions) : overallMap
+  const previousMap =
+    projectId !== undefined
+      ? sessionsToDailyTotals(prevSessions.data ?? [])
+      : new Map((prevQuery.data ?? []).map((item) => [item.date, item]))
+  const overallMinutes = days.reduce(
+    (sum, day) => sum + (overallMap.get(formatPeriodKey(day, 'daily'))?.focus_minutes ?? 0),
     0
   )
-  const prevWeekMinutes = prevDays.reduce(
-    (sum, d) => sum + (prevMap.get(formatPeriodKey(d, 'daily'))?.focus_minutes ?? 0),
+  const minutes = days.reduce(
+    (sum, day) => sum + (selectedMap.get(formatPeriodKey(day, 'daily'))?.focus_minutes ?? 0),
     0
   )
-  const thisWeekSessions = days.reduce(
-    (sum, d) => sum + (summaryMap.get(formatPeriodKey(d, 'daily'))?.session_count ?? 0),
+  const count = days.reduce(
+    (sum, day) => sum + (selectedMap.get(formatPeriodKey(day, 'daily'))?.session_count ?? 0),
     0
   )
-  const overallThisWeekMinutes = days.reduce(
-    (sum, d) => sum + (overallSummaryMap.get(formatPeriodKey(d, 'daily'))?.focus_minutes ?? 0),
+  const previousMinutes = previousDays.reduce(
+    (sum, day) => sum + (previousMap.get(formatPeriodKey(day, 'daily'))?.focus_minutes ?? 0),
     0
   )
-
-  // Group this week's sessions by local day so each bar's tooltip can list
-  // which project(s) were worked on that day.
-  const sessionsByDay = new Map<string, SessionProjectSliceWithDate[]>()
-  for (const s of weekSessions ?? []) {
-    const dayKey = formatPeriodKey(new Date(s.started_at), 'daily')
-    const list = sessionsByDay.get(dayKey)
-    if (list) list.push(s)
-    else sessionsByDay.set(dayKey, [s])
-  }
-
-  // Build 7-entry chart data
-  const chartData: DayEntry[] = days.map((d, i) => {
-    const key = formatPeriodKey(d, 'daily')
-    const isFuture = key > todayKey
-
-    const dayProjectMap = new Map<string, DayProjectSlice>()
-    for (const s of sessionsByDay.get(key) ?? []) {
-      const pid = s.project_id ?? '__none__'
-      const name = s.projects?.name ?? 'No project'
-      const color = s.projects?.color ?? '#7A7890'
-      const cur = dayProjectMap.get(pid)
-      if (cur) cur.minutes += s.duration_mins
-      else dayProjectMap.set(pid, { name, color, minutes: s.duration_mins })
-    }
-    const dayProjects = [...dayProjectMap.values()].sort((a, b) => b.minutes - a.minutes)
-
+  const difference = minutes - previousMinutes
+  const comparisonPending =
+    prevQuery.isPending || (projectId !== undefined && prevSessions.isPending)
+  const comparisonError = prevQuery.isError || (projectId !== undefined && prevSessions.isError)
+  const target = goalQuery.data?.weekly_goal_minutes ?? null
+  const goal = target !== null ? getGoalProgress(overallMinutes, target) : null
+  const inProgress = startKey <= todayKey && endKey >= todayKey
+  const futureWeek = startKey > todayKey
+  const hours = days.map((day) => {
+    const key = formatPeriodKey(day, 'daily')
     return {
-      day: DAY_LABELS[i],
-      date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      dateObj: d,
-      focus_minutes: isFuture ? 0 : (summaryMap.get(key)?.focus_minutes ?? 0),
-      session_count: isFuture ? 0 : (summaryMap.get(key)?.session_count ?? 0),
-      isToday: key === todayKey,
-      isFuture,
-      projects: isFuture ? [] : dayProjects,
+      day,
+      key,
+      label: day.toLocaleDateString(undefined, { weekday: 'short' }),
+      minutes: key > todayKey ? null : (selectedMap.get(key)?.focus_minutes ?? 0),
     }
   })
-
-  // Focus Time by Project — aggregated across this week's focus sessions
-  const projectMap = new Map<string, Omit<ProjectEntry, 'pct'>>()
-  for (const s of weekSessions ?? []) {
-    const pid = s.project_id ?? '__none__'
-    const name = s.projects?.name ?? 'No project'
-    const color = s.projects?.color ?? '#7A7890'
-    const cur = projectMap.get(pid)
-    if (cur) cur.minutes += s.duration_mins
-    else projectMap.set(pid, { name, color, minutes: s.duration_mins })
+  const projects = new Map<string, { name: string; color: string; minutes: number }>()
+  for (const session of sessions) {
+    const id = session.project_id ?? '__none__'
+    const entry = projects.get(id)
+    if (entry) entry.minutes += session.duration_mins
+    else
+      projects.set(id, {
+        name: session.projects?.name ?? 'No project',
+        color: session.projects?.color ?? '#9490aa',
+        minutes: session.duration_mins,
+      })
   }
-  const totalProjectMinutes = [...projectMap.values()].reduce((s, p) => s + p.minutes, 0)
-  const weekProjectPieData: ProjectEntry[] = [...projectMap.values()]
-    .sort((a, b) => b.minutes - a.minutes)
-    .map((p) => ({
-      ...p,
-      pct: totalProjectMinutes > 0 ? Math.round((p.minutes / totalProjectMinutes) * 100) : 0,
-    }))
-
+  const projectTotal = sessions.reduce((sum, session) => sum + session.duration_mins, 0)
+  const entries = [...projects.entries()].sort((a, b) => b[1].minutes - a[1].minutes)
+  const panel = 'rounded-xl border border-depth-border bg-depth-surface'
+  if (locked)
+    return (
+      <section className={`${panel} px-5 py-16 text-center`}>
+        <h2 className="text-xl font-medium text-ink-primary">Explore your full focus history</h2>
+        <p className="mt-2 text-sm text-ink-primary/75">
+          Your Free plan includes the last {windowDays} days. Pro includes older dates.
+        </p>
+        <Button variant="primary" className="mt-5" onClick={() => setUpgradeOpen(true)}>
+          Upgrade to Pro
+        </Button>
+        <UpgradeModal
+          open={upgradeOpen}
+          onClose={() => setUpgradeOpen(false)}
+          trigger="analytics"
+        />
+      </section>
+    )
+  if (summaryQuery.isPending || sessionQuery.isPending)
+    return (
+      <div aria-label="Loading daily analytics" className="space-y-6">
+        <div className="h-40 animate-pulse rounded-xl bg-depth-raised" />
+        <div className="h-80 animate-pulse rounded-xl bg-depth-raised" />
+      </div>
+    )
+  if (summaryQuery.isError || sessionQuery.isError)
+    return (
+      <div role="alert" className={`${panel} p-8 text-center text-sm text-ink-primary`}>
+        <p>We couldn’t load this week’s focus activity.</p>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            void summaryQuery.refetch()
+            void sessionQuery.refetch()
+          }}
+        >
+          Try again
+        </Button>
+      </div>
+    )
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* ── Top two-column grid ── */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1fr] sm:items-stretch">
-          {/* Left: Weekly Summary */}
-          {isLoading ? (
-            <SummaryCardSkeleton />
-          ) : (
-            <div style={{ ...card, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#E8E6F0', textAlign: 'center' }}>
-                Weekly Summary
-              </div>
-              <div style={{ height: 1, backgroundColor: '#2E2E38', margin: '16px 0' }} />
-
-              <div
-                style={{
-                  flex: '1 1 auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  gap: 16,
-                }}
-              >
-                <div style={{ display: 'flex', flexDirection: 'row', gap: 12 }}>
-                  {/* Focus Time stat */}
-                  <div style={{ textAlign: 'center', flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, color: '#7A7890' }}>Focus Time</div>
-                    <div
-                      className="font-data"
-                      style={{
-                        fontSize: 28,
-                        fontWeight: 600,
-                        color: '#E8E6F0',
-                        lineHeight: 1.1,
-                        marginTop: 4,
-                      }}
-                    >
-                      {formatMinutesToHours(thisWeekMinutes)}
-                    </div>
-                    <div style={{ fontSize: 11, color: '#7A7890', marginTop: 6 }}>
-                      Prev: {formatMinutesToHours(prevWeekMinutes)}
-                    </div>
-                  </div>
-
-                  {/* Sessions stat */}
-                  <div style={{ textAlign: 'center', flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, color: '#7A7890' }}>Sessions</div>
-                    <div
-                      className="font-data"
-                      style={{
-                        fontSize: 28,
-                        fontWeight: 700,
-                        color: '#E8E6F0',
-                        lineHeight: 1.1,
-                        marginTop: 4,
-                      }}
-                    >
-                      {thisWeekSessions}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Weekly Goal stat — full width, below Focus Time / Sessions */}
-                {goals?.weekly_goal_minutes != null &&
-                  (() => {
-                    const goal = getGoalProgress(overallThisWeekMinutes, goals.weekly_goal_minutes)
-                    const fillColor = goal.isComplete ? '#3DD68C' : '#4B9EFF'
-                    return (
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 12, color: '#7A7890', marginBottom: 8 }}>
-                          {isProjectFiltered ? 'Overall Weekly Goal' : 'Weekly Goal'}
-                        </div>
-                        <div
-                          style={{
-                            height: 8,
-                            borderRadius: 999,
-                            backgroundColor: '#222228',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <div
-                            style={{
-                              height: '100%',
-                              borderRadius: 999,
-                              backgroundColor: fillColor,
-                              width: `${goal.percentage}%`,
-                              transition: 'width 0.4s ease',
-                            }}
-                          />
-                        </div>
-                        <div style={{ fontSize: 11, color: fillColor, marginTop: 6 }}>
-                          {goal.isComplete ? 'Goal reached! 🎉' : `${goal.percentage}% complete`}
-                        </div>
-                      </div>
-                    )
-                  })()}
-              </div>
-            </div>
-          )}
-
-          {/* Right: Focus by Project */}
-          <ProjectBreakdownCard
-            pieData={weekProjectPieData}
-            isLoading={isLoading}
-            title={isProjectFiltered ? `${projectLabel} Focus` : 'Focus Time by Project'}
-            subtitle={
-              isProjectFiltered
-                ? `Focused time logged for ${projectLabel} this week`
-                : "See how you've spent your focus time this week"
-            }
-            emptyText={
-              isProjectFiltered
-                ? `No focus sessions for ${projectLabel} this week.`
-                : 'No focus sessions this week.'
-            }
-            style={{ height: '100%' }}
-          />
+    <div className="space-y-6">
+      <section
+        aria-label="Weekly focus summary"
+        className={`${panel} relative grid grid-cols-1 overflow-hidden sm:grid-cols-2 xl:grid-cols-4`}
+      >
+        <div className="border-b border-depth-border p-5 sm:p-6 xl:border-b-0">
+          <h2 className="text-sm font-medium text-ink-primary/80">Time focused</h2>
+          <p className="font-data mt-4 text-3xl text-ink-primary">
+            {formatMinutesToHours(minutes)}
+          </p>
+          <p className="mt-4 text-xs text-ink-primary/70">
+            {projectId !== undefined
+              ? projectLabel
+              : inProgress
+                ? 'Week in progress'
+                : futureWeek
+                  ? 'Upcoming week'
+                  : 'Recorded for this week'}
+          </p>
         </div>
-
-        {/* ── No-sessions notice for the current week ── */}
-        {!isLoading && thisWeekMinutes === 0 && (
-          <div style={{ textAlign: 'center', padding: '16px 0 8px' }}>
-            <p style={{ fontSize: 13, color: '#7A7890' }}>
-              {isProjectFiltered
-                ? `No sessions for ${projectLabel} this week yet`
-                : 'No sessions this week yet'}
-            </p>
-            <Link
-              to={PATHS.timer}
-              style={{
-                fontSize: 13,
-                color: '#4B9EFF',
-                marginTop: 6,
-                display: 'block',
-                textDecoration: 'none',
-              }}
+        <div className="border-b border-depth-border p-5 sm:border-l sm:p-6 xl:border-b-0">
+          <h2 className="text-sm font-medium text-ink-primary/80">Focus sessions</h2>
+          <p className="font-data mt-4 text-3xl text-ink-primary">{count}</p>
+          <p className="mt-4 text-xs text-ink-primary/70">Completed focus sessions</p>
+        </div>
+        <div className="min-w-0 p-5 sm:col-span-2 sm:p-6 xl:border-l xl:border-depth-border">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-medium text-ink-primary/80">Weekly goal</h2>
+            <button
+              onClick={() => setGoalDialogOpen(true)}
+              className="min-h-11 text-xs text-brand focus-visible:ring-2 focus-visible:ring-brand"
             >
-              Start tracking →
-            </Link>
+              {target === null ? 'Set goal' : 'Edit goal'}
+            </button>
           </div>
-        )}
-
-        {/* ── Bottom: Bar chart ── */}
-        {isLoading ? (
-          <ChartCardSkeleton />
-        ) : (
-          <div style={card}>
-            <ResponsiveContainer width="100%" height={130}>
-              <BarChart
-                data={chartData}
-                barCategoryGap="28%"
-                margin={{ top: 20, right: 8, bottom: 0, left: 8 }}
+          {goalQuery.isPending ? (
+            <div className="h-12 animate-pulse rounded bg-depth-raised" />
+          ) : goalQuery.isError ? (
+            <div role="alert" className="text-sm text-ink-primary/75">
+              Goal unavailable.{' '}
+              <button className="min-h-11 text-brand" onClick={() => void goalQuery.refetch()}>
+                Retry
+              </button>
+            </div>
+          ) : goal && target !== null ? (
+            <>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="font-data text-xl text-ink-primary sm:text-2xl">
+                  {overallMinutes} / {target} min
+                </p>
+                <span className="font-data text-lg text-brand">{goal.percentage}%</span>
+              </div>
+              <div
+                role="progressbar"
+                aria-label="Overall weekly goal"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.min(100, Math.max(0, goal.percentage))}
+                className="mt-3 h-2 overflow-hidden rounded-full bg-depth-raised"
               >
-                <CartesianGrid vertical={false} stroke="#2E2E38" strokeDasharray="0" />
-                <XAxis
-                  dataKey="day"
+                <div
+                  className="h-full rounded-full bg-brand"
+                  style={{ width: `${Math.min(100, Math.max(0, goal.percentage))}%` }}
+                />
+              </div>
+              <div className="mt-3 flex flex-wrap justify-between gap-2 text-xs text-ink-primary/70">
+                <span>
+                  {goal.isComplete ? 'Weekly goal reached' : `${goal.remaining} min to your goal`}
+                </span>
+                <span>Overall goal · all projects</span>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm leading-6 text-ink-primary/75">
+              Choose a daily focus target to see your progress here.
+            </p>
+          )}
+          <p className="mt-2 text-[11px] text-ink-primary/60">
+            Compared with your current weekly target.
+          </p>
+        </div>
+      </section>
+      {count === 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-depth-border px-5 py-4">
+          <div>
+            <h2 className="text-sm font-medium text-ink-primary">
+              No focus sessions on this week{projectId !== undefined ? ` for ${projectLabel}` : ''}.
+            </h2>
+            <p className="mt-1 text-xs text-ink-primary/70">
+              Choose another date or record a session to see your focus time here.
+            </p>
+          </div>
+          <Link to={PATHS.timer} className="inline-flex min-h-11 items-center text-sm text-brand">
+            Open timer →
+          </Link>
+        </div>
+      )}
+      <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
+        <section className={`${panel} min-w-0 p-5 sm:p-6`} aria-labelledby="weekly-focus-pattern">
+          <h2 id="weekly-focus-pattern" className="text-lg font-medium text-ink-primary">
+            Your focus across the week
+          </h2>
+          <p className="mt-1 text-xs leading-5 text-ink-primary/75">
+            Compare daily totals. Today is highlighted; future days stay empty.
+          </p>
+          <div
+            className="mt-5 h-56 w-full"
+            role="img"
+            aria-label={hours
+              .map(
+                (item) =>
+                  `${item.label}: ${item.minutes === null ? 'upcoming' : `${item.minutes} minutes`}`
+              )
+              .join('; ')}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={hours} margin={{ left: -20, right: 0, top: 8, bottom: 0 }}>
+                <CartesianGrid stroke="#2e2e38" vertical={false} />
+                <XAxis dataKey="label" hide />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fill: '#aaa7ba', fontSize: 10 }}
                   axisLine={false}
                   tickLine={false}
-                  height={36}
-                  tick={(props: XAxisTickContentProps) => {
-                    const { x, y, index } = props
-                    const tickX = Number(x)
-                    const tickY = Number(y)
-                    const entry = chartData[index]
-                    const dayColor = entry.isToday ? '#4B9EFF' : '#7A7890'
-                    return (
-                      <text x={tickX} y={tickY + 4} textAnchor="middle" fontFamily="Inter, sans-serif">
-                        <tspan x={tickX} dy="0" fill={dayColor} fontSize={12}>
-                          {entry.day}
-                        </tspan>
-                        <tspan x={tickX} dy="16" fill="#7A7890" fontSize={11}>
-                          {entry.date}
-                        </tspan>
-                      </text>
-                    )
-                  }}
                 />
-                <YAxis hide />
                 <Tooltip
-                  content={<ChartTooltip />}
-                  cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-                  allowEscapeViewBox={{ x: true, y: true }}
-                  wrapperStyle={{ zIndex: 20 }}
+                  cursor={{ fill: '#ffffff08' }}
+                  formatter={(value) => [`${value} min`, 'Focus time']}
+                  contentStyle={{
+                    backgroundColor: '#141417',
+                    borderColor: '#2e2e38',
+                    borderRadius: 8,
+                    color: '#e8e6f0',
+                  }}
+                  itemStyle={{ color: '#e8e6f0' }}
                 />
-                <Bar dataKey="focus_minutes" radius={[6, 6, 0, 0]} maxBarSize={48}>
-                  <LabelList
-                    dataKey="focus_minutes"
-                    position="top"
-                    formatter={(val: unknown) =>
-                      typeof val === 'number' && val > 0 ? formatMinutesToHours(val) : ''
-                    }
-                    style={{ fill: '#7A7890', fontSize: 11 }}
-                  />
-                  {chartData.map((entry, i) => {
-                    const hasData = entry.focus_minutes > 0 && !entry.isFuture
-                    const fill = hasData ? '#4B9EFF' : '#222228'
-                    const style =
-                      hasData && entry.isToday
-                        ? { filter: 'drop-shadow(0 0 6px rgba(75,158,255,0.6))' }
-                        : undefined
-                    return <Cell key={i} fill={fill} style={style} />
-                  })}
+                <Bar dataKey="minutes" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                  {hours.map((item) => (
+                    <Cell key={item.key} fill={item.key === todayKey ? '#4b9eff' : '#345c89'} />
+                  ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-
-            {/* Legend */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    backgroundColor: '#4B9EFF',
-                    display: 'inline-block',
-                  }}
-                />
-                <span style={{ fontSize: 12, color: '#7A7890' }}>Focus</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    backgroundColor: '#222228',
-                    display: 'inline-block',
-                  }}
-                />
-                <span style={{ fontSize: 12, color: '#7A7890' }}>Untagged</span>
-              </div>
-            </div>
+          </div>
+          <div className="ml-6 grid grid-cols-7 gap-1">
+            {hours.map((item) => (
+              <button
+                key={item.key}
+                disabled={item.minutes === null || !onSelectDay}
+                onClick={() => onSelectDay?.(item.day)}
+                aria-label={`Open Daily view for ${item.day.toLocaleDateString()}`}
+                className={`flex min-h-11 flex-col items-center justify-center rounded-md text-xs focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-default ${item.key === todayKey ? 'text-brand' : 'text-ink-primary/75'} ${item.minutes !== null ? 'hover:bg-depth-raised' : ''}`}
+              >
+                <span>{item.label}</span>
+                {item.minutes === null && (
+                  <span className="text-[9px] text-ink-primary/50">Upcoming</span>
+                )}
+              </button>
+            ))}
+          </div>
+          <p className="mt-4 text-xs leading-5 text-ink-primary/70">
+            Select a day to explore its Daily view.
+          </p>
+        </section>
+        <section className={`${panel} min-w-0 p-5 sm:p-6`} aria-labelledby="weekly-projects">
+          <h2 id="weekly-projects" className="text-lg font-medium text-ink-primary">
+            Where your time went
+          </h2>
+          <p className="mt-1 text-xs leading-5 text-ink-primary/75">
+            Focus time by project for this week.
+          </p>
+          <div
+            className="mt-5 max-h-60 space-y-6 overflow-y-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            role="region"
+            aria-label="Weekly project focus"
+            tabIndex={0}
+          >
+            {entries.length ? (
+              entries.map(([id, entry]) => {
+                const share = projectTotal > 0 ? (entry.minutes / projectTotal) * 100 : 0
+                return (
+                  <div key={id}>
+                    <div className="flex items-start justify-between gap-3 text-sm">
+                      <span className="flex min-w-0 items-start gap-2 text-ink-primary">
+                        <span
+                          className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
+                          style={{ backgroundColor: entry.color }}
+                          aria-hidden="true"
+                        />
+                        <span className="break-words">{entry.name}</span>
+                      </span>
+                      <span className="font-data shrink-0 text-xs text-ink-primary">
+                        {formatMinutesToHours(entry.minutes)}
+                      </span>
+                    </div>
+                    <div
+                      className="mt-3 h-2 overflow-hidden rounded-full bg-depth-raised"
+                      aria-hidden="true"
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${share}%`, backgroundColor: entry.color }}
+                      />
+                    </div>
+                    <p className="font-data mt-2 text-right text-xs text-ink-primary/70">
+                      {share.toFixed(1)}% of this week’s time
+                    </p>
+                  </div>
+                )
+              })
+            ) : (
+              <p className="py-8 text-center text-sm text-ink-primary/70">
+                Project totals will appear here after a focus session.
+              </p>
+            )}
+          </div>
+        </section>
+      </div>
+      <section
+        className={`${panel} flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6`}
+        aria-label="Previous week comparison"
+      >
+        <div>
+          <h2 className="text-sm font-medium text-ink-primary">Compared with the previous week</h2>
+          <p className="mt-2 text-xs leading-5 text-ink-primary/70">
+            {futureWeek
+              ? 'This week has not started yet.'
+              : inProgress
+                ? 'This week is still in progress. The previous period covers all seven days.'
+                : 'Comparing two full calendar weeks.'}
+          </p>
+        </div>
+        {!previousAccessible ? (
+          <p className="text-xs text-ink-primary/70">
+            Previous week is outside your accessible history.
+          </p>
+        ) : comparisonPending ? (
+          <p className="text-xs text-ink-primary/70">Loading comparison…</p>
+        ) : comparisonError ? (
+          <button
+            className="min-h-11 text-sm text-brand"
+            onClick={() => {
+              void prevQuery.refetch()
+              void prevSessions.refetch()
+            }}
+          >
+            Retry comparison
+          </button>
+        ) : futureWeek ? null : (
+          <div className="text-right">
+            <p className="font-data text-2xl text-brand">
+              {difference > 0 ? '+' : difference < 0 ? '−' : ''}
+              {formatMinutesToHours(Math.abs(difference))}
+            </p>
+            <p className="mt-2 text-xs text-ink-primary/75">
+              Previous full week: {formatMinutesToHours(previousMinutes)}
+              {previousMinutes > 0
+                ? ` · ${((Math.abs(difference) / previousMinutes) * 100).toFixed(1)}% ${difference < 0 ? 'less' : 'more'}`
+                : ' · no previous focus time'}
+            </p>
           </div>
         )}
-
-        {showOverlay && (
-          <>
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                backdropFilter: 'blur(4px)',
-                pointerEvents: 'none',
-                zIndex: 1,
-                borderRadius: 14,
-              }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                zIndex: 2,
-              }}
-            >
-              <Lock size={20} color="#7A7890" />
-              <span style={{ fontSize: 14, color: '#E8E6F0', fontWeight: 500 }}>
-                Unlock full history
-              </span>
-              <button
-                onClick={() => setUpgradeOpen(true)}
-                style={{
-                  background: '#4B9EFF',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '8px 16px',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
-              >
-                Upgrade to Pro
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="analytics" />
+      </section>
+      <GoalDialog open={goalDialogOpen} onClose={() => setGoalDialogOpen(false)} />
     </div>
   )
 }

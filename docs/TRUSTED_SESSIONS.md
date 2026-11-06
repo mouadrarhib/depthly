@@ -48,3 +48,46 @@ download fallbacks. Free accounts can share only periods inside their analytics 
 Apply migrations through `020_count_all_sessions.sql`, deploy the matching client, then verify direct
 session writes and the legacy `save_session()` RPC are rejected for authenticated users. Deploying
 the client before migration 015 will make timer actions fail because the lifecycle RPCs do not exist.
+
+
+## Sessions history workspace
+
+The Sessions page now uses a dedicated SessionHistoryRow rather than changing
+the shared home-page SessionRow. The desktop list fills the remaining workspace
+and scrolls below a sticky, aligned column header; title, search/type controls,
+filters and pagination stay outside the scroller. Mobile uses document scrolling
+and labeled compact rows. Full-row detail buttons and edit menus are separate
+keyboard targets. Break/focus types and legacy-session status remain visible.
+
+Type, project, inclusive date range, duration and debounced search still run
+through the existing paginated RPC before its stable 20-row page is returned.
+Active and archived projects appear in the selectors. Filter changes reset the
+page; pending placeholder results are replaced by loading rows to avoid showing
+old results under new filters. Page navigation resets the list scroll position.
+Query failures have Retry, empty history points to the timer, and no-match states
+can clear filters. Date groups label their duration as Shown on this page: a
+single day's sessions can span multiple result pages.
+
+CSV export opens a right-side Radix Sheet with separate date/project/break
+settings. It does not inherit unsupported list filters such as search/duration.
+The drawer describes its exact scope and exports every matching server page via
+the existing export hook/RPC. No approximate unfiltered count is shown. Dates
+validate in both directions. Pending downloads disable fields and drawer closing;
+server failures remain visible with values preserved. Export remains gated to
+Pro/Lifetime in both UI and server. Free users can open upgrade options. Drawer
+focus trapping and return focus use Radix; the underlying list keeps its state.
+No database or session mutation semantics changed.
+
+
+### Compact session details
+
+The shared SessionDetailModal uses one compact surface: recorded duration,
+separate start/end times, labeled project/task values, optional title and notes.
+It preserves Focus/Break distinction and hides project/task rows for breaks.
+Absent relations use No project / No task linked, and empty notes stay readable.
+Overnight sessions display dates beside both times so the end is unambiguous.
+Recorded duration remains independent of elapsed clock time (paused time may
+make them differ). The dialog describes editable metadata and leaves timing
+read-only. Its body scrolls on short screens or long notes while the footer
+stays visible; no minimum content height adds blank space. Existing Close/Edit
+callbacks and Radix focus management are retained across all callers.

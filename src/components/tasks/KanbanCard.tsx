@@ -17,37 +17,43 @@ import { formatMinutesToHours } from '@/lib/utils/analytics'
 import { formatDueDate, isOverdue } from '@/lib/utils/tasks'
 
 interface KanbanCardProps {
-  task:         Task
+  task: Task
   sessionMins?: number
-  onOpen:       (task: Task) => void
-  onEdit:       (task: Task) => void
-  onDelete:     (task: Task) => void
-  onDuplicate:  (task: Task) => void
+  onOpen: (task: Task) => void
+  onEdit: (task: Task) => void
+  onDelete: (task: Task) => void
+  onDuplicate: (task: Task) => void
 }
 
-export function KanbanCard({ task, sessionMins, onOpen, onEdit, onDelete, onDuplicate }: KanbanCardProps) {
+export function KanbanCard({
+  task,
+  sessionMins,
+  onOpen,
+  onEdit,
+  onDelete,
+  onDuplicate,
+}: KanbanCardProps) {
   const [isHovered, setIsHovered] = useState(false)
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: task.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: task.id,
+  })
 
-  const done      = task.status === 'done'
-  const overdue   = isOverdue(task.due_date, task.status ?? '')
-  const dueText   = formatDueDate(task.due_date)
+  const done = task.status === 'done'
+  const overdue = isOverdue(task.due_date, task.status ?? '')
+  const dueText = formatDueDate(task.due_date)
   const showHover = isHovered && !isDragging
 
   const showPomCount =
-    (task.actual_pomodoros != null && task.actual_pomodoros > 0) ||
-    task.estimated_pomodoros != null
+    (task.actual_pomodoros != null && task.actual_pomodoros > 0) || task.estimated_pomodoros != null
 
   const showSessionTime = sessionMins != null && sessionMins > 0
-  const showBottom      = !!dueText || showPomCount || showSessionTime
+  const showBottom = !!dueText || showPomCount || showSessionTime
 
   // Merge dnd-kit's transform transition with visual transitions
-  const visualTransition = 'background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease'
-  const composedTransition = transition
-    ? `${transition}, ${visualTransition}`
-    : visualTransition
+  const visualTransition =
+    'background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease'
+  const composedTransition = transition ? `${transition}, ${visualTransition}` : visualTransition
 
   return (
     <div
@@ -56,18 +62,16 @@ export function KanbanCard({ task, sessionMins, onOpen, onEdit, onDelete, onDupl
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onOpen(task)}
       style={{
-        transform:       CSS.Transform.toString(transform),
-        transition:      composedTransition,
-        borderRadius:    10,
-        padding:         12,
+        transform: CSS.Transform.toString(transform),
+        transition: composedTransition,
+        borderRadius: 10,
+        padding: 12,
         backgroundColor: showHover ? '#222228' : '#141417',
-        border:          showHover
-          ? '1px solid rgba(75, 158, 255, 0.3)'
-          : '1px solid #2E2E38',
-        boxShadow:       showHover ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none',
-        opacity:         isDragging ? 0.5 : 1,
-        outline:         isDragging ? '1px solid #4B9EFF' : 'none',
-        cursor:          isDragging ? 'grabbing' : 'grab',
+        border: showHover ? '1px solid rgba(75, 158, 255, 0.3)' : '1px solid #2E2E38',
+        boxShadow: showHover ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none',
+        opacity: isDragging ? 0.5 : 1,
+        outline: isDragging ? '1px solid #4B9EFF' : 'none',
+        cursor: isDragging ? 'grabbing' : 'grab',
       }}
       {...attributes}
       {...listeners}
@@ -86,12 +90,10 @@ export function KanbanCard({ task, sessionMins, onOpen, onEdit, onDelete, onDupl
 
         <DropdownMenu>
           <DropdownMenuTrigger
-            onClick={e => e.stopPropagation()}
-            onPointerDown={e => e.stopPropagation()}
-            className="-mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-md
-                       text-ink-muted transition-colors
-                       hover:bg-depth-raised hover:text-ink-primary
-                       opacity-100 md:opacity-0 md:group-hover:opacity-100"
+            aria-label={`Actions for ${task.title}`}
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="-mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-ink-primary/70 opacity-100 transition-colors hover:bg-depth-raised hover:text-ink-primary md:opacity-100"
           >
             <MoreHorizontal size={14} />
           </DropdownMenuTrigger>
@@ -113,12 +115,12 @@ export function KanbanCard({ task, sessionMins, onOpen, onEdit, onDelete, onDupl
       <p
         className="line-clamp-2 leading-snug"
         style={{
-          fontSize:       13,
-          fontWeight:     500,
-          color:          '#E8E6F0',
-          marginTop:      8,
-          textDecoration: done ? 'line-through' : 'none',
-          opacity:        done ? 0.5 : 1,
+          fontSize: 13,
+          fontWeight: 500,
+          color: '#E8E6F0',
+          marginTop: 8,
+          textDecoration: 'none',
+          opacity: done ? 0.5 : 1,
         }}
       >
         {task.title}
@@ -129,29 +131,33 @@ export function KanbanCard({ task, sessionMins, onOpen, onEdit, onDelete, onDupl
         <div
           className="flex items-center gap-3"
           style={{
-            marginTop:  10,
+            marginTop: 10,
             paddingTop: 10,
-            borderTop:  '1px solid #2E2E38',
+            borderTop: '1px solid #2E2E38',
           }}
         >
           {/* Due date chip */}
           {dueText && (
             <span
-              style={overdue ? {
-                backgroundColor: 'transparent',
-                color:           '#F25C5C',
-                border:          '1px solid #F25C5C',
-                borderRadius:    6,
-                padding:         '2px 8px',
-                fontSize:        11,
-              } : {
-                backgroundColor: 'transparent',
-                color:           '#7A7890',
-                border:          '1px solid #2E2E38',
-                borderRadius:    6,
-                padding:         '2px 8px',
-                fontSize:        11,
-              }}
+              style={
+                overdue
+                  ? {
+                      backgroundColor: 'transparent',
+                      color: '#F25C5C',
+                      border: '1px solid #F25C5C',
+                      borderRadius: 6,
+                      padding: '2px 8px',
+                      fontSize: 11,
+                    }
+                  : {
+                      backgroundColor: 'transparent',
+                      color: '#7A7890',
+                      border: '1px solid #2E2E38',
+                      borderRadius: 6,
+                      padding: '2px 8px',
+                      fontSize: 11,
+                    }
+              }
             >
               {dueText}
             </span>
@@ -160,7 +166,7 @@ export function KanbanCard({ task, sessionMins, onOpen, onEdit, onDelete, onDupl
           {/* Pomodoro count */}
           {showPomCount && (
             <span
-              className="font-data inline-flex items-center gap-1 text-ink-muted"
+              className="font-data inline-flex items-center gap-1 text-ink-primary/70"
               style={{ fontSize: 11 }}
             >
               {task.actual_pomodoros ?? 0}
@@ -172,10 +178,10 @@ export function KanbanCard({ task, sessionMins, onOpen, onEdit, onDelete, onDupl
           {/* Total session time */}
           {showSessionTime && (
             <span
-              className="ml-auto flex items-center gap-1 font-data"
-              style={{ fontSize: 11, color: '#3D3B4E' }}
+              className="font-data ml-auto flex items-center gap-1"
+              style={{ fontSize: 11, color: '#aaa7ba' }}
             >
-              <Clock size={10} style={{ color: '#3D3B4E', flexShrink: 0 }} />
+              <Clock size={10} style={{ color: '#aaa7ba', flexShrink: 0 }} />
               {formatMinutesToHours(sessionMins!)}
             </span>
           )}

@@ -19,14 +19,14 @@ function formatDuration(minutes: number): string {
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
     month: 'short',
-    day:   'numeric',
-    year:  'numeric',
+    day: 'numeric',
+    year: 'numeric',
   })
 }
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', {
-    hour:   'numeric',
+    hour: 'numeric',
     minute: '2-digit',
     hour12: true,
   })
@@ -34,7 +34,7 @@ function formatTime(iso: string): string {
 
 function SkeletonRow() {
   return (
-    <div className="flex items-center justify-between px-4 py-3 animate-pulse">
+    <div className="flex animate-pulse items-center justify-between px-4 py-3">
       <div className="flex flex-col gap-1.5">
         <div className="h-3.5 w-24 rounded bg-depth-raised" />
         <div className="h-3 w-16 rounded bg-depth-raised" />
@@ -46,7 +46,7 @@ function SkeletonRow() {
 }
 
 export function ProjectSessionsList({ projectId }: ProjectSessionsListProps) {
-  const { data: sessions = [], isLoading } = useSessionsByProject(projectId)
+  const { data: sessions = [], isLoading, isError, refetch } = useSessionsByProject(projectId)
   const [viewingSession, setViewingSession] = useState<SessionWithRelations | null>(null)
   const [editingSession, setEditingSession] = useState<SessionWithRelations | null>(null)
 
@@ -56,61 +56,80 @@ export function ProjectSessionsList({ projectId }: ProjectSessionsListProps) {
     setViewingSession(null)
   }
 
-  if (isLoading) {
+  if (isLoading)
     return (
-      <div className="flex flex-col divide-y divide-depth-border">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <SkeletonRow key={i} />
+      <div aria-label="Loading sessions">
+        {Array.from({ length: 5 }, (_, index) => (
+          <SkeletonRow key={index} />
         ))}
       </div>
     )
-  }
-
-  if (sessions.length === 0) {
+  if (isError)
     return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-ink-muted text-sm">
-          No sessions recorded for this project yet
-        </p>
+      <div role="alert" className="py-10 text-center text-sm text-ink-primary">
+        <p>We couldn’t load session history.</p>
+        <button onClick={() => void refetch()} className="mt-3 min-h-11 px-4 text-brand">
+          Retry
+        </button>
       </div>
     )
-  }
-
+  if (!sessions.length)
+    return (
+      <div className="py-12 text-center">
+        <h2 className="text-base font-medium text-ink-primary">No sessions yet</h2>
+        <p className="mt-2 text-sm text-ink-primary/75">
+          Choose this project in the timer to record your first focus session.
+        </p>
+        <a href="/timer" className="mt-3 inline-flex min-h-11 items-center text-sm text-brand">
+          Open timer →
+        </a>
+      </div>
+    )
   return (
     <>
-      <div className="flex flex-col divide-y divide-depth-border overflow-hidden rounded-xl border border-depth-border bg-depth-surface sm:rounded-none sm:border-0 sm:bg-transparent">
-        {sessions.map(session => (
-          <button
-            key={session.id}
-            type="button"
-            onClick={() => setViewingSession(session)}
-            aria-label={`View session from ${formatDate(session.started_at)}, ${formatDuration(session.duration_mins)}`}
-            className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-x-3 px-3 py-3 text-left transition-colors hover:bg-depth-raised focus-visible:bg-depth-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sm:grid-cols-[128px_minmax(0,1fr)_auto] sm:px-4"
-          >
-            <div className="flex min-w-0 flex-col gap-0.5 sm:w-32">
-              <span className="font-data text-ink-secondary" style={{ fontSize: 13 }}>
-                {formatDate(session.started_at)}
-              </span>
-              <span className="text-ink-muted" style={{ fontSize: 12 }}>
-                {formatTime(session.started_at)}
-              </span>
-            </div>
-
-            <div className="col-start-1 row-start-2 min-w-0 sm:col-start-2 sm:row-start-1 sm:self-center sm:px-4">
-              <span className="block truncate text-ink-muted" style={{ fontSize: 13 }}>
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-medium text-ink-primary">Session history</h2>
+          <p className="mt-1 text-xs text-ink-primary/75">
+            Showing {sessions.length} recent focus sessions · up to 50
+          </p>
+        </div>
+        <p className="font-data text-sm text-ink-primary">
+          Shown {formatDuration(sessions.reduce((sum, session) => sum + session.duration_mins, 0))}
+        </p>
+      </div>
+      <div className="overflow-hidden rounded-xl border border-depth-border">
+        <div className="hidden grid-cols-[minmax(0,1fr)_240px_100px] gap-4 border-b border-depth-border bg-depth-surface px-4 py-3 text-xs text-ink-primary/70 md:grid">
+          <span>Task</span>
+          <span>Date &amp; start time</span>
+          <span className="text-right">Duration</span>
+        </div>
+        <div className="divide-y divide-depth-border">
+          {sessions.map((session) => (
+            <button
+              key={session.id}
+              type="button"
+              onClick={() => setViewingSession(session)}
+              aria-label={`View session: ${session.tasks?.title ?? 'No task'}, ${formatDate(session.started_at)}, ${formatDuration(session.duration_mins)}`}
+              className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-4 py-4 text-left transition-colors hover:bg-depth-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand md:grid-cols-[minmax(0,1fr)_240px_100px]"
+            >
+              <span className="min-w-0 break-words text-sm text-ink-primary">
                 {session.tasks?.title ?? 'No task'}
               </span>
-            </div>
-
-            <span
-              className="font-data col-start-2 row-span-2 row-start-1 self-center text-ink-primary sm:col-start-3"
-              style={{ fontSize: 14 }}
-            >
-              {formatDuration(session.duration_mins)}
-            </span>
-          </button>
-        ))}
+              <span className="col-start-1 row-start-2 text-xs text-ink-primary/75 md:col-start-2 md:row-start-1">
+                {formatDate(session.started_at)} · {formatTime(session.started_at)}
+              </span>
+              <span className="font-data col-start-2 row-span-2 row-start-1 text-right text-sm text-ink-primary md:col-start-3 md:row-span-1">
+                {formatDuration(session.duration_mins)}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
+      <p className="mt-4 text-xs leading-5 text-ink-primary/70">
+        Open a session to review its details. “No task” means the session is linked only to this
+        project.
+      </p>
 
       <SessionDetailModal
         open={!!viewingSession}

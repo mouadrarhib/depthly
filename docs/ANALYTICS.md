@@ -110,30 +110,37 @@ Max content width is `1100px`, centered with `margin: '0 auto'`.
 Receives `AnalyticsProjectScope` and reads data internally via `useProfile()`
 and `useSessionsAllTime(projectId)`.
 
-**Layout:** stat grid, then a lifetime "Focus Time by Project" card. No date navigation (this is the lifetime-summary tab).
+**Layout:** one bordered summary strip (one column on narrow phones, two at
+`sm`, four at `xl`), followed by the ranked Focus by project table. The approved
+copy leads with “See where your focus time goes.” Period tabs and the project
+selector share a wrapping toolbar; Overview has no date navigator.
 
-**Stat grid** — 6 cards via a local `StatCard({ value, label, valueSize })` component, same card chrome as `YearlyView`'s stat cards (`#141417` bg, `#2E2E38` border, `radius: 14`), in a `grid-cols-2 sm:grid-cols-3` responsive grid (2 cols mobile, 3 desktop):
+All metrics derive from the same server-authorized, project-scoped session
+rows returned by `useSessionsAllTime(projectId)`. Free accounts retain the
+server-enforced last-seven-days range and receive matching range labels.
 
-| Card           | Value source                                                                   |
-| -------------- | ------------------------------------------------------------------------------ |
-| Total focus    | `profile.total_focus_minutes` via `formatMinutesToHours`                       |
-| Sessions       | `profile.total_sessions`                                                       |
-| Current streak | `profile.current_streak` days — colored `#C8FF64` when > 0                     |
-| Longest streak | `profile.longest_streak` days                                                  |
-| Avg per day    | `total_focus_minutes / days_since_signup` via local `computeAvgPerDay`         |
-| Member since   | `profile.member_since` formatted as `"Jun 2025"` via local `formatMemberSince` |
+- Total focus: sum of returned focus-session minutes.
+- Focus sessions: returned focus-session count.
+- Average per day: minutes divided by inclusive local calendar days from the
+  first returned session (Pro) or the start of the seven-day range (Free).
+  Days without sessions are included; UTC day indices of local calendar dates
+  avoid DST-length errors. Displayed minutes are rounded.
+- Current streak: computed from local-day totals; longest streak appears as
+  supporting text in the same summary cell. Free streaks describe the range.
+- First focus session: actual first returned session month/year, shown above
+  the summary instead of labeling it as an account creation date.
 
-The streak color `#C8FF64` is used only in the "current streak" value span (not decoratively) — this is one of the two places that color appears; the other is `StreakBadge.tsx`. No per-stat icon colors are used (plain `ink-primary`), consistent with `YearlyView`'s stat cards.
+The Overview alone replaces the shared donut with a ranked semantic table.
+Rows group by project ID (so duplicate names remain distinct), retain full
+wrapping project names, and show duration and a one-decimal share of total.
+Desktop bars use the same 0–100% scale; mobile hides the bars while retaining
+names and numeric evidence. Many rows scroll in a keyboard-focusable region
+with sticky headings. Unassigned sessions are labeled No project. Loading,
+query failure with retry, and scoped empty states are explicit.
 
-**Focus Time by Project (lifetime):**
-
-- Reuses `ProjectBreakdownCard` — the same donut+legend component `DailyView` and `YearlyView` use — passing all-time aggregated `pieData`.
-- Data comes from `useSessionsAllTime(projectId)`, which fetches raw sessions
-  with `started_at` and aggregates them client-side. In filtered mode the same
-  rows also drive total focus, session count, current/longest project activity
-  streaks, average per day, and first-session date.
-
-A compact lifetime heatmap / shortcut into the Yearly tab was considered and intentionally skipped — it would duplicate what the Yearly tab already shows without adding new information.
+Other period views continue using `ProjectBreakdownCard` and their existing
+charts. URL-backed active/archived/unassigned project filters, navigation,
+sharing, and the new-user entry state remain connected.
 
 ---
 
@@ -236,7 +243,7 @@ Used by:
 - `DailyView` — `pieData` built from `useSessionsForDay(dateKey)`.
 - `WeeklyView` — `pieData` built from `useSessionsForWeek(mondayKey, sundayKey)`.
 - `YearlyView` — `pieData` built from `useSessionsForYear(year)`, aggregated across the full year instead of a single day.
-- `OverviewView` — `pieData` built from `useSessionsAllTime()`, aggregated across every session ever logged.
+- Overview now renders its own ranked table; it no longer consumes this donut component.
 
 ---
 
@@ -924,3 +931,115 @@ Trusted timer runs persist the user's IANA timezone. On completion, `finish_time
 ### YearlyView always fetches exactly 52 ISO weeks plus one optional overflow
 
 `getWeeksInYear` always returns 52 Mondays. Some years have 53 ISO weeks; those are not handled — the 53rd week would be missing from the heatmap.
+
+
+### Daily analytics workspace refinement
+
+The Daily tab now matches Overview: a shared summary surface shows selected-day
+focus time/session count and a wider overall daily-goal progress bar. The goal
+remains based on all projects when filtering analytics to one project; its
+current-target comparison is labeled and editing still opens GoalDialog.
+
+A two-column desktop composition pairs Focus by session start hour with Where
+your time went (ranked project durations and one-decimal shares of returned
+session minutes). Both stack on smaller screens. The hourly chart retains the
+existing attribution: a session's full duration belongs to its local start
+hour, and the subtitle/footer explicitly explain this. Numeric chart data is
+also available in the accessible chart description.
+
+Weekly goal history uses recorded `daily_goal_met` results via GoalHistoryRow;
+it is labeled as recorded results rather than recomputed against today's goal.
+Narrow displays scroll the history strip without widening the page. A single
+empty-day action directs the user to the timer, while chart placeholders remain
+quiet. Loading, session/summary failure, goal failure, and history failure have
+explicit states and retry controls.
+
+Free historical dates render an upgrade state before displaying metrics. Server
+analytics limits, date/project navigation, sharing capture, goal editing, and
+today-only goal celebration retain their existing integration. Overview and
+Daily use the wider page container; the other periods retain their content
+width. No database changes are needed.
+
+
+### Weekly analytics workspace refinement
+
+Weekly now matches the Overview/Daily visual system with a summary strip,
+overall weekly goal, daily focus chart, ranked project breakdown, and separate
+previous-week comparison. Selected-week/project totals retain the existing
+summary/session sources; the weekly goal always measures all projects against
+the current weekly target and is labeled accordingly. GoalDialog handles edits.
+
+The chart has seven local-calendar-day entries, highlights today, and marks
+future days as upcoming rather than recording them as zero-focus outcomes.
+Past/current day buttons open Daily view for that date without changing project
+scope. Desktop chart/project panels stack on mobile. Many project rows scroll
+in a keyboard-focusable region; durations and percentage shares stay visible.
+
+Comparison uses the full previous calendar week. In-progress/future weeks are
+explicitly labeled. Previous-week loading/error states and history limits are
+shown independently from selected-week data. A zero previous total produces no
+percentage claim. Free date-window gating is preserved. Goal/session/summary
+errors have retry controls, and a single empty-week action opens the timer.
+Navigation and sharing retain the selected week and project scope.
+
+
+### Monthly analytics workspace refinement
+
+Monthly matches the shared analytics style with one summary strip, a labeled
+Monday-first calendar, selected-day details, and an honest previous-month
+comparison. Totals retain the existing all-project summaries or scoped raw
+session aggregation. Raw monthly sessions now load for every scope so the
+selected-day project breakdown is available for All projects too.
+
+Calendar buttons show exact daily durations, pressed selection, and today's
+current-date state. Future dates have no recorded total and cannot be selected.
+Selection is retained within the month; navigating months falls back to today
+or the first date. The selected-day panel shows focus time, session count,
+project shares, and an Open Daily view action preserving project scope.
+
+On mobile, details stack below the calendar. A bounded horizontal calendar
+scroll region preserves at least 44px day widths without widening the page.
+Many selected-day projects scroll within their region. The comparison labels
+an incomplete current month and the full preceding calendar month; unavailable
+history and previous-query errors/loading are distinct from current-month data.
+Free history gating, project/date navigation and sharing remain connected.
+
+
+### Yearly analytics workspace refinement
+
+Yearly uses the shared wide analytics layout and approved wording. Four primary
+metrics (focus time, sessions, focus days, average session) lead the page. The
+activity map, monthly chart and expandable ranked project breakdown follow;
+most-focused month/day/week and longest streak remain supporting highlights.
+
+All-project values use authorized daily summaries; scoped values use local-day
+raw session totals. Projects group by ID and project-share denominators use the
+returned session total. Empty highlights display no invented best period.
+Best weeks start Monday and count only days within the selected year. Date-only
+keys use local noon when converted for display, avoiding UTC month shifts.
+
+The continuous Monday-first heatmap includes leap days, outlines future dates,
+and scrolls horizontally on narrow displays. It supports a roving keyboard
+focus (arrows, Home, End), accessible per-day labels, a full-size Inspect day
+input, stable selected-day details and Open Daily view preserving project scope.
+Only one heatmap cell enters the tab order; future cells cannot be selected.
+
+Monthly bars highlight the current month and leave future months without totals.
+Labels disclose an in-progress month; chart descriptions include numeric data.
+Free year-history gating, current-query loading/error/retry, date navigation,
+sharing, and project filtering retain their existing integration. No schema
+changes are required.
+
+
+### Analytics tab motion
+
+AnalyticsTabs retains Radix tab semantics and keyboard navigation. A single
+absolute GSAP indicator moves to the selected trigger over 300ms with power3.out;
+text colors transition over 200ms. Fixed transparent trigger borders avoid
+layout jumps. New selections interrupt the current tween from its present
+position. Initial placement and responsive/wrapped layout changes snap to the
+measured trigger bounds. ResizeObserver's initial notification is ignored when
+geometry is unchanged so it does not cancel selection motion. Reduced motion
+uses immediate placement and no text-color transition, including when the
+preference changes while the page is open. Observers, media listeners, and
+owned tweens are cleaned up on update/unmount.

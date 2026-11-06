@@ -16,7 +16,7 @@ import { ShareProgressButton } from '@/components/analytics/ShareProgressButton'
 import { WeeklyView } from '@/components/analytics/WeeklyView'
 import { YearlyView } from '@/components/analytics/YearlyView'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { AnalyticsTabs } from '@/components/analytics/AnalyticsTabs'
 import { useProfile } from '@/hooks/useAnalytics'
 import { useArchivedProjects, useProjects } from '@/hooks/useProjects'
 import { PATHS } from '@/routes/paths'
@@ -24,14 +24,6 @@ import type { AnalyticsProjectScope } from '@/types/app'
 
 type Period = 'daily' | 'weekly' | 'monthly' | 'yearly'
 type TabValue = 'overview' | Period
-
-const TABS: { value: TabValue; label: string }[] = [
-  { value: 'overview', label: 'Overview' },
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'yearly', label: 'Yearly' },
-]
 
 export function AnalyticsPage() {
   const navigate = useNavigate()
@@ -112,8 +104,13 @@ export function AnalyticsPage() {
   const isNewUser = profile?.total_sessions === 0
 
   return (
-    <div className="px-4 py-1 sm:px-8 sm:py-2">
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+    <div className="px-4 py-5 sm:px-8 sm:py-6">
+      <div
+        style={{
+          maxWidth: 1440,
+          margin: '0 auto',
+        }}
+      >
         {isNewUser ? (
           /* ── Full-page empty state for brand new users ── */
           <div
@@ -138,70 +135,73 @@ export function AnalyticsPage() {
           </div>
         ) : (
           <>
-            {/* Tab selector */}
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)}>
-                <TabsList
-                  className="h-auto gap-0.5 rounded-full p-1"
-                  style={{ background: 'var(--color-surface-overlay)' }}
-                >
-                  {TABS.map(({ value, label }) => (
-                    <TabsTrigger
-                      key={value}
-                      value={value}
-                      className={[
-                        'rounded-full text-[13px] font-medium shadow-none transition-all',
-                        'data-[state=inactive]:bg-transparent data-[state=inactive]:text-[var(--color-text-faint)]',
-                        'data-[state=active]:bg-[var(--color-surface-raised)] data-[state=active]:text-[var(--color-brand)]',
-                        'data-[state=active]:border data-[state=active]:border-[rgba(75,158,255,0.3)]',
-                        'data-[state=active]:shadow-none',
-                      ].join(' ')}
-                      style={{ padding: '6px 14px' }}
-                    >
-                      {label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            </div>
+            <header className="mb-6">
+              <h1 className="text-2xl font-medium tracking-tight text-ink-primary sm:text-[28px]">
+                {activeTab === 'yearly'
+                  ? 'See the bigger picture of your focus.'
+                  : activeTab === 'monthly'
+                    ? 'See your focus across the month.'
+                    : activeTab === 'weekly'
+                      ? 'See how your week adds up.'
+                      : activeTab === 'daily'
+                        ? 'Your focus, one day at a time.'
+                        : 'See where your focus time goes.'}
+              </h1>
+              <p className="mt-2 text-sm leading-6 text-ink-primary/75">
+                {activeTab === 'yearly'
+                  ? 'Explore your focus patterns across the year, one day and month at a time.'
+                  : activeTab === 'monthly'
+                    ? 'Explore your daily focus time and see the work behind each day.'
+                    : activeTab === 'weekly'
+                      ? 'Review your daily focus time and progress toward your weekly goal.'
+                      : activeTab === 'daily'
+                        ? 'Review your sessions and see how they add up to your daily goal.'
+                        : 'Review your focus sessions and see how your time adds up across projects.'}
+              </p>
+            </header>
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+              {/* Tab selector */}
+              <div className="w-full min-w-0 sm:w-auto">
+                <AnalyticsTabs value={activeTab} onChange={setActiveTab} />
+              </div>
 
-            {/* Period navigator — not shown for Overview, which is lifetime
+              {/* Period navigator — not shown for Overview, which is lifetime
                 data with no date to page through */}
-            <div
-              className="flex flex-col items-stretch justify-center gap-2 sm:flex-row sm:flex-wrap sm:items-center"
-              style={{ marginTop: 8, marginBottom: 6 }}
-            >
-              {activeTab !== 'overview' && currentDate ? (
-                <PeriodNavigator
-                  period={activeTab}
-                  currentDate={currentDate}
-                  onNavigate={handleNavigate}
+              <div
+                className="flex flex-col items-stretch justify-center gap-2 sm:flex-row sm:flex-wrap sm:items-center"
+                style={{ marginTop: 8, marginBottom: 6 }}
+              >
+                {activeTab !== 'overview' && currentDate ? (
+                  <PeriodNavigator
+                    period={activeTab}
+                    currentDate={currentDate}
+                    onNavigate={handleNavigate}
+                  />
+                ) : null}
+                <AnalyticsProjectSelect
+                  value={projectValue}
+                  label={projectScope.projectLabel}
+                  color={projectScope.projectColor}
+                  activeProjects={activeProjects}
+                  archivedProjects={archivedProjects}
+                  isLoading={projectsLoading}
+                  onValueChange={handleProjectChange}
                 />
-              ) : null}
-              <AnalyticsProjectSelect
-                value={projectValue}
-                label={projectScope.projectLabel}
-                color={projectScope.projectColor}
-                activeProjects={activeProjects}
-                archivedProjects={archivedProjects}
-                isLoading={projectsLoading}
-                onValueChange={handleProjectChange}
-              />
-              {activeTab !== 'overview' && currentDate ? (
-                <ShareProgressButton
-                  period={activeTab}
-                  date={currentDate}
-                  targetRef={analyticsCaptureRef}
-                  projectLabel={
-                    projectScope.projectId !== undefined ? projectScope.projectLabel : undefined
-                  }
-                />
-              ) : null}
+                {activeTab !== 'overview' && currentDate ? (
+                  <ShareProgressButton
+                    period={activeTab}
+                    date={currentDate}
+                    targetRef={analyticsCaptureRef}
+                    projectLabel={
+                      projectScope.projectId !== undefined ? projectScope.projectLabel : undefined
+                    }
+                  />
+                ) : null}
+              </div>
             </div>
-
             {/* Tab content */}
             <div ref={analyticsCaptureRef}>
-              {projectScope.projectId !== undefined ? (
+              {projectScope.projectId !== undefined && activeTab !== 'overview' ? (
                 <div className="mb-3 flex items-center justify-center gap-2 text-[12px] text-ink-secondary">
                   <span
                     className="h-2 w-2 rounded-full"
@@ -213,9 +213,36 @@ export function AnalyticsPage() {
               ) : null}
               {activeTab === 'overview' && <OverviewView {...projectScope} />}
               {activeTab === 'daily' && <DailyView date={dailyDate} {...projectScope} />}
-              {activeTab === 'weekly' && <WeeklyView date={weeklyDate} {...projectScope} />}
-              {activeTab === 'monthly' && <MonthlyView date={monthlyDate} {...projectScope} />}
-              {activeTab === 'yearly' && <YearlyView date={yearlyDate} {...projectScope} />}
+              {activeTab === 'weekly' && (
+                <WeeklyView
+                  date={weeklyDate}
+                  {...projectScope}
+                  onSelectDay={(day) => {
+                    setDailyDate(day)
+                    setActiveTab('daily')
+                  }}
+                />
+              )}
+              {activeTab === 'monthly' && (
+                <MonthlyView
+                  date={monthlyDate}
+                  {...projectScope}
+                  onSelectDay={(day) => {
+                    setDailyDate(day)
+                    setActiveTab('daily')
+                  }}
+                />
+              )}
+              {activeTab === 'yearly' && (
+                <YearlyView
+                  date={yearlyDate}
+                  {...projectScope}
+                  onSelectDay={(day) => {
+                    setDailyDate(day)
+                    setActiveTab('daily')
+                  }}
+                />
+              )}
             </div>
           </>
         )}

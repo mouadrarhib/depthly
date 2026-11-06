@@ -24,46 +24,58 @@ import {
 import type { Task } from '@/lib/supabase/queries/tasks'
 import { formatDueDate, isOverdue, getKanbanOrder, PRIORITY_CONFIG } from '@/lib/utils/tasks'
 
-type Status         = 'todo' | 'in_progress' | 'done'
-type Priority       = 'low' | 'medium' | 'high' | 'urgent'
+type Status = 'todo' | 'in_progress' | 'done'
+type Priority = 'low' | 'medium' | 'high' | 'urgent'
 type PriorityFilter = 'all' | Priority
 
 const COLUMNS: Status[] = ['todo', 'in_progress', 'done']
 
 interface TaskKanbanViewProps {
-  projectId:   string
-  onOpenTask:  (task: Task) => void
-  onEditTask:  (task: Task) => void
-  onAddTask?:  (status: string) => void
+  filters?: { search: string; status: string; priority: string }
+  onClearFilters?: () => void
+  projectId: string
+  onOpenTask: (task: Task) => void
+  onEditTask: (task: Task) => void
+  onAddTask?: (status: string) => void
 }
 
-export function TaskKanbanView({ projectId, onOpenTask, onEditTask, onAddTask }: TaskKanbanViewProps) {
-  const { data: tasks = [], isLoading } = useTasks(projectId)
-  const { data: sessionMinsMap }        = useTaskSessionMins(projectId)
+export function TaskKanbanView({
+  projectId,
+  onOpenTask,
+  onEditTask,
+  onAddTask,
+  filters,
+  onClearFilters,
+}: TaskKanbanViewProps) {
+  const { data: tasks = [], isLoading, isError, refetch } = useTasks(projectId)
+  const { data: sessionMinsMap } = useTaskSessionMins(projectId)
 
-  const deleteTask    = useDeleteTask()
+  const deleteTask = useDeleteTask()
   const duplicateTask = useDuplicateTask()
   const reorderKanban = useReorderKanban(projectId)
 
-  const [activeTask, setActiveTask]         = useState<Task | null>(null)
+  const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all')
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
-  )
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
   const filteredTasks = tasks.filter(
-    t => priorityFilter === 'all' || t.priority === priorityFilter
+    (t) =>
+      (!filters?.search ||
+        t.title.toLocaleLowerCase().includes(filters.search.trim().toLocaleLowerCase())) &&
+      (!filters || filters.status === 'all' || t.status === filters.status) &&
+      ((filters?.priority ?? priorityFilter) === 'all' ||
+        t.priority === (filters?.priority ?? priorityFilter))
   )
 
   function getColumnTasks(status: Status): Task[] {
     return filteredTasks
-      .filter(t => t.status === status)
+      .filter((t) => t.status === status)
       .sort((a, b) => a.kanban_order - b.kanban_order)
   }
 
   function handleDragStart(event: DragStartEvent) {
-    setActiveTask(tasks.find(t => t.id === event.active.id) ?? null)
+    setActiveTask(tasks.find((t) => t.id === event.active.id) ?? null)
   }
 
   function handleDragEnd(event: DragEndEvent) {
@@ -73,29 +85,29 @@ export function TaskKanbanView({ projectId, onOpenTask, onEditTask, onAddTask }:
     if (!over) return
 
     const draggedId = active.id as string
-    const overId    = over.id   as string
+    const overId = over.id as string
     if (draggedId === overId) return
 
-    const draggedTask = tasks.find(t => t.id === draggedId)
+    const draggedTask = tasks.find((t) => t.id === draggedId)
     if (!draggedTask) return
 
     const sourceStatus = draggedTask.status as Status
 
     // over.id is either a column status string or a task id
     const isColumnDrop = (COLUMNS as string[]).includes(overId)
-    const overTask     = isColumnDrop ? undefined : tasks.find(t => t.id === overId)
+    const overTask = isColumnDrop ? undefined : tasks.find((t) => t.id === overId)
     const targetStatus = (isColumnDrop ? overId : overTask?.status) as Status | undefined
 
     if (!targetStatus) return
 
     // Target column tasks without the dragged item, sorted by kanban_order
     const targetColumnTasks = tasks
-      .filter(t => t.status === targetStatus && t.id !== draggedId)
+      .filter((t) => t.status === targetStatus && t.id !== draggedId)
       .sort((a, b) => a.kanban_order - b.kanban_order)
 
-    const rawIndex  = overTask ? targetColumnTasks.findIndex(t => t.id === overId) : -1
-    const insertAt  = rawIndex < 0 ? targetColumnTasks.length : rawIndex
-    const newOrder  = getKanbanOrder(targetColumnTasks, insertAt)
+    const rawIndex = overTask ? targetColumnTasks.findIndex((t) => t.id === overId) : -1
+    const insertAt = rawIndex < 0 ? targetColumnTasks.length : rawIndex
+    const newOrder = getKanbanOrder(targetColumnTasks, insertAt)
 
     if (sourceStatus === targetStatus) {
       reorderKanban.mutate([{ id: draggedId, kanban_order: newOrder }])
@@ -106,13 +118,23 @@ export function TaskKanbanView({ projectId, onOpenTask, onEditTask, onAddTask }:
 
   // ─── Loading ──────────────────────────────────────────────────────────────
 
+  if (isError)
+    return (
+      <div role="alert" className="py-10 text-center text-sm text-ink-primary">
+        <p>We couldn’t load tasks for this project.</p>
+        <button className="mt-3 min-h-11 px-4 text-brand" onClick={() => void refetch()}>
+          Retry
+        </button>
+      </div>
+    )
+
   if (isLoading) {
     return (
       <div className="flex gap-4 overflow-x-auto">
-        {COLUMNS.map(col => (
+        {COLUMNS.map((col) => (
           <div
             key={col}
-            className="animate-pulse shrink-0 rounded-lg bg-depth-surface"
+            className="shrink-0 animate-pulse rounded-lg bg-depth-surface"
             style={{ width: 300, height: 420 }}
           />
         ))}
@@ -124,21 +146,33 @@ export function TaskKanbanView({ projectId, onOpenTask, onEditTask, onAddTask }:
 
   return (
     <div className="flex flex-col gap-4">
-
-      {/* Priority filter */}
-      <div className="flex flex-wrap gap-1.5">
-        <FilterPill label="All" active={priorityFilter === 'all'} onClick={() => setPriorityFilter('all')} />
-        {(['urgent', 'high', 'medium', 'low'] as const).map(p => (
+      {/* Standalone priority filter */}
+      {!filters && (
+        <div className="flex flex-wrap gap-1.5">
           <FilterPill
-            key={p}
-            label={PRIORITY_CONFIG[p].label}
-            color={PRIORITY_CONFIG[p].color}
-            active={priorityFilter === p}
-            onClick={() => setPriorityFilter(p)}
+            label="All"
+            active={priorityFilter === 'all'}
+            onClick={() => setPriorityFilter('all')}
           />
-        ))}
-      </div>
-
+          {(['urgent', 'high', 'medium', 'low'] as const).map((p) => (
+            <FilterPill
+              key={p}
+              label={PRIORITY_CONFIG[p].label}
+              color={PRIORITY_CONFIG[p].color}
+              active={priorityFilter === p}
+              onClick={() => setPriorityFilter(p)}
+            />
+          ))}
+        </div>
+      )}
+      {filters && tasks.length > 0 && filteredTasks.length === 0 && (
+        <div className="py-6 text-center text-sm text-ink-primary/75">
+          No tasks match these filters.{' '}
+          <button className="min-h-11 text-brand" onClick={onClearFilters}>
+            Clear filters
+          </button>
+        </div>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -146,8 +180,8 @@ export function TaskKanbanView({ projectId, onOpenTask, onEditTask, onAddTask }:
         onDragEnd={handleDragEnd}
         onDragCancel={() => setActiveTask(null)}
       >
-        <div className="flex items-stretch gap-4 overflow-x-auto pb-4">
-          {COLUMNS.map(status => (
+        <div className="grid grid-cols-1 items-stretch gap-4 pb-4 md:grid-cols-3">
+          {COLUMNS.map((status) => (
             <KanbanColumn
               key={status}
               status={status}
@@ -155,8 +189,8 @@ export function TaskKanbanView({ projectId, onOpenTask, onEditTask, onAddTask }:
               sessionMinsMap={sessionMinsMap}
               onOpenTask={onOpenTask}
               onEditTask={onEditTask}
-              onDeleteTask={task => deleteTask.mutate({ id: task.id, projectId })}
-              onDuplicateTask={task => duplicateTask.mutate(task.id)}
+              onDeleteTask={(task) => deleteTask.mutate({ id: task.id, projectId })}
+              onDuplicateTask={(task) => duplicateTask.mutate(task.id)}
               onAddTask={onAddTask ?? (() => {})}
             />
           ))}

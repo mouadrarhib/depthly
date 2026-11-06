@@ -1,807 +1,504 @@
-import { useState } from 'react'
-
+import { useRef, useState } from 'react'
 import {
-  Lock,
-  Clock,
-  Calendar,
-  Flame,
-  BarChart2,
-  CheckCircle2,
-  Timer,
-  TrendingUp,
-  CalendarDays,
-} from 'lucide-react'
-
-import {
-  ProjectBreakdownCard,
-  type ProjectEntry,
-} from '@/components/analytics/ProjectBreakdownCard'
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
+import { Button } from '@/components/ui/button'
 import { useDailySummariesRange, useSessionsForYear } from '@/hooks/useAnalytics'
 import { useAnalyticsWindow } from '@/hooks/usePlanLimits'
-import type { SessionProjectSliceWithDate } from '@/lib/supabase/queries/analytics'
-import {
-  getWeeksInYear,
-  formatPeriodKey,
-  formatMinutesToHours,
-  getPeriodLabel,
-} from '@/lib/utils/analytics'
-import { sessionsToDailyTotals } from '@/lib/utils/analyticsSessions'
+import { formatPeriodKey, formatMinutesToHours } from '@/lib/utils/analytics'
+import { sessionsToDailyTotals, getLongestFocusStreak } from '@/lib/utils/analyticsSessions'
 import type { AnalyticsProjectScope } from '@/types/app'
 
 interface YearlyViewProps extends AnalyticsProjectScope {
   date: Date
+  onSelectDay?: (date: Date) => void
 }
-
-interface DayProjectSlice {
-  name: string
-  color: string
-  minutes: number
-}
-
-interface HoveredDay {
-  label: string
-  minutes: number
-  projects: DayProjectSlice[]
-}
-
-const CELL = 15
-const GAP = 4
-const STEP = CELL + GAP // 19
-const MONTH_GAP = 8 // extra spacing inserted between month groups, on top of GAP
-const DAY_W = 32
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const DAY_ROWS = ['Mon', '', 'Wed', '', 'Fri', '', '']
-
-// Monday-based column index (0=Mon … 6=Sun) — used to lay out each month's
-// days into its own self-contained set of week-columns (see monthColumns
-// below), so a week-column never mixes days from two different months.
-function mondayCol(jsDay: number): number {
-  return jsDay === 0 ? 6 : jsDay - 1
-}
-
-const cardStyle: React.CSSProperties = {
-  backgroundColor: '#141417',
-  border: '1px solid #2E2E38',
-  borderRadius: 14,
-  padding: 18,
-  flex: 1,
-}
-
-// ─── card header — matches DailyView's/MonthlyView's CardHeader exactly ────
-
-interface CardHeaderProps {
-  icon: React.ReactNode
-  title: string
-}
-function CardHeader({ icon, title }: CardHeaderProps) {
-  return (
-    <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {icon}
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#E8E6F0' }}>{title}</span>
-      </div>
-      <div style={{ height: 1, backgroundColor: '#2E2E38', margin: '8px 0' }} />
-    </>
-  )
-}
-
-function SkeletonCard() {
-  return (
-    <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div
-          className="animate-pulse bg-depth-raised"
-          style={{ width: 26, height: 26, borderRadius: 6 }}
-        />
-        <div className="animate-pulse rounded bg-depth-raised" style={{ height: 13, width: 90 }} />
-      </div>
-      <div
-        className="animate-pulse rounded bg-depth-raised"
-        style={{ height: 1, margin: '8px 0' }}
-      />
-      <div
-        className="animate-pulse rounded bg-depth-raised"
-        style={{ height: 11, width: 70, marginBottom: 8 }}
-      />
-      <div className="animate-pulse rounded bg-depth-raised" style={{ height: 32, width: 100 }} />
-    </div>
-  )
-}
-
-interface StatCardProps {
-  icon: React.ReactNode
-  title: string
-  label: string
-  value: React.ReactNode
-  valueSize?: number
-}
-
-function StatCard({ icon, title, label, value, valueSize = 28 }: StatCardProps) {
-  return (
-    <div style={cardStyle}>
-      <CardHeader icon={icon} title={title} />
-      <div style={{ color: '#7A7890', fontSize: 12 }}>{label}</div>
-      <div
-        className="font-data"
-        style={{
-          fontSize: valueSize,
-          fontWeight: 600,
-          color: '#E8E6F0',
-          marginTop: 4,
-          lineHeight: 1.1,
-          letterSpacing: '-0.02em',
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  )
-}
-
-function cellColor(minutes: number): string {
-  if (minutes <= 0) return '#222228'
-  if (minutes < 60) return 'rgba(75,158,255,0.20)'
-  if (minutes < 120) return 'rgba(75,158,255,0.45)'
-  if (minutes < 240) return 'rgba(75,158,255,0.70)'
-  return '#4B9EFF'
-}
-
-const FUTURE_COLOR = '#1A1A1F'
-
-const LEGEND_COLORS = [
-  '#222228',
-  'rgba(75,158,255,0.20)',
-  'rgba(75,158,255,0.45)',
-  'rgba(75,158,255,0.70)',
-  '#4B9EFF',
-]
-
-function computeLongestStreak(summaries: Array<{ date: string; focus_minutes: number }>): number {
-  const active = summaries
-    .filter((s) => s.focus_minutes > 0)
-    .map((s) => s.date)
-    .sort()
-  if (!active.length) return 0
-  let longest = 1,
-    current = 1
-  for (let i = 1; i < active.length; i++) {
-    const diff = Math.round(
-      (new Date(active[i]).getTime() - new Date(active[i - 1]).getTime()) / 86_400_000
-    )
-    current = diff === 1 ? current + 1 : 1
-    if (current > longest) longest = current
-  }
-  return longest
-}
-
-function getMostProductiveMonth(summaries: Array<{ date: string; focus_minutes: number }>): string {
-  const totals = new Array(12).fill(0) as number[]
-  for (const s of summaries) totals[new Date(s.date).getMonth()] += s.focus_minutes
-  const max = Math.max(...totals)
-  if (max === 0) return '—'
-  const idx = totals.indexOf(max)
-  const name = new Date(2000, idx, 1).toLocaleDateString('en-US', { month: 'long' })
-  return `${name} — ${formatMinutesToHours(max)}`
-}
-
-function getBestDay(summaries: Array<{ date: string; focus_minutes: number }>): string {
-  let best: { date: string; focus_minutes: number } | null = null
-  for (const s of summaries) {
-    if (s.focus_minutes > 0 && (!best || s.focus_minutes > best.focus_minutes)) best = s
-  }
-  if (!best) return '—'
-  const label = new Date(best.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  return `${label} — ${formatMinutesToHours(best.focus_minutes)}`
-}
-
-export function YearlyView({ date, projectId, projectLabel }: YearlyViewProps) {
+export function YearlyView({ date, projectId, projectLabel, onSelectDay }: YearlyViewProps) {
   const year = date.getFullYear()
-  const jan1 = formatPeriodKey(new Date(year, 0, 1), 'daily')
-  const dec31 = formatPeriodKey(new Date(year, 11, 31), 'daily')
-
-  const { data: summaries, isLoading: loadingSummaries } = useDailySummariesRange(jan1, dec31)
-  const { data: yearSessions, isLoading: loadingSessions } = useSessionsForYear(year, projectId)
-  const isLoading = loadingSummaries || loadingSessions
+  const summaryQuery = useDailySummariesRange(`${year}-01-01`, `${year}-12-31`)
+  const sessionQuery = useSessionsForYear(year, projectId)
   const { windowDays, isPro } = useAnalyticsWindow()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
-  // Fixed details panel instead of a per-cell floating tooltip — a
-  // Radix tooltip has to re-anchor its (much wider) popup every time the
-  // mouse crosses into a new ~19-27px-wide column, which reads as janky
-  // during fast horizontal sweeps. A stable panel just swaps its text.
-  const [hoveredDay, setHoveredDay] = useState<HoveredDay | null>(null)
-
+  const [selectedKey, setSelectedKey] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState(false)
+  const cells = useRef(new Map<string, HTMLButtonElement>())
+  const todayKey = formatPeriodKey(new Date(), 'daily')
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - (windowDays - 1))
-  const cutoffKey = formatPeriodKey(cutoff, 'daily')
-  const showOverlay = !isPro && jan1 < cutoffKey
-
-  const todayKey = formatPeriodKey(new Date(), 'daily')
-
-  const isProjectFiltered = projectId !== undefined
-  const filteredDailyTotals = sessionsToDailyTotals(yearSessions ?? [])
-  const focusMap = isProjectFiltered
-    ? new Map([...filteredDailyTotals].map(([key, total]) => [key, total.focus_minutes]))
-    : new Map((summaries ?? []).map((s) => [s.date, s.focus_minutes]))
-
-  // Group this year's sessions by local day so each heatmap cell's tooltip
-  // can list which project(s) were worked on that day — same as
-  // WeeklyView/MonthlyView.
-  const sessionsByDay = new Map<string, SessionProjectSliceWithDate[]>()
-  for (const s of yearSessions ?? []) {
-    const dayKey = formatPeriodKey(new Date(s.started_at), 'daily')
-    const list = sessionsByDay.get(dayKey)
-    if (list) list.push(s)
-    else sessionsByDay.set(dayKey, [s])
+  const locked = !isPro && `${year}-01-01` < formatPeriodKey(cutoff, 'daily')
+  const sessions = sessionQuery.data ?? []
+  const totals =
+    projectId !== undefined
+      ? sessionsToDailyTotals(sessions)
+      : new Map((summaryQuery.data ?? []).map((row) => [row.date, row]))
+  const days: Date[] = []
+  for (
+    let day = new Date(year, 0, 1);
+    day.getFullYear() === year;
+    day = new Date(year, day.getMonth(), day.getDate() + 1)
+  )
+    days.push(day)
+  const validDays = days.filter((day) => formatPeriodKey(day, 'daily') <= todayKey)
+  const selected =
+    validDays.find((day) => formatPeriodKey(day, 'daily') === selectedKey) ??
+    validDays[validDays.length - 1]
+  const selection = selected ? formatPeriodKey(selected, 'daily') : null
+  const entries = [...totals.values()].filter((row) => row.date <= todayKey)
+  const minutes = entries.reduce((sum, row) => sum + row.focus_minutes, 0)
+  const count = entries.reduce((sum, row) => sum + row.session_count, 0)
+  const focusDays = entries.filter((row) => row.focus_minutes > 0).length
+  const months = Array.from({ length: 12 }, (_, month) => ({
+    month,
+    label: new Date(year, month, 1).toLocaleDateString(undefined, { month: 'short' }),
+    minutes: 0,
+  }))
+  const weeks = new Map<string, number>()
+  for (const row of entries) {
+    const local = new Date(`${row.date}T12:00:00`)
+    months[local.getMonth()].minutes += row.focus_minutes
+    local.setDate(local.getDate() - ((local.getDay() + 6) % 7))
+    const key = formatPeriodKey(local, 'daily')
+    weeks.set(key, (weeks.get(key) ?? 0) + row.focus_minutes)
   }
-
-  // Build weeks array
-  const weeks = [...getWeeksInYear(year)]
-  const lastMonday = weeks[weeks.length - 1]
-  const lastSunday = new Date(lastMonday)
-  lastSunday.setDate(lastMonday.getDate() + 6)
-  if (lastSunday < new Date(year, 11, 31)) {
-    const extra = new Date(lastMonday)
-    extra.setDate(lastMonday.getDate() + 7)
-    weeks.push(extra)
+  const bestMonth = [...months].sort((a, b) => b.minutes - a.minutes)[0]
+  const bestDay = [...entries].sort((a, b) => b.focus_minutes - a.focus_minutes)[0]
+  const bestWeek = [...weeks.entries()].sort((a, b) => b[1] - a[1])[0]
+  const longest = getLongestFocusStreak(entries)
+  const projectMap = new Map<string, { name: string; color: string; minutes: number }>()
+  for (const session of sessions) {
+    const id = session.project_id ?? '__none__'
+    const current = projectMap.get(id)
+    if (current) current.minutes += session.duration_mins
+    else
+      projectMap.set(id, {
+        name: session.projects?.name ?? 'No project',
+        color: session.projects?.color ?? '#9490aa',
+        minutes: session.duration_mins,
+      })
   }
-
-  const allSummaries = isProjectFiltered ? [...filteredDailyTotals.values()] : (summaries ?? [])
-  const totalMinutes = allSummaries.reduce((s, r) => s + r.focus_minutes, 0)
-  const longestStreak = computeLongestStreak(allSummaries)
-  const bestMonth = getMostProductiveMonth(allSummaries)
-  const bestDay = getBestDay(allSummaries)
-
-  const totalSessions = allSummaries.reduce((s, r) => s + r.session_count, 0)
-  const focusDays = allSummaries.filter((s) => s.focus_minutes > 0).length
-  const avgSessionMins = totalSessions > 0 ? Math.round(totalMinutes / totalSessions) : 0
-
-  // Project breakdown — aggregated across the full year from raw sessions
-  const projectMap = new Map<string, Omit<ProjectEntry, 'pct'>>()
-  for (const s of yearSessions ?? []) {
-    const pid = s.project_id ?? '__none__'
-    const name = s.projects?.name ?? 'No project'
-    const color = s.projects?.color ?? '#7A7890'
-    const cur = projectMap.get(pid)
-    if (cur) cur.minutes += s.duration_mins
-    else projectMap.set(pid, { name, color, minutes: s.duration_mins })
-  }
-  const projectPieData: ProjectEntry[] = [...projectMap.values()]
-    .sort((a, b) => b.minutes - a.minutes)
-    .map((p) => ({
-      ...p,
-      pct: totalMinutes > 0 ? Math.round((p.minutes / totalMinutes) * 100) : 0,
-    }))
-
-  // Monthly totals for sub-labels
-  const monthlyTotals = new Array(12).fill(0) as number[]
-  for (const [key, mins] of focusMap) {
-    monthlyTotals[new Date(key).getMonth()] += mins
-  }
-
-  // Best single week — sum focus minutes across each real (calendar-accurate) week
-  let bestWeekMinutes = 0
-  let bestWeekMonday: Date | null = null
-  for (const monday of weeks) {
-    let sum = 0
-    for (let d = 0; d < 7; d++) {
-      const day = new Date(monday)
-      day.setDate(monday.getDate() + d)
-      if (day.getFullYear() !== year) continue
-      sum += focusMap.get(formatPeriodKey(day, 'daily')) ?? 0
+  const projects = [...projectMap.entries()].sort((a, b) => b[1].minutes - a[1].minutes)
+  const projectTotal = projects.reduce((sum, [, entry]) => sum + entry.minutes, 0)
+  const selectedTotal = selection ? totals.get(selection) : undefined
+  const leading = (days[0].getDay() + 6) % 7
+  const columns = Math.ceil((leading + days.length) / 7)
+  const panel = 'rounded-xl border border-depth-border bg-depth-surface'
+  function moveFocus(key: string, event: React.KeyboardEvent<HTMLButtonElement>) {
+    const index = validDays.findIndex((day) => formatPeriodKey(day, 'daily') === key)
+    const direction: Record<string, number> = {
+      ArrowLeft: -7,
+      ArrowRight: 7,
+      ArrowUp: -1,
+      ArrowDown: 1,
     }
-    if (sum > bestWeekMinutes) {
-      bestWeekMinutes = sum
-      bestWeekMonday = monday
-    }
+    let next = index
+    if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = validDays.length - 1
+    else if (event.key in direction)
+      next = Math.max(0, Math.min(validDays.length - 1, index + direction[event.key]))
+    else return
+    event.preventDefault()
+    const nextKey = formatPeriodKey(validDays[next], 'daily')
+    setSelectedKey(nextKey)
+    cells.current.get(nextKey)?.focus()
   }
-  const bestWeek = bestWeekMonday
-    ? `${getPeriodLabel(bestWeekMonday, 'weekly')} — ${formatMinutesToHours(bestWeekMinutes)}`
-    : '—'
-
-  // Month-anchored week-columns for the heatmap — each month gets its own
-  // self-contained set of Monday-Sunday columns (leading/trailing slots
-  // null-padded), so a week-column never mixes days from two different
-  // months the way a single continuous year-long week strip would.
-  const monthColumns: Array<{ monthIdx: number; days: Array<Date | null> }> = []
-  for (let m = 0; m < 12; m++) {
-    const daysInMonth = new Date(year, m + 1, 0).getDate()
-    const leadingBlanks = mondayCol(new Date(year, m, 1).getDay())
-    const numCols = Math.ceil((leadingBlanks + daysInMonth) / 7)
-    const cols: Array<{ monthIdx: number; days: Array<Date | null> }> = Array.from(
-      { length: numCols },
-      () => ({ monthIdx: m, days: new Array<Date | null>(7).fill(null) })
-    )
-    for (let d = 1; d <= daysInMonth; d++) {
-      const cellIdx = leadingBlanks + d - 1
-      cols[Math.floor(cellIdx / 7)].days[cellIdx % 7] = new Date(year, m, d)
-    }
-    monthColumns.push(...cols)
-  }
-
-  // Month label positions — first week-column belonging to each month, plus
-  // how many columns it spans, so the label can be centered over the whole
-  // group of columns rather than just anchored to the first one.
-  const monthLabels: Array<{ label: string; col: number; monthIdx: number; numCols: number }> = []
-  monthColumns.forEach(({ monthIdx }, col) => {
-    const last = monthLabels[monthLabels.length - 1]
-    if (!last || last.monthIdx !== monthIdx) {
-      monthLabels.push({ label: MONTHS[monthIdx], col, monthIdx, numCols: 1 })
-    } else {
-      last.numCols += 1
-    }
-  })
-
-  // Per-week x offset, adding MONTH_GAP on top of the regular column gap
-  // whenever a week-column belongs to a new month — the same offsets drive
-  // both the month labels and the heatmap cells below, so the two stay
-  // aligned.
-  const weekOffsets: number[] = []
-  let extraGap = 0
-  monthColumns.forEach(({ monthIdx }, col) => {
-    if (col > 0 && monthColumns[col - 1].monthIdx !== monthIdx) extraGap += MONTH_GAP
-    weekOffsets.push(col * STEP + extraGap)
-  })
-
-  // +STEP (not +CELL) since each cell's hoverable hit area is a full
-  // STEP×STEP tile (see the heatmap cell render below), wider than the
-  // visible CELL-sized dot it contains.
-  const gridWidth = weekOffsets[weekOffsets.length - 1] + STEP
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Stats row */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {isLoading ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        ) : (
-          <>
-            <StatCard
-              icon={<Clock size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Focus Time"
-              valueSize={28}
-              value={formatMinutesToHours(totalMinutes)}
-              label="total focus this year"
-            />
-            <StatCard
-              icon={<Calendar size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Best Month"
-              valueSize={16}
-              value={bestMonth}
-              label="most productive month"
-            />
-            <StatCard
-              icon={<Flame size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Longest Streak"
-              valueSize={28}
-              value={
-                <>
-                  {longestStreak}
-                  <span style={{ fontSize: 13, fontWeight: 400, marginLeft: 4 }}>days</span>
-                </>
-              }
-              label="longest streak this year"
-            />
-            <StatCard
-              icon={<BarChart2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Focus Sessions"
-              valueSize={28}
-              value={totalSessions}
-              label="total sessions this year"
-            />
-            <StatCard
-              icon={<CheckCircle2 size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Focus Days"
-              valueSize={28}
-              value={focusDays}
-              label="focus days this year"
-            />
-            <StatCard
-              icon={<Timer size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Avg Session"
-              valueSize={28}
-              value={formatMinutesToHours(avgSessionMins)}
-              label="avg session length"
-            />
-            <StatCard
-              icon={<TrendingUp size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Best Day"
-              valueSize={16}
-              value={bestDay}
-              label="best single day"
-            />
-            <StatCard
-              icon={<CalendarDays size={16} style={{ color: '#7A7890', flexShrink: 0 }} />}
-              title="Best Week"
-              valueSize={16}
-              value={bestWeek}
-              label="best single week"
-            />
-          </>
-        )}
-      </div>
-
-      {/* Focus Time by Project */}
-      {!isLoading && (
-        <ProjectBreakdownCard
-          pieData={projectPieData}
-          isLoading={false}
-          title={isProjectFiltered ? `${projectLabel} Focus` : 'Focus Time by Project'}
-          subtitle={
-            isProjectFiltered
-              ? `Focused time logged for ${projectLabel} this year`
-              : 'See how you spent your focus time across different projects this year'
-          }
-          emptyText={
-            isProjectFiltered
-              ? `No focus sessions for ${projectLabel} this year.`
-              : 'No focus sessions logged this year.'
-          }
+  if (locked)
+    return (
+      <section className={`${panel} px-5 py-16 text-center`}>
+        <h2 className="text-xl font-medium text-ink-primary">Explore your full focus history</h2>
+        <p className="mt-2 text-sm text-ink-primary/75">
+          Your Free plan includes the last {windowDays} days. Pro includes your yearly history.
+        </p>
+        <Button variant="primary" className="mt-5" onClick={() => setUpgradeOpen(true)}>
+          Upgrade to Pro
+        </Button>
+        <UpgradeModal
+          open={upgradeOpen}
+          onClose={() => setUpgradeOpen(false)}
+          trigger="analytics"
         />
-      )}
-
-      {/* Heatmap */}
-      {!isLoading && (
-        <div style={{ position: 'relative' }}>
+      </section>
+    )
+  if (summaryQuery.isPending || sessionQuery.isPending)
+    return (
+      <div aria-label="Loading yearly analytics" className="space-y-6">
+        <div className="h-36 animate-pulse rounded-xl bg-depth-raised" />
+        <div className="h-56 animate-pulse rounded-xl bg-depth-raised" />
+      </div>
+    )
+  if (summaryQuery.isError || sessionQuery.isError)
+    return (
+      <div role="alert" className={`${panel} p-8 text-center text-sm text-ink-primary`}>
+        <p>We couldn’t load this year’s focus activity.</p>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            void summaryQuery.refetch()
+            void sessionQuery.refetch()
+          }}
+        >
+          Try again
+        </Button>
+      </div>
+    )
+  const stats = [
+    { label: 'Total focus', value: formatMinutesToHours(minutes), note: 'Recorded this year' },
+    { label: 'Focus sessions', value: count, note: 'Completed focus sessions' },
+    { label: 'Focus days', value: focusDays, note: 'Days with recorded focus' },
+    {
+      label: 'Average session',
+      value: formatMinutesToHours(count ? Math.round(minutes / count) : 0),
+      note: 'Across this year’s sessions',
+    },
+  ]
+  const highlights = [
+    {
+      label: 'Most focused month',
+      value: bestMonth.minutes
+        ? new Date(year, bestMonth.month, 1).toLocaleDateString(undefined, { month: 'long' })
+        : '—',
+      note: bestMonth.minutes
+        ? `${formatMinutesToHours(bestMonth.minutes)} recorded`
+        : 'No recorded focus yet',
+    },
+    {
+      label: 'Longest streak',
+      value: `${longest} ${longest === 1 ? 'day' : 'days'}`,
+      note: 'Consecutive focus days',
+    },
+    {
+      label: 'Most focused day',
+      value: bestDay?.focus_minutes
+        ? new Date(`${bestDay.date}T12:00:00`).toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+          })
+        : '—',
+      note: bestDay?.focus_minutes
+        ? `${formatMinutesToHours(bestDay.focus_minutes)} recorded`
+        : 'No recorded focus yet',
+    },
+    {
+      label: 'Most focused week',
+      value: bestWeek?.[1] ? formatMinutesToHours(bestWeek[1]) : '—',
+      note: bestWeek?.[1]
+        ? `Week of ${new Date(`${bestWeek[0]}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · within this year`
+        : 'Monday-start calendar weeks',
+    },
+  ]
+  return (
+    <div className="space-y-6">
+      <section
+        aria-label="Yearly focus summary"
+        className={`${panel} grid grid-cols-1 overflow-hidden sm:grid-cols-2 xl:grid-cols-4`}
+      >
+        {stats.map((item, index) => (
           <div
-            style={{
-              backgroundColor: '#141417',
-              border: '1px solid #2E2E38',
-              borderRadius: 14,
-              padding: 18,
-            }}
+            key={item.label}
+            className={`min-w-0 border-depth-border p-5 sm:p-6 ${index ? 'border-t' : ''} ${index % 2 ? 'sm:border-l' : ''} ${index === 1 ? 'sm:border-t-0' : ''} xl:border-t-0 ${index ? 'xl:border-l' : ''}`}
           >
-            {/* Hovered-day details — a fixed-height, normal-width panel (not
-              a per-cell floating tooltip), so it never has to reposition
-              itself as the mouse moves between columns. Height is locked
-              (not just a minimum) and the project row never wraps, so
-              hovering a day with more projects can't grow the panel and
-              push the grid/legend below it down — it scrolls internally
-              instead. Always visible, outside the horizontally-scrolling
-              region below. */}
-            <div
-              style={{
-                height: 50,
-                marginBottom: 12,
-                paddingBottom: 12,
-                borderBottom: '1px solid #2E2E38',
-                overflow: 'hidden',
-              }}
-            >
-              {hoveredDay ? (
-                <>
-                  <div
-                    className="font-data"
-                    style={{
-                      fontSize: 13,
-                      color: '#E8E6F0',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
+            <h2 className="text-sm font-medium text-ink-primary/80">{item.label}</h2>
+            <p className="font-data mt-4 break-words text-3xl text-ink-primary">{item.value}</p>
+            <p className="mt-4 text-xs leading-5 text-ink-primary/70">{item.note}</p>
+          </div>
+        ))}
+      </section>
+      <section className={`${panel} min-w-0 p-5 sm:p-6`} aria-labelledby="year-activity">
+        <div className="flex justify-between gap-3">
+          <h2 id="year-activity" className="text-lg font-medium text-ink-primary">
+            Your year, day by day
+          </h2>
+          <span className="font-data text-xs text-ink-primary/70">{year}</span>
+        </div>
+        <p className="mt-1 text-xs leading-5 text-ink-primary/75">
+          Each square is a day. Brighter squares show more recorded focus time.
+        </p>
+        <p id="year-keyboard-help" className="sr-only">
+          Use arrow keys to move between days, Home for the first day, and End for the latest day.
+          Select a day, then use Open Daily view for details.
+        </p>
+        <div className="mt-5 max-w-full overflow-x-auto pb-2">
+          <div className="relative" style={{ width: columns * 18 + 36 }}>
+            <div className="relative ml-9 h-6">
+              {months.map((month) => {
+                const first = new Date(year, month.month, 1)
+                const ordinal = Math.round(
+                  (Date.UTC(year, month.month, 1) - Date.UTC(year, 0, 1)) / 86400000
+                )
+                const col = Math.floor((leading + ordinal) / 7)
+                return (
+                  <span
+                    key={month.month}
+                    className="absolute text-[10px] text-ink-primary/70"
+                    style={{ left: col * 18 }}
                   >
-                    {hoveredDay.label}
-                    {hoveredDay.minutes > 0 && ` — ${formatMinutesToHours(hoveredDay.minutes)}`}
-                  </div>
-                  {hoveredDay.minutes === 0 ? (
-                    <div style={{ fontSize: 12, color: '#7A7890', marginTop: 2 }}>No sessions</div>
-                  ) : (
-                    hoveredDay.projects.length > 0 && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexWrap: 'nowrap',
-                          alignItems: 'center',
-                          gap: 16,
-                          marginTop: 6,
-                          overflowX: 'auto',
-                        }}
-                      >
-                        {hoveredDay.projects.map((p) => (
-                          <div
-                            key={p.name}
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
-                          >
-                            <span
-                              style={{
-                                width: 6,
-                                height: 6,
-                                borderRadius: '50%',
-                                backgroundColor: p.color,
-                                flexShrink: 0,
-                              }}
-                            />
-                            <span style={{ fontSize: 12, color: '#7A7890', whiteSpace: 'nowrap' }}>
-                              {p.name}
-                            </span>
-                            <span
-                              className="font-data"
-                              style={{ fontSize: 12, color: '#E8E6F0', whiteSpace: 'nowrap' }}
-                            >
-                              {formatMinutesToHours(p.minutes)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  )}
-                </>
-              ) : (
-                <div style={{ fontSize: 12, color: '#7A7890', lineHeight: '26px' }}>
-                  Hover a day to see details
-                </div>
-              )}
+                    {first.toLocaleDateString(undefined, { month: 'short' })}
+                  </span>
+                )
+              })}
             </div>
-
-            {/* Only the month labels + grid scroll horizontally — the legend
-              below is a normal-width sibling so it stays centered and
-              visible without needing to scroll to see it. */}
-            <div style={{ overflowX: 'auto' }}>
-              <div style={{ width: DAY_W + GAP + gridWidth, minWidth: DAY_W + GAP + gridWidth }}>
-                {/* Month labels above — absolutely positioned children ignore
-                the container's own padding (the CSS containing-block edge
-                for position:absolute is the padding *edge*, not inside the
-                padding), so DAY_W + GAP is baked directly into each label's
-                left offset instead of relying on paddingLeft here. */}
-                <div style={{ position: 'relative', height: 28, marginBottom: 10 }}>
-                  {monthLabels.map(({ label, col, monthIdx, numCols }) => {
-                    const hrs = monthlyTotals[monthIdx]
-                    const spanWidth = numCols * STEP - GAP
-                    return (
-                      <span
-                        key={label}
-                        style={{
-                          position: 'absolute',
-                          left: DAY_W + GAP + weekOffsets[col],
-                          width: spanWidth,
-                          textAlign: 'center',
-                        }}
-                      >
-                        <span
-                          className="text-ink-primary"
-                          style={{ display: 'block', fontSize: 12, fontWeight: 600, lineHeight: 1 }}
-                        >
-                          {label}
-                        </span>
-                        {hrs > 0 && (
-                          <span
-                            className="font-data text-ink-muted"
-                            style={{ display: 'block', fontSize: 10, lineHeight: 1, marginTop: 2 }}
-                          >
-                            {formatMinutesToHours(hrs)}
-                          </span>
-                        )}
-                      </span>
-                    )
-                  })}
-                </div>
-
-                {/* Day labels + grid */}
-                <div style={{ display: 'flex', gap: GAP }}>
-                  {/* Day labels */}
-                  <div
-                    style={{
-                      width: DAY_W,
-                      display: 'grid',
-                      gridTemplateRows: `repeat(7, ${CELL}px)`,
-                      gap: GAP,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {DAY_ROWS.map((label, i) => (
-                      <div
-                        key={i}
-                        className="text-ink-muted"
-                        style={{
-                          fontSize: 11,
-                          lineHeight: `${CELL}px`,
-                          textAlign: 'right',
-                          paddingRight: 4,
-                        }}
-                      >
-                        {label}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Heatmap cells — absolutely positioned via weekOffsets so
-                  month-boundary weeks can carry an extra MONTH_GAP without
-                  breaking uniform column spacing. Hover state feeds the
-                  fixed details panel above (see hoveredDay) instead of a
-                  per-cell floating tooltip. */}
-                  <div
-                    style={{ position: 'relative', width: gridWidth, height: 7 * STEP }}
-                    onMouseLeave={() => setHoveredDay(null)}
-                  >
-                    {monthColumns.flatMap(({ days }, colIdx) =>
-                      days.map((cellDate, rowIdx) => {
-                        if (!cellDate) {
-                          return (
-                            <div
-                              key={`${colIdx}-${rowIdx}`}
-                              style={{
-                                position: 'absolute',
-                                left: weekOffsets[colIdx],
-                                top: rowIdx * STEP,
-                                width: CELL,
-                                height: CELL,
-                                borderRadius: '50%',
-                                backgroundColor: 'transparent',
-                              }}
-                            />
-                          )
-                        }
-
-                        const key = formatPeriodKey(cellDate, 'daily')
-                        const isFuture = key > todayKey
-                        const isToday = key === todayKey
-                        const minutes = !isFuture ? (focusMap.get(key) ?? 0) : 0
-                        const label = cellDate.toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                        })
-
-                        const dayProjectMap = new Map<string, DayProjectSlice>()
-                        if (!isFuture) {
-                          for (const s of sessionsByDay.get(key) ?? []) {
-                            const pid = s.project_id ?? '__none__'
-                            const name = s.projects?.name ?? 'No project'
-                            const color = s.projects?.color ?? '#7A7890'
-                            const cur = dayProjectMap.get(pid)
-                            if (cur) cur.minutes += s.duration_mins
-                            else dayProjectMap.set(pid, { name, color, minutes: s.duration_mins })
-                          }
-                        }
-                        const dayProjects = [...dayProjectMap.values()].sort(
-                          (a, b) => b.minutes - a.minutes
-                        )
-
-                        // Hit-tile width normally equals STEP, but at the last
-                        // column of a month it's widened to reach the next
-                        // column's start — absorbing the MONTH_GAP dead zone
-                        // into this tile so hovering across a month boundary
-                        // (e.g. Dec 31 → Jan 1) stays smooth horizontally too,
-                        // not just within a single month. paddingLeft keeps
-                        // the visible dot at its normal centered-in-STEP
-                        // position regardless of the extra width.
-                        const nextOffset = weekOffsets[colIdx + 1] ?? weekOffsets[colIdx] + STEP
-                        const tileWidth = nextOffset - weekOffsets[colIdx]
-
-                        return (
-                          <div
-                            key={`${colIdx}-${rowIdx}`}
-                            onMouseEnter={() =>
-                              setHoveredDay({ label, minutes, projects: dayProjects })
-                            }
-                            style={{
-                              position: 'absolute',
-                              left: weekOffsets[colIdx],
-                              top: rowIdx * STEP,
-                              width: tileWidth,
-                              height: STEP,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'flex-start',
-                              paddingLeft: (STEP - CELL) / 2,
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: CELL,
-                                height: CELL,
-                                flexShrink: 0,
-                                borderRadius: '50%',
-                                backgroundColor: isFuture ? FUTURE_COLOR : cellColor(minutes),
-                                opacity: 1,
-                                boxSizing: 'border-box',
-                                outline: isToday ? '2px solid rgba(75,158,255,0.5)' : 'none',
-                                outlineOffset: '1px',
-                                cursor: 'pointer',
-                              }}
-                            />
-                          </div>
-                        )
-                      })
-                    )}
-                  </div>
-                </div>
+            <div className="flex gap-2">
+              <div className="relative w-7 shrink-0 text-[10px] text-ink-primary/65">
+                {[
+                  { name: 'Mon', row: 0 },
+                  { name: 'Wed', row: 2 },
+                  { name: 'Fri', row: 4 },
+                ].map((item) => (
+                  <span key={item.name} className="absolute" style={{ top: item.row * 18 }}>
+                    {item.name}
+                  </span>
+                ))}
               </div>
-            </div>
-            {/* Legend — outside the horizontally-scrolling region above, so
-              it's always visible and centered without needing to scroll. */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                marginTop: 12,
-              }}
-            >
-              <span className="text-ink-muted" style={{ fontSize: 11 }}>
-                Less
-              </span>
-              {LEGEND_COLORS.map((color, i) => (
-                <div
-                  key={i}
-                  style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: color }}
-                />
-              ))}
-              <span className="text-ink-muted" style={{ fontSize: 11 }}>
-                More
-              </span>
+              <div
+                role="group"
+                aria-label="Yearly focus activity"
+                aria-describedby="year-keyboard-help"
+                className="grid grid-flow-col grid-rows-7 gap-1"
+                style={{ gridAutoColumns: 14 }}
+              >
+                {Array.from({ length: leading }, (_, i) => (
+                  <span key={`blank-${i}`} aria-hidden="true" />
+                ))}
+                {days.map((day) => {
+                  const key = formatPeriodKey(day, 'daily')
+                  const future = key > todayKey
+                  const value = totals.get(key)?.focus_minutes ?? 0
+                  const intensity = Math.min(1, value / 180)
+                  return (
+                    <button
+                      key={key}
+                      ref={(node) => {
+                        if (node) cells.current.set(key, node)
+                        else cells.current.delete(key)
+                      }}
+                      type="button"
+                      disabled={future}
+                      tabIndex={key === selection ? 0 : -1}
+                      aria-label={`${day.toLocaleDateString()}: ${future ? 'upcoming' : `${value} focus minutes`}`}
+                      aria-pressed={key === selection}
+                      onFocus={() => setSelectedKey(key)}
+                      onClick={() => setSelectedKey(key)}
+                      onKeyDown={(event) => moveFocus(key, event)}
+                      className={`h-3.5 w-3.5 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${key === selection ? 'ring-1 ring-brand' : ''} ${future ? 'border border-depth-border bg-depth-bg' : 'bg-depth-raised'}`}
+                      style={{
+                        backgroundColor:
+                          !future && value > 0
+                            ? `rgba(75,158,255,${0.25 + intensity * 0.75})`
+                            : undefined,
+                      }}
+                    />
+                  )
+                })}
+              </div>
             </div>
           </div>
-          {showOverlay && (
-            <>
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  backdropFilter: 'blur(4px)',
-                  pointerEvents: 'none',
-                  zIndex: 1,
-                  borderRadius: 14,
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-ink-primary/70">
+            {selected
+              ? `${selected.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · ${formatMinutesToHours(selectedTotal?.focus_minutes ?? 0)} · ${selectedTotal?.session_count ?? 0} sessions`
+              : 'This year has not started yet.'}
+          </p>
+          {selected && (
+            <label className="flex flex-wrap items-center gap-2 text-xs text-ink-primary/75">
+              Inspect day
+              <input
+                type="date"
+                min={`${year}-01-01`}
+                max={
+                  validDays.length
+                    ? formatPeriodKey(validDays[validDays.length - 1], 'daily')
+                    : undefined
+                }
+                value={selection ?? ''}
+                onChange={(event) => {
+                  if (validDays.some((day) => formatPeriodKey(day, 'daily') === event.target.value))
+                    setSelectedKey(event.target.value)
                 }}
+                className="min-h-11 rounded-md border border-depth-border bg-depth-surface px-3 text-sm text-ink-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               />
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 12,
-                  zIndex: 2,
-                }}
-              >
-                <Lock size={20} color="#7A7890" />
-                <span style={{ fontSize: 14, color: '#E8E6F0', fontWeight: 500 }}>
-                  Unlock full history
-                </span>
-                <button
-                  onClick={() => setUpgradeOpen(true)}
-                  style={{
-                    background: '#4B9EFF',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 8,
-                    padding: '8px 16px',
-                    fontSize: 13,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Upgrade to Pro
-                </button>
-              </div>
-            </>
+            </label>
           )}
+          {selected && onSelectDay && (
+            <Button variant="ghost" onClick={() => onSelectDay(selected)}>
+              Open Daily view →
+            </Button>
+          )}
+          <div
+            className="flex items-center gap-1.5 text-[10px] text-ink-primary/70"
+            aria-label="Less to more recorded focus time"
+          >
+            <span>Less</span>
+            {[0, 0.3, 0.5, 0.75, 1].map((value) => (
+              <span
+                key={value}
+                className="h-3 w-3 rounded-sm bg-depth-raised"
+                style={value ? { backgroundColor: `rgba(75,158,255,${value})` } : undefined}
+                aria-hidden="true"
+              />
+            ))}
+            <span>More</span>
+          </div>
         </div>
-      )}
-
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} trigger="analytics" />
-
-      {/* Year summary */}
-      {!isLoading && (
-        <div className="text-ink-secondary" style={{ textAlign: 'center', fontSize: 13 }}>
-          {totalMinutes > 0
-            ? `${formatMinutesToHours(totalMinutes)} logged in ${year}`
-            : isProjectFiltered
-              ? `No sessions for ${projectLabel} in ${year}`
-              : `No sessions logged in ${year}`}
-        </div>
-      )}
+      </section>
+      <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
+        <section className={`${panel} min-w-0 p-5 sm:p-6`} aria-labelledby="year-months">
+          <h2 id="year-months" className="text-lg font-medium text-ink-primary">
+            Focus by month
+          </h2>
+          <p className="mt-1 text-xs leading-5 text-ink-primary/75">
+            Compare your recorded time across the year.
+          </p>
+          <div
+            className="mt-5 h-56"
+            role="img"
+            aria-label={months
+              .map(
+                (item) =>
+                  `${item.label}: ${year > new Date().getFullYear() || (year === new Date().getFullYear() && item.month > new Date().getMonth()) ? 'upcoming' : `${item.minutes} minutes`}`
+              )
+              .join('; ')}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={months.map((item) => ({
+                  ...item,
+                  minutes:
+                    year > new Date().getFullYear() ||
+                    (year === new Date().getFullYear() && item.month > new Date().getMonth())
+                      ? null
+                      : item.minutes,
+                }))}
+                margin={{ left: -20, right: 0, top: 8, bottom: 0 }}
+              >
+                <CartesianGrid stroke="#2e2e38" vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fill: '#aaa7ba', fontSize: 10 }}
+                  interval={0}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: '#aaa7ba', fontSize: 10 }}
+                  allowDecimals={false}
+                  tickFormatter={(value) => formatMinutesToHours(Number(value))}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  cursor={{ fill: '#ffffff08' }}
+                  formatter={(value) => [formatMinutesToHours(Number(value)), 'Focus time']}
+                  contentStyle={{
+                    backgroundColor: '#141417',
+                    borderColor: '#2e2e38',
+                    borderRadius: 8,
+                    color: '#e8e6f0',
+                  }}
+                  itemStyle={{ color: '#e8e6f0' }}
+                />
+                <Bar dataKey="minutes" radius={[3, 3, 0, 0]} isAnimationActive={false}>
+                  {months.map((item) => (
+                    <Cell
+                      key={item.month}
+                      fill={
+                        year === new Date().getFullYear() && item.month === new Date().getMonth()
+                          ? '#4b9eff'
+                          : '#345c89'
+                      }
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="mt-4 text-xs leading-5 text-ink-primary/70">
+            {year === new Date().getFullYear()
+              ? 'The current month is in progress. Future months have no recorded totals.'
+              : year > new Date().getFullYear()
+                ? 'This year has not started yet.'
+                : 'Monthly totals cover this calendar year.'}
+          </p>
+        </section>
+        <section className={`${panel} min-w-0 p-5 sm:p-6`} aria-labelledby="year-projects">
+          <h2 id="year-projects" className="text-lg font-medium text-ink-primary">
+            Where your time went
+          </h2>
+          <p className="mt-1 text-xs leading-5 text-ink-primary/75">
+            {projectId === undefined
+              ? 'Projects ranked by focus time this year.'
+              : `Focus time for ${projectLabel} this year.`}
+          </p>
+          <div
+            className="mt-5 max-h-64 space-y-5 overflow-y-auto focus-visible:ring-2 focus-visible:ring-brand"
+            role="region"
+            aria-label="Yearly project focus"
+            tabIndex={0}
+          >
+            {(expanded ? projects : projects.slice(0, 3)).map(([id, entry]) => (
+              <div key={id}>
+                <div className="flex items-start justify-between gap-3 text-sm">
+                  <span className="min-w-0 break-words text-ink-primary">{entry.name}</span>
+                  <span className="font-data shrink-0 text-xs text-ink-primary/80">
+                    {formatMinutesToHours(entry.minutes)}
+                  </span>
+                </div>
+                <div
+                  className="mt-3 h-1.5 overflow-hidden rounded-full bg-depth-raised"
+                  aria-hidden="true"
+                >
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${projectTotal ? (entry.minutes / projectTotal) * 100 : 0}%`,
+                      backgroundColor: entry.color,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+            {!projects.length && (
+              <p className="py-5 text-sm text-ink-primary/70">
+                No focus sessions recorded in this year.
+              </p>
+            )}
+          </div>
+          {projects.length > 3 && (
+            <button
+              className="mt-3 min-h-11 text-xs text-brand"
+              aria-expanded={expanded}
+              onClick={() => setExpanded(!expanded)}
+            >
+              {expanded ? 'Show fewer projects' : `Show all ${projects.length} project groups`}
+            </button>
+          )}
+          <p className="mt-4 text-xs leading-5 text-ink-primary/70">
+            Shares use the selected year and project filter.
+          </p>
+        </section>
+      </div>
+      <section
+        aria-label="Yearly highlights"
+        className={`${panel} grid grid-cols-1 overflow-hidden sm:grid-cols-2 xl:grid-cols-4`}
+      >
+        {highlights.map((item, index) => (
+          <div
+            key={item.label}
+            className={`min-w-0 border-depth-border p-5 sm:p-6 ${index ? 'border-t' : ''} ${index % 2 ? 'sm:border-l' : ''} ${index === 1 ? 'sm:border-t-0' : ''} xl:border-t-0 ${index ? 'xl:border-l' : ''}`}
+          >
+            <h2 className="text-xs text-ink-primary/75">{item.label}</h2>
+            <p className="font-data mt-3 break-words text-xl text-ink-primary">{item.value}</p>
+            <p className="mt-3 text-xs leading-5 text-ink-primary/70">{item.note}</p>
+          </div>
+        ))}
+      </section>
     </div>
   )
 }

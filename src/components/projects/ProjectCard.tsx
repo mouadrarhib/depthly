@@ -1,3 +1,4 @@
+import { ProjectIcon } from '@/components/projects/ProjectIcon'
 import { Clock3, MoreHorizontal } from 'lucide-react'
 
 import {
@@ -82,7 +83,7 @@ export function ProjectCard({
               className="h-3 w-3 shrink-0 rounded-full"
               style={{ backgroundColor: project.color }}
             />
-            {project.icon ? <span className="text-lg leading-none">{project.icon}</span> : null}
+            <ProjectIcon icon={project.icon} className="text-ink-primary/80" />
             <span className="truncate text-sm font-medium text-ink-primary">{project.name}</span>
           </div>
 
