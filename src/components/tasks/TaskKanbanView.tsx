@@ -213,7 +213,7 @@ export function TaskKanbanView({
 
               <p
                 className="line-clamp-2 font-medium leading-snug"
-                style={{ fontSize: 13, color: '#E8E6F0' }}
+                style={{ fontSize: 13, color: 'var(--color-text)' }}
               >
                 {activeTask.title}
               </p>
@@ -225,7 +225,7 @@ export function TaskKanbanView({
                       fontSize: 11,
                       color: isOverdue(activeTask.due_date, activeTask.status ?? '')
                         ? '#F25C5C'
-                        : '#7A7890',
+                        : 'var(--color-text-muted)',
                     }}
                   >
                     {formatDueDate(activeTask.due_date)}

@@ -50,7 +50,7 @@ export function AppLayout() {
           backdrop popping in/out instantly. */}
       <div
         className={cn(
-          'fixed inset-0 z-10 bg-black/50 transition-opacity duration-200 ease md:hidden',
+          'fixed inset-0 z-10 bg-[var(--color-backdrop)] transition-opacity duration-200 ease md:hidden',
           sidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         )}
         onClick={toggleSidebar}
@@ -61,7 +61,7 @@ export function AppLayout() {
 
       <div
         className={cn(
-          'flex flex-1 flex-col overflow-hidden transition-all duration-200',
+          'flex flex-1 flex-col overflow-hidden transition-all duration-200 motion-reduce:transition-none',
           // On mobile: no margin (sidebar overlays). On md+: offset by sidebar width.
           sidebarOpen ? 'md:ml-60' : 'md:ml-16'
         )}

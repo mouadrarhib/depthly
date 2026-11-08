@@ -401,7 +401,7 @@ export function ProjectDetailPage() {
                     gap: 6,
                     padding: '6px 12px',
                     backgroundColor: 'transparent',
-                    color: '#7A7890',
+                    color: 'var(--color-text-muted)',
                   }}
                 >
                   <List size={16} />
@@ -414,13 +414,13 @@ export function ProjectDetailPage() {
                   style={{
                     gap: 6,
                     padding: '6px 12px',
-                    backgroundColor: '#222228',
-                    color: '#E8E6F0',
+                    backgroundColor: 'var(--color-surface-overlay)',
+                    color: 'var(--color-text)',
                   }}
                 >
                   <Columns size={16} />
                   Kanban
-                  <Lock size={12} style={{ color: '#7A7890' }} />
+                  <Lock size={12} style={{ color: 'var(--color-text-muted)' }} />
                 </button>
               </div>
 
@@ -434,13 +434,13 @@ export function ProjectDetailPage() {
                 }}
               >
                 <Crown size={28} style={{ color: '#F5A623' }} />
-                <div style={{ fontSize: 26, fontWeight: 700, color: '#E8E6F0', marginTop: 10 }}>
+                <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-text)', marginTop: 10 }}>
                   Kanban Board
                 </div>
                 <p
                   style={{
                     fontSize: 14,
-                    color: '#7A7890',
+                    color: 'var(--color-text-muted)',
                     textAlign: 'center',
                     maxWidth: 500,
                     marginTop: 8,
@@ -460,20 +460,20 @@ export function ProjectDetailPage() {
                     flex: 1,
                     minHeight: 200,
                     background: 'rgba(122,120,144,0.06)',
-                    border: '1px solid #2E2E38',
+                    border: '1px solid var(--color-border)',
                     borderRadius: 10,
                     padding: 12,
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
-                      <Circle size={14} style={{ color: '#7A7890' }} />
-                      <span style={{ fontSize: 12, fontWeight: 600, color: '#7A7890' }}>To Do</span>
+                      <Circle size={14} style={{ color: 'var(--color-text-muted)' }} />
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)' }}>To Do</span>
                     </div>
                     <span
                       style={{
                         fontSize: 11,
-                        color: '#7A7890',
+                        color: 'var(--color-text-muted)',
                         background: 'rgba(122,120,144,0.15)',
                         padding: '2px 6px',
                         borderRadius: 999,
@@ -486,13 +486,13 @@ export function ProjectDetailPage() {
                     <div
                       key={t}
                       style={{
-                        background: '#141417',
-                        border: '1px solid #2E2E38',
+                        background: 'var(--color-surface-raised)',
+                        border: '1px solid var(--color-border)',
                         borderRadius: 8,
                         padding: '10px 12px',
                         marginBottom: 8,
                         fontSize: 12,
-                        color: '#E8E6F0',
+                        color: 'var(--color-text)',
                       }}
                     >
                       {t}
@@ -506,7 +506,7 @@ export function ProjectDetailPage() {
                     flex: 1,
                     minHeight: 200,
                     background: 'rgba(75,158,255,0.06)',
-                    border: '1px solid #2E2E38',
+                    border: '1px solid var(--color-border)',
                     borderRadius: 10,
                     padding: 12,
                   }}
@@ -534,13 +534,13 @@ export function ProjectDetailPage() {
                     <div
                       key={t}
                       style={{
-                        background: '#141417',
-                        border: '1px solid #2E2E38',
+                        background: 'var(--color-surface-raised)',
+                        border: '1px solid var(--color-border)',
                         borderRadius: 8,
                         padding: '10px 12px',
                         marginBottom: 8,
                         fontSize: 12,
-                        color: '#E8E6F0',
+                        color: 'var(--color-text)',
                       }}
                     >
                       {t}
@@ -554,7 +554,7 @@ export function ProjectDetailPage() {
                     flex: 1,
                     minHeight: 200,
                     background: 'rgba(61,214,140,0.06)',
-                    border: '1px solid #2E2E38',
+                    border: '1px solid var(--color-border)',
                     borderRadius: 10,
                     padding: 12,
                   }}
@@ -580,13 +580,13 @@ export function ProjectDetailPage() {
                     <div
                       key={t}
                       style={{
-                        background: '#141417',
-                        border: '1px solid #2E2E38',
+                        background: 'var(--color-surface-raised)',
+                        border: '1px solid var(--color-border)',
                         borderRadius: 8,
                         padding: '10px 12px',
                         marginBottom: 8,
                         fontSize: 12,
-                        color: '#7A7890',
+                        color: 'var(--color-text-muted)',
                         textDecoration: 'line-through',
                       }}
                     >
@@ -614,7 +614,7 @@ export function ProjectDetailPage() {
                   <Crown size={16} style={{ color: '#F5A623' }} />
                   Upgrade to Pro
                 </Button>
-                <span style={{ fontSize: 12, color: '#7A7890' }}>
+                <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
                   From $5/month · Cancel anytime
                 </span>
               </div>

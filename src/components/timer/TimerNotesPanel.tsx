@@ -55,7 +55,7 @@ function FormatToolbar({
   const btnBase: React.CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     width: 28, height: 28, borderRadius: 6, border: 'none',
-    background: 'none', cursor: 'pointer', color: '#7A7890', flexShrink: 0,
+    background: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', flexShrink: 0,
   }
 
   const actions = [
@@ -68,7 +68,7 @@ function FormatToolbar({
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 2, padding: '6px 8px',
-      borderBottom: '1px solid #2E2E38', background: '#1A1A20',
+      borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface-overlay)',
     }}>
       {actions.map(({ icon, title, act }, i) => (
         <button
@@ -78,11 +78,11 @@ function FormatToolbar({
           style={btnBase}
           onClick={act}
           onMouseEnter={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.color = '#E8E6F0'
-            ;(e.currentTarget as HTMLButtonElement).style.background = '#222228'
+            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text)'
+            ;(e.currentTarget as HTMLButtonElement).style.background = 'var(--color-surface-overlay)'
           }}
           onMouseLeave={(e) => {
-            ;(e.currentTarget as HTMLButtonElement).style.color = '#7A7890'
+            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-muted)'
             ;(e.currentTarget as HTMLButtonElement).style.background = 'none'
           }}
         >
@@ -171,12 +171,12 @@ export function TimerNotesPanel() {
               <div>
                 <DialogPrimitive.Title style={{
                   margin: 0, fontSize: 16, fontWeight: 600,
-                  color: '#E8E6F0', letterSpacing: '-0.02em', lineHeight: 1.2,
+                  color: 'var(--color-text)', letterSpacing: '-0.02em', lineHeight: 1.2,
                 }}>
                   Log your session
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description style={{
-                  margin: '4px 0 0', fontSize: 12, color: '#7A7890', lineHeight: 1.6,
+                  margin: '4px 0 0', fontSize: 12, color: 'var(--color-text-muted)', lineHeight: 1.6,
                 }}>
                   Add context that will stay with this session.
                 </DialogPrimitive.Description>
@@ -194,7 +194,7 @@ export function TimerNotesPanel() {
 
             {/* Session title input */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <label style={{ fontSize: 12, fontWeight: 500, color: '#E8E6F0', letterSpacing: '-0.01em' }}>
+              <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
                 Session title
               </label>
               <input
@@ -204,25 +204,25 @@ export function TimerNotesPanel() {
                 placeholder="e.g. Deep work on feature X"
                 style={{
                   width: '100%', height: 40, boxSizing: 'border-box',
-                  background: '#1A1A20', border: '1px solid #2E2E38',
+                  background: 'var(--color-surface-overlay)', border: '1px solid var(--color-border)',
                   borderRadius: 8, padding: '0 14px',
-                  fontSize: 13, color: '#E8E6F0', outline: 'none',
+                  fontSize: 13, color: 'var(--color-text)', outline: 'none',
                   transition: 'border-color 0.15s',
                 }}
                 onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(75,158,255,0.5)' }}
-                onBlur={(e)  => { e.currentTarget.style.borderColor = '#2E2E38' }}
+                onBlur={(e)  => { e.currentTarget.style.borderColor = 'var(--color-border)' }}
               />
             </div>
 
             {/* Notes textarea with format toolbar */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <label style={{ fontSize: 12, fontWeight: 500, color: '#E8E6F0', letterSpacing: '-0.01em' }}>
+              <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
                 Notes
               </label>
               <div
-                style={{ border: '1px solid #2E2E38', borderRadius: 8, overflow: 'hidden', background: '#1A1A20' }}
+                style={{ border: '1px solid var(--color-border)', borderRadius: 8, overflow: 'hidden', background: 'var(--color-surface-overlay)' }}
                 onFocusCapture={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(75,158,255,0.5)' }}
-                onBlurCapture={(e)  => { (e.currentTarget as HTMLDivElement).style.borderColor = '#2E2E38' }}
+                onBlurCapture={(e)  => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--color-border)' }}
               >
                 <FormatToolbar taRef={taRef} onUpdate={setDraftNotes} />
                 <textarea
@@ -233,12 +233,12 @@ export function TimerNotesPanel() {
                   style={{
                     display: 'block', width: '100%', minHeight: 160, boxSizing: 'border-box',
                     background: 'transparent', border: 'none', outline: 'none',
-                    padding: '12px 14px', fontSize: 13, color: '#E8E6F0',
+                    padding: '12px 14px', fontSize: 13, color: 'var(--color-text)',
                     resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6,
                   }}
                 />
               </div>
-              <p style={{ margin: 0, fontSize: 12, color: '#3D3B4E' }}>
+              <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-faint)' }}>
                 Saved to the session record when the timer ends.
               </p>
             </div>
@@ -247,11 +247,11 @@ export function TimerNotesPanel() {
           {/* Pinned footer */}
           <div style={{
             padding: '14px 24px',
-            borderTop: '1px solid #2E2E38',
+            borderTop: '1px solid var(--color-border)',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             flexShrink: 0,
           }}>
-            <span style={{ fontSize: 12, color: savedFlash ? '#3DD68C' : '#3D3B4E' }}>
+            <span style={{ fontSize: 12, color: savedFlash ? '#3DD68C' : 'var(--color-text-faint)' }}>
               {footerLabel}
             </span>
             <button
@@ -259,8 +259,8 @@ export function TimerNotesPanel() {
               disabled={!isDirty}
               style={{
                 height: 34, padding: '0 20px', borderRadius: 8, border: 'none',
-                background: isDirty ? '#4B9EFF' : '#1A1A20',
-                color: isDirty ? '#fff' : '#3D3B4E',
+                background: isDirty ? '#4B9EFF' : 'var(--color-surface-overlay)',
+                color: isDirty ? '#fff' : 'var(--color-text-faint)',
                 fontSize: 13, fontWeight: 500,
                 cursor: isDirty ? 'pointer' : 'default',
                 transition: 'background 0.15s, color 0.15s',

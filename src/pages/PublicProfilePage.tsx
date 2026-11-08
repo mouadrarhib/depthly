@@ -32,7 +32,7 @@ const DAY_ROWS  = ['Mon','','Wed','','Fri','','']
 const CELL = 13, GAP = 3, STEP = 16, DAY_W = 32
 
 const LEGEND_COLORS = [
-  '#222228',
+  'var(--color-surface-overlay)',
   'rgba(75,158,255,0.20)',
   'rgba(75,158,255,0.45)',
   'rgba(75,158,255,0.70)',
@@ -40,7 +40,7 @@ const LEGEND_COLORS = [
 ]
 
 function cellColor(minutes: number): string {
-  if (minutes <= 0)  return '#222228'
+  if (minutes <= 0)  return 'var(--color-surface-overlay)'
   if (minutes < 60)  return 'rgba(75,158,255,0.20)'
   if (minutes < 120) return 'rgba(75,158,255,0.45)'
   if (minutes < 240) return 'rgba(75,158,255,0.70)'
@@ -103,8 +103,8 @@ function ProfileHeatmap({ summaries }: ProfileHeatmapProps) {
 
   return (
     <div style={{
-      backgroundColor: '#141417',
-      border:          '1px solid #2E2E38',
+      backgroundColor: 'var(--color-surface-raised)',
+      border:          '1px solid var(--color-border)',
       borderRadius:    14,
       padding:         20,
       overflowX:       'auto',
@@ -225,7 +225,7 @@ function FriendActionButton({ targetUserId }: { targetUserId: string }) {
           variant="ghost"
           size="sm"
           onClick={() => setConfirmUnfriendOpen(true)}
-          style={{ color: '#7A7890' }}
+          style={{ color: 'var(--color-text-muted)' }}
         >
           Friends
         </Button>
@@ -245,7 +245,7 @@ function FriendActionButton({ targetUserId }: { targetUserId: string }) {
 
   if (status === 'pending_sent') {
     return (
-      <Button variant="ghost" size="sm" disabled style={{ color: '#7A7890' }}>
+      <Button variant="ghost" size="sm" disabled style={{ color: 'var(--color-text-muted)' }}>
         Requested
       </Button>
     )
@@ -271,7 +271,7 @@ function FriendActionButton({ targetUserId }: { targetUserId: string }) {
           isLoading={declineRequest.isPending}
           disabled={!incoming}
           onClick={() => incoming && declineRequest.mutate({ requestRowId: incoming.id, requesterId: targetUserId })}
-          style={{ color: '#7A7890' }}
+          style={{ color: 'var(--color-text-muted)' }}
         >
           Decline
         </Button>
@@ -306,14 +306,14 @@ function StatCard({
   return (
     <div style={{
       flex:            1,
-      backgroundColor: '#141417',
-      border:          '1px solid #2E2E38',
+      backgroundColor: 'var(--color-surface-raised)',
+      border:          '1px solid var(--color-border)',
       borderRadius:    14,
       padding:         '20px 24px',
     }}>
       <div
         className="font-data"
-        style={{ fontSize: 28, fontWeight: 600, color: valueColor ?? '#E8E6F0', letterSpacing: '-0.02em', lineHeight: 1.1 }}
+        style={{ fontSize: 28, fontWeight: 600, color: valueColor ?? 'var(--color-text)', letterSpacing: '-0.02em', lineHeight: 1.1 }}
       >
         {value}
       </div>
@@ -361,7 +361,7 @@ export function PublicProfilePage() {
     return (
       <div style={{
         minHeight:       '100dvh',
-        backgroundColor: '#0D0D10',
+        backgroundColor: 'var(--color-surface-base)',
         display:         'flex',
         alignItems:      'center',
         justifyContent:  'center',
@@ -377,26 +377,26 @@ export function PublicProfilePage() {
     return (
       <div style={{
         minHeight:       '100dvh',
-        backgroundColor: '#0D0D10',
+        backgroundColor: 'var(--color-surface-base)',
         display:         'flex',
         alignItems:      'center',
         justifyContent:  'center',
         padding:         24,
       }}>
         <div style={{
-          backgroundColor: '#141417',
-          border:          '1px solid #2E2E38',
+          backgroundColor: 'var(--color-surface-raised)',
+          border:          '1px solid var(--color-border)',
           borderRadius:    16,
           padding:         '48px 40px',
           textAlign:       'center',
           maxWidth:        360,
           width:           '100%',
         }}>
-          <Lock style={{ width: 36, height: 36, color: '#3D3B4E', margin: '0 auto 16px' }} />
-          <p style={{ fontSize: 16, fontWeight: 500, color: '#E8E6F0', marginBottom: 8 }}>
+          <Lock style={{ width: 36, height: 36, color: 'var(--color-text-faint)', margin: '0 auto 16px' }} />
+          <p style={{ fontSize: 16, fontWeight: 500, color: 'var(--color-text)', marginBottom: 8 }}>
             This profile is private
           </p>
-          <p style={{ fontSize: 13, color: '#7A7890' }}>
+          <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
             This user has chosen to keep their profile private
           </p>
         </div>
@@ -404,20 +404,20 @@ export function PublicProfilePage() {
     )
   }
 
-  const streakColor = profile.current_streak > 0 ? '#C8FF64' : '#E8E6F0'
+  const streakColor = profile.current_streak > 0 ? '#C8FF64' : 'var(--color-text)'
 
   return (
     <div style={{
       minHeight:       '100dvh',
-      backgroundColor: '#0D0D10',
+      backgroundColor: 'var(--color-surface-base)',
       padding:         '40px 24px',
     }}>
       <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* HEADER CARD */}
         <div style={{
-          backgroundColor: '#141417',
-          border:          '1px solid #2E2E38',
+          backgroundColor: 'var(--color-surface-raised)',
+          border:          '1px solid var(--color-border)',
           borderRadius:    16,
           padding:         32,
           display:         'flex',
@@ -449,7 +449,7 @@ export function PublicProfilePage() {
           )}
 
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 24, fontWeight: 500, color: '#E8E6F0', margin: 0 }}>
+            <p style={{ fontSize: 24, fontWeight: 500, color: 'var(--color-text)', margin: 0 }}>
               {profile.display_name}
             </p>
             <p className="text-ink-muted" style={{ fontSize: 13, marginTop: 4 }}>
@@ -482,7 +482,7 @@ export function PublicProfilePage() {
         {/* HEATMAP */}
         {showHeatmap && (
           <div>
-            <p style={{ fontSize: 13, fontWeight: 500, color: '#7A7890', marginBottom: 12 }}>
+            <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: 12 }}>
               Focus Activity
             </p>
             <ProfileHeatmap summaries={heat ?? []} />

@@ -1,4 +1,5 @@
 import { AccountSection }       from '@/components/settings/AccountSection'
+import { AppearanceSection }    from '@/components/settings/AppearanceSection'
 import { DangerZoneSection }    from '@/components/settings/DangerZoneSection'
 import { GoalsSection }         from '@/components/settings/GoalsSection'
 import { NotificationsSection } from '@/components/settings/NotificationsSection'
@@ -14,6 +15,7 @@ export function SettingsPage() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         <ProfileSection />
+        <AppearanceSection />
         <GoalsSection />
         <TimerSection />
         <NotificationsSection />

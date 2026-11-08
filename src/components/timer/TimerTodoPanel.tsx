@@ -16,7 +16,7 @@ import { useTimerStore } from '@/store/timerStore'
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span style={{ fontSize: 12, fontWeight: 500, color: '#E8E6F0', letterSpacing: '-0.01em' }}>
+    <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
       {children}
     </span>
   )
@@ -43,17 +43,17 @@ function StyledSelect({
         disabled={disabled}
         style={{
           width: '100%', height: 40, boxSizing: 'border-box',
-          background: '#1A1A20',
-          border: `1px solid ${disabled ? '#222228' : '#2E2E38'}`,
+          background: 'var(--color-surface-overlay)',
+          border: `1px solid ${disabled ? 'var(--color-surface-overlay)' : 'var(--color-border)'}`,
           borderRadius: 8, padding: '0 36px 0 14px',
           fontSize: 13,
-          color: value ? '#E8E6F0' : '#3D3B4E',
+          color: value ? 'var(--color-text)' : 'var(--color-text-faint)',
           appearance: 'none', cursor: disabled ? 'not-allowed' : 'pointer',
           outline: 'none', opacity: disabled ? 0.5 : 1,
           transition: 'border-color 0.15s',
         }}
         onFocus={(e) => { if (!disabled) e.currentTarget.style.borderColor = 'rgba(75,158,255,0.5)' }}
-        onBlur={(e)  => { e.currentTarget.style.borderColor = disabled ? '#222228' : '#2E2E38' }}
+        onBlur={(e)  => { e.currentTarget.style.borderColor = disabled ? 'var(--color-surface-overlay)' : 'var(--color-border)' }}
       >
         <option value="">{placeholder}</option>
         {children}
@@ -62,7 +62,7 @@ function StyledSelect({
         size={14}
         style={{
           position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-          color: disabled ? '#3D3B4E' : '#7A7890', pointerEvents: 'none', flexShrink: 0,
+          color: disabled ? 'var(--color-text-faint)' : 'var(--color-text-muted)', pointerEvents: 'none', flexShrink: 0,
         }}
       />
     </div>
@@ -141,12 +141,12 @@ export function TimerTodoPanel() {
               <div>
                 <DialogPrimitive.Title style={{
                   margin: 0, fontSize: 16, fontWeight: 600,
-                  color: '#E8E6F0', letterSpacing: '-0.02em', lineHeight: 1.2,
+                  color: 'var(--color-text)', letterSpacing: '-0.02em', lineHeight: 1.2,
                 }}>
                   Project &amp; task
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description style={{
-                  margin: '4px 0 0', fontSize: 12, color: '#7A7890', lineHeight: 1.6,
+                  margin: '4px 0 0', fontSize: 12, color: 'var(--color-text-muted)', lineHeight: 1.6,
                 }}>
                   Choose what this focus session belongs to.
                 </DialogPrimitive.Description>
@@ -210,13 +210,13 @@ export function TimerTodoPanel() {
                       disabled={isCreating}
                       style={{
                         flex: 1, height: 40, boxSizing: 'border-box',
-                        background: '#1A1A20', border: '1px solid #2E2E38',
+                        background: 'var(--color-surface-overlay)', border: '1px solid var(--color-border)',
                         borderRadius: 8, padding: '0 14px',
-                        fontSize: 13, color: '#E8E6F0', outline: 'none',
+                        fontSize: 13, color: 'var(--color-text)', outline: 'none',
                         transition: 'border-color 0.15s',
                       }}
                       onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(75,158,255,0.5)' }}
-                      onBlur={(e)  => { e.currentTarget.style.borderColor = '#2E2E38' }}
+                      onBlur={(e)  => { e.currentTarget.style.borderColor = 'var(--color-border)' }}
                     />
                     <button
                       onClick={handleAddTask}
@@ -224,9 +224,9 @@ export function TimerTodoPanel() {
                       style={{
                         width: 40, height: 40, flexShrink: 0,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        borderRadius: 8, border: '1px solid #2E2E38',
-                        background: newTaskTitle.trim() ? '#4B9EFF' : '#1A1A20',
-                        color: newTaskTitle.trim() ? '#fff' : '#3D3B4E',
+                        borderRadius: 8, border: '1px solid var(--color-border)',
+                        background: newTaskTitle.trim() ? '#4B9EFF' : 'var(--color-surface-overlay)',
+                        color: newTaskTitle.trim() ? '#fff' : 'var(--color-text-faint)',
                         cursor: newTaskTitle.trim() ? 'pointer' : 'default',
                         transition: 'background 0.15s, color 0.15s, border-color 0.15s',
                       }}
@@ -243,10 +243,10 @@ export function TimerTodoPanel() {
                     background: 'rgba(75,158,255,0.06)',
                     border: '1px solid rgba(75,158,255,0.15)',
                   }}>
-                    <p style={{ margin: 0, fontSize: 12, color: '#7A7890' }}>
+                    <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-muted)' }}>
                       Session will be logged to
                     </p>
-                    <p style={{ margin: '4px 0 0', fontSize: 13, color: '#E8E6F0', fontWeight: 500 }}>
+                    <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--color-text)', fontWeight: 500 }}>
                       {selectedProject.name}
                       {selectedTaskId && tasks.find((t) => t.id === selectedTaskId)
                         ? ` · ${tasks.find((t) => t.id === selectedTaskId)!.title}`
@@ -262,11 +262,11 @@ export function TimerTodoPanel() {
                 alignItems: 'center', justifyContent: 'center',
                 textAlign: 'center', padding: '48px 0', gap: 12,
               }}>
-                <FolderOpen size={40} style={{ color: '#3D3B4E' }} />
-                <p style={{ margin: 0, fontSize: 15, fontWeight: 500, color: '#7A7890' }}>
+                <FolderOpen size={40} style={{ color: 'var(--color-text-faint)' }} />
+                <p style={{ margin: 0, fontSize: 15, fontWeight: 500, color: 'var(--color-text-muted)' }}>
                   No project selected
                 </p>
-                <p style={{ margin: 0, fontSize: 13, color: '#3D3B4E', maxWidth: 220 }}>
+                <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-faint)', maxWidth: 220 }}>
                   Choose a project above to see and add tasks
                 </p>
               </div>

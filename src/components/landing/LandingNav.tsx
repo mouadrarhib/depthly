@@ -42,7 +42,7 @@ const NAV_LINKS = [
 /** Quiet separation between the app action and account menu. */
 const Divider = () => (
   <span
-    style={{ width: 0.5, height: 20, background: '#2E2E38', flexShrink: 0, display: 'block' }}
+    style={{ width: 0.5, height: 20, background: 'var(--color-border)', flexShrink: 0, display: 'block' }}
   />
 )
 
@@ -165,7 +165,7 @@ export function LandingNav() {
                     style={{
                       fontSize: 12,
                       fontWeight: 400,
-                      color: '#7A7890',
+                      color: 'var(--color-text-muted)',
                       padding: '8px 8px 4px',
                     }}
                   >
@@ -183,7 +183,7 @@ export function LandingNav() {
                         letterSpacing: '0.04em',
                         background:
                           plan === 'free' ? 'rgba(122,120,144,0.15)' : 'rgba(75,158,255,0.15)',
-                        color: plan === 'free' ? '#7A7890' : '#4B9EFF',
+                        color: plan === 'free' ? 'var(--color-text-muted)' : '#4B9EFF',
                       }}
                     >
                       {planLabel}
@@ -212,12 +212,12 @@ export function LandingNav() {
               <Link
                 to={PATHS.login}
                 className="hidden min-h-11 items-center px-1 text-sm font-medium transition-colors min-[360px]:inline-flex"
-                style={{ color: '#7A7890', textDecoration: 'none' }}
+                style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#E8E6F0'
+                  e.currentTarget.style.color = 'var(--color-text)'
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#7A7890'
+                  e.currentTarget.style.color = 'var(--color-text-muted)'
                 }}
               >
                 Log in

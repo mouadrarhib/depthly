@@ -67,7 +67,7 @@ export function PeriodCountdown({ periodType }: PeriodCountdownProps) {
   if (periodType === 'all_time') return null
 
   return (
-    <span className="font-data" style={{ fontSize: 12, color: '#7A7890' }}>
+    <span className="font-data" style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
       Ends in {display}
     </span>
   )

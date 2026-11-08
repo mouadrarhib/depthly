@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AppLayout } from '@/components/layout/AppLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
@@ -12,7 +12,6 @@ import { GroupLeaderboardsPage } from '@/pages/GroupLeaderboardsPage'
 import { HomePage } from '@/pages/HomePage'
 import { JoinGroupLeaderboardPage } from '@/pages/JoinGroupLeaderboardPage'
 import { LandingPage } from '@/pages/LandingPage'
-import { LeaderboardPage } from '@/pages/LeaderboardPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { PlannerPage } from '@/pages/PlannerPage'
 import { PrivacyPage } from '@/pages/PrivacyPage'
@@ -57,7 +56,7 @@ export const router = createBrowserRouter(
             { path: '/projects/:id', element: <ErrorBoundary><ProjectDetailPage /></ErrorBoundary> },
             { path: '/sessions',     element: <ErrorBoundary><SessionsPage /></ErrorBoundary> },
             { path: '/analytics',    element: <ErrorBoundary><AnalyticsPage /></ErrorBoundary> },
-            { path: '/leaderboard',  element: <ErrorBoundary><LeaderboardPage /></ErrorBoundary> },
+            { path: '/leaderboard',  element: <Navigate to="/leaderboard/groups" replace /> },
             { path: '/leaderboard/groups', element: <ErrorBoundary><GroupLeaderboardsPage /></ErrorBoundary> },
             { path: '/leaderboard/groups/:id', element: <ErrorBoundary><GroupLeaderboardDetailPage /></ErrorBoundary> },
             { path: '/billing',      element: <BillingPage /> },

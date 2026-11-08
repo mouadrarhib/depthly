@@ -40,8 +40,8 @@ export function TimerMockup() {
       className="mx-auto flex w-full flex-col items-center"
       style={{
         maxWidth: 440,
-        backgroundColor: '#0D0D10',
-        border: '1px solid #2E2E38',
+        backgroundColor: 'var(--color-surface-base)',
+        border: '1px solid var(--color-border)',
         borderRadius: 20,
         padding: '40px 24px 36px',
       }}
@@ -50,8 +50,8 @@ export function TimerMockup() {
       <div
         className="flex items-center"
         style={{
-          backgroundColor: '#141417',
-          border: '1px solid #2E2E38',
+          backgroundColor: 'var(--color-surface-raised)',
+          border: '1px solid var(--color-border)',
           borderRadius: 9999,
           padding: 3,
           marginBottom: 32,
@@ -69,7 +69,7 @@ export function TimerMockup() {
         >
           Pomodoro
         </span>
-        <span style={{ fontSize: 12, fontWeight: 500, padding: '5px 14px', color: '#7A7890' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, padding: '5px 14px', color: 'var(--color-text-muted)' }}>
           Stopwatch
         </span>
       </div>
@@ -79,7 +79,7 @@ export function TimerMockup() {
           Project · Task
         </p>
         <p className="mt-1 text-sm font-medium text-ink-primary">
-          Project Alpha <span className="text-ink-secondary">·</span> Research outline
+          Client website <span className="text-ink-secondary">·</span> Draft homepage copy
         </p>
       </div>
 
@@ -91,7 +91,7 @@ export function TimerMockup() {
               fontSize: 48,
               fontWeight: 600,
               letterSpacing: '-0.02em',
-              color: '#E8E6F0',
+              color: 'var(--color-text)',
               lineHeight: 1,
             }}
           >
@@ -101,7 +101,7 @@ export function TimerMockup() {
             style={{
               fontSize: 10,
               fontWeight: 500,
-              color: '#7A7890',
+              color: 'var(--color-text-muted)',
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
               marginTop: 8,
@@ -109,7 +109,7 @@ export function TimerMockup() {
           >
             Focus
           </span>
-          <span style={{ fontSize: 11, color: '#3D3B4E', marginTop: 4 }}>3 sessions today</span>
+          <span style={{ fontSize: 11, color: 'var(--color-text-faint)', marginTop: 4 }}>3 sessions today</span>
         </div>
       </ProgressRing>
 
@@ -133,8 +133,8 @@ export function TimerMockup() {
             fontWeight: 500,
             padding: '9px 20px',
             borderRadius: 9999,
-            border: '1px solid #2E2E38',
-            color: '#7A7890',
+            border: '1px solid var(--color-border)',
+            color: 'var(--color-text-muted)',
           }}
         >
           Reset

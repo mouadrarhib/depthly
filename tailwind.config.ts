@@ -43,15 +43,15 @@ const config: Config = {
         ring:    'hsl(var(--ring))',
 
         // ── Depthly brand tokens (keep alongside shadcn) ─────────────────
-        'depth-bg':      '#0D0D10',
-        'depth-surface': '#141417',
-        'depth-raised':  '#222228',
-        'depth-border':  '#2E2E38',
-        'brand':         '#4B9EFF',
-        'streak':        '#C8FF64',
-        'ink-primary':   '#E8E6F0',
-        'ink-secondary': '#7A7890',
-        'ink-muted':     '#3D3B4E',
+        'depth-bg':      'var(--color-surface-base)',
+        'depth-surface': 'var(--color-surface-raised)',
+        'depth-raised':  'var(--color-surface-overlay)',
+        'depth-border':  'var(--color-border)',
+        'brand':         'var(--color-brand)',
+        'streak':        'var(--color-streak)',
+        'ink-primary':   'var(--color-text)',
+        'ink-secondary': 'var(--color-text-muted)',
+        'ink-muted':     'var(--color-text-faint)',
 
         // ── Legacy Depthly CSS-var tokens (backward compat) ──────────────
         surface: {
@@ -83,9 +83,9 @@ const config: Config = {
         mono: ['JetBrains Mono', 'monospace'],
       },
       boxShadow: {
-        card:  '0 2px 8px -2px rgba(0,0,0,0.25), 0 1px 0 rgba(255,255,255,0.04) inset',
-        modal: '0 24px 64px -16px rgba(0,0,0,0.6)',
-        glow:  '0 0 24px -4px #4B9EFF',
+        card:  'var(--shadow-card)',
+        modal: 'var(--shadow-modal)',
+        glow:  '0 0 24px -4px var(--color-brand)',
       },
       animation: {
         'timer-pulse':  'timer-pulse 2s ease-in-out infinite',

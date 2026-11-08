@@ -5,12 +5,12 @@ import { LegalLayout } from '@/components/legal/LegalLayout'
 const EMAIL = 'contact@getdepthly.com'
 const MAILTO = `mailto:${EMAIL}`
 
-const h2Style: CSSProperties = { fontSize: 17, fontWeight: 500, color: '#E8E6F0', letterSpacing: '-0.01em' }
-const h3Style: CSSProperties = { fontSize: 15, fontWeight: 500, color: '#E8E6F0' }
-const pStyle: CSSProperties = { fontSize: 14, color: '#7A7890', lineHeight: 1.75 }
+const h2Style: CSSProperties = { fontSize: 17, fontWeight: 500, color: 'var(--color-text)', letterSpacing: '-0.01em' }
+const h3Style: CSSProperties = { fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }
+const pStyle: CSSProperties = { fontSize: 14, color: 'var(--color-text-muted)', lineHeight: 1.75 }
 const ulStyle: CSSProperties = { paddingLeft: 20, margin: 0, listStyleType: 'disc', display: 'flex', flexDirection: 'column', gap: 6 }
 const linkStyle: CSSProperties = { color: '#4B9EFF', textDecoration: 'underline', textDecorationColor: 'rgba(75,158,255,0.35)' }
-const strongStyle: CSSProperties = { color: '#E8E6F0' }
+const strongStyle: CSSProperties = { color: 'var(--color-text)' }
 
 const TOC_ITEMS = [
   { id: 'intro', label: '1. INTRODUCTION' },
@@ -37,7 +37,7 @@ function Section({ id, number, title, children }: { id: string; number: number; 
       style={{
         marginTop: 32,
         paddingTop: 32,
-        borderTop: '0.5px solid #2E2E38',
+        borderTop: '0.5px solid var(--color-border)',
         display: 'flex',
         flexDirection: 'column',
         gap: 12,
@@ -218,10 +218,10 @@ export function PrivacyPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
             <thead>
               <tr>
-                <th style={{ textAlign: 'left', color: '#E8E6F0', fontWeight: 500, padding: '8px 12px 8px 0', borderBottom: '0.5px solid #2E2E38' }}>
+                <th style={{ textAlign: 'left', color: 'var(--color-text)', fontWeight: 500, padding: '8px 12px 8px 0', borderBottom: '0.5px solid var(--color-border)' }}>
                   Service Provider
                 </th>
-                <th style={{ textAlign: 'left', color: '#E8E6F0', fontWeight: 500, padding: '8px 0', borderBottom: '0.5px solid #2E2E38' }}>
+                <th style={{ textAlign: 'left', color: 'var(--color-text)', fontWeight: 500, padding: '8px 0', borderBottom: '0.5px solid var(--color-border)' }}>
                   Purpose
                 </th>
               </tr>
@@ -235,10 +235,10 @@ export function PrivacyPage() {
                 ['Sentry', 'Error monitoring and production diagnostics'],
               ].map(([provider, purpose]) => (
                 <tr key={provider}>
-                  <td style={{ padding: '8px 12px 8px 0', borderBottom: '0.5px solid #2E2E38', color: '#E8E6F0', whiteSpace: 'nowrap' }}>
+                  <td style={{ padding: '8px 12px 8px 0', borderBottom: '0.5px solid var(--color-border)', color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
                     {provider}
                   </td>
-                  <td style={{ padding: '8px 0', borderBottom: '0.5px solid #2E2E38', ...pStyle }}>{purpose}</td>
+                  <td style={{ padding: '8px 0', borderBottom: '0.5px solid var(--color-border)', ...pStyle }}>{purpose}</td>
                 </tr>
               ))}
             </tbody>

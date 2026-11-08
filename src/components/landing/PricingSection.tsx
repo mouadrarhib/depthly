@@ -36,7 +36,6 @@ interface Tier {
 const PRO_FEATURES = [
   'Unlimited projects & sessions',
   'Full Analytics history + CSV export',
-  'Public profile and global leaderboard visibility',
   'Create up to 10 private groups',
   'Up to 100 members per group',
 ]
@@ -96,7 +95,7 @@ const QUESTIONS = [
   {
     question: 'Who can see my progress?',
     answer:
-      'Your private group rankings are visible to group members. Joining a group does not make your profile public. Public profile and global leaderboard visibility are optional Pro features.',
+      'Your private group rankings are visible to group members. Joining a group does not make your profile public. Your group membership stays private.',
   },
   {
     question: 'Can I cancel Pro?',
@@ -120,7 +119,7 @@ function PricingPath({ interval }: { interval: PlanInterval }) {
         aria-label="Three plan choices: Free, Pro, and Lifetime"
         className="mx-auto mb-7 hidden h-auto w-full max-w-[560px] overflow-visible sm:block"
       >
-        <path d="M96 70H464" stroke="#2E2E38" strokeWidth="2" />
+        <path d="M96 70H464" stroke="var(--color-border)" strokeWidth="2" />
         <path
           data-pricing-line
           d="M96 70H464"
@@ -143,15 +142,15 @@ function PricingPath({ interval }: { interval: PlanInterval }) {
               cx={x}
               cy="70"
               r={active ? 16 : 12}
-              fill="#141417"
+              fill="var(--color-surface-raised)"
               stroke={active ? '#4B9EFF' : '#5C5B69'}
               strokeWidth="2"
             />
-            <circle cx={x} cy="70" r={active ? 6 : 4} fill={active ? '#4B9EFF' : '#E8E6F0'} />
+            <circle cx={x} cy="70" r={active ? 6 : 4} fill={active ? '#4B9EFF' : 'var(--color-text)'} />
             <text
               x={x}
               y="26"
-              fill={active ? '#4B9EFF' : '#E8E6F0'}
+              fill={active ? '#4B9EFF' : 'var(--color-text)'}
               textAnchor="middle"
               fontSize="12"
               fontWeight="600"
@@ -179,7 +178,7 @@ function PricingPath({ interval }: { interval: PlanInterval }) {
         aria-label="Three plan choices: Free, Pro, and Lifetime"
         className="mx-auto mb-7 block h-auto w-full max-w-[320px] sm:hidden"
       >
-        <path d="M44 52H276" stroke="#2E2E38" strokeWidth="2" />
+        <path d="M44 52H276" stroke="var(--color-border)" strokeWidth="2" />
         <path
           data-pricing-line
           d="M44 52H276"
@@ -197,15 +196,15 @@ function PricingPath({ interval }: { interval: PlanInterval }) {
               cx={x}
               cy="52"
               r={active ? 13 : 10}
-              fill="#141417"
+              fill="var(--color-surface-raised)"
               stroke={active ? '#4B9EFF' : '#5C5B69'}
               strokeWidth="2"
             />
-            <circle cx={x} cy="52" r="4" fill={active ? '#4B9EFF' : '#E8E6F0'} />
+            <circle cx={x} cy="52" r="4" fill={active ? '#4B9EFF' : 'var(--color-text)'} />
             <text
               x={x}
               y="19"
-              fill={active ? '#4B9EFF' : '#E8E6F0'}
+              fill={active ? '#4B9EFF' : 'var(--color-text)'}
               textAnchor="middle"
               fontSize="11"
               fontWeight="600"
@@ -228,7 +227,7 @@ function AnswersGraphic() {
       aria-hidden="true"
       className="h-[72px] w-[72px] shrink-0"
     >
-      <rect x="1" y="1" width="70" height="70" rx="15" fill="#141417" stroke="#2E2E38" />
+      <rect x="1" y="1" width="70" height="70" rx="15" fill="var(--color-surface-raised)" stroke="var(--color-border)" />
       <path
         data-answers-line
         d="M20 25h31M20 36h24M20 47h17"

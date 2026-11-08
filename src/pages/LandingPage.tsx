@@ -54,7 +54,7 @@ export function LandingPage() {
   useLandingAnimations(rootRef)
 
   return (
-    <div ref={rootRef} style={{ backgroundColor: '#0D0D10', minHeight: '100dvh' }}>
+    <div ref={rootRef} style={{ backgroundColor: 'var(--color-surface-base)', minHeight: '100dvh' }}>
       <LandingNav />
 
       <main>

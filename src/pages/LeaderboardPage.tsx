@@ -113,11 +113,11 @@ function SearchResultRow({
         alignItems:   'center',
         gap:          12,
         padding:      '10px 16px',
-        borderBottom: '1px solid #2E2E38',
+        borderBottom: '1px solid var(--color-border)',
         cursor:       'pointer',
         transition:   'background 0.12s',
       }}
-      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#1C1C23' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--color-surface-overlay)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
     >
       {profile.avatar_url && !imgError ? (
@@ -139,12 +139,12 @@ function SearchResultRow({
       )}
       <div style={{ minWidth: 0 }}>
         <p style={{
-          fontSize: 13, fontWeight: 500, color: '#E8E6F0', margin: 0,
+          fontSize: 13, fontWeight: 500, color: 'var(--color-text)', margin: 0,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {profile.display_name}
         </p>
-        <p style={{ fontSize: 12, color: '#7A7890', margin: 0 }}>
+        <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: 0 }}>
           @{profile.profile_slug}
         </p>
       </div>
@@ -164,7 +164,7 @@ function PendingRequestRow({ request }: { request: PendingFriendRequest }) {
       alignItems:   'center',
       gap:          12,
       padding:      '10px 16px',
-      borderBottom: '1px solid #2E2E38',
+      borderBottom: '1px solid var(--color-border)',
     }}>
       {request.avatar_url && !imgError ? (
         <img
@@ -185,12 +185,12 @@ function PendingRequestRow({ request }: { request: PendingFriendRequest }) {
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{
-          fontSize: 13, fontWeight: 500, color: '#E8E6F0', margin: 0,
+          fontSize: 13, fontWeight: 500, color: 'var(--color-text)', margin: 0,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {request.display_name}
         </p>
-        <p style={{ fontSize: 12, color: '#7A7890', margin: 0 }}>
+        <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: 0 }}>
           @{request.profile_slug}
         </p>
       </div>
@@ -218,9 +218,9 @@ function PendingRequestRow({ request }: { request: PendingFriendRequest }) {
           style={{
             padding:      '5px 12px',
             borderRadius: 8,
-            border:       '1px solid #2E2E38',
-            background:   '#222228',
-            color:        '#7A7890',
+            border:       '1px solid var(--color-border)',
+            background:   'var(--color-surface-overlay)',
+            color:        'var(--color-text-muted)',
             fontSize:     12,
             fontWeight:   500,
             cursor:       pending ? 'default' : 'pointer',
@@ -251,7 +251,7 @@ function NavSection({
         fontSize:      11,
         textTransform: 'uppercase',
         letterSpacing: '0.08em',
-        color:         '#7A7890',
+        color:         'var(--color-text-muted)',
         marginBottom:  8,
         fontWeight:    500,
       }}>
@@ -270,8 +270,8 @@ function NavSection({
               padding:      '6px 12px',
               borderRadius: 8,
               border:       'none',
-              background:   isActive ? '#222228' : 'transparent',
-              color:        isActive ? '#E8E6F0' : '#7A7890',
+              background:   isActive ? 'var(--color-surface-overlay)' : 'transparent',
+              color:        isActive ? 'var(--color-text)' : 'var(--color-text-muted)',
               fontSize:     13,
               fontWeight:   isActive ? 500 : 400,
               cursor:       'pointer',
@@ -302,8 +302,8 @@ function TabPill({
         padding:      '5px 14px',
         borderRadius: 9999,
         border:       'none',
-        background:   active ? '#222228' : 'transparent',
-        color:        active ? '#E8E6F0' : '#3D3B4E',
+        background:   active ? 'var(--color-surface-overlay)' : 'transparent',
+        color:        active ? 'var(--color-text)' : 'var(--color-text-faint)',
         fontSize:     13,
         fontWeight:   active ? 500 : 400,
         cursor:       'pointer',
@@ -408,10 +408,10 @@ export function LeaderboardPage() {
       {/* ── Mobile nav: horizontal scrollable pill strip ── */}
       <div
         className="shrink-0 overflow-x-auto md:hidden"
-        style={{ borderBottom: '1px solid #2E2E38', background: '#0D0D10' }}
+        style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface-base)' }}
       >
         <div className="flex items-center gap-0.5 p-2" style={{ minWidth: 'max-content' }}>
-          <span style={{ fontSize: 10, color: '#7A7890', padding: '6px 6px', flexShrink: 0, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: 10, color: 'var(--color-text-muted)', padding: '6px 6px', flexShrink: 0, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             Time
           </span>
           {TIME_ITEMS.map(({ value, label }) => (
@@ -421,16 +421,16 @@ export function LeaderboardPage() {
               style={{
                 padding: '5px 12px', borderRadius: 9999, flexShrink: 0,
                 border: 'none',
-                background: activeNav === value ? '#222228' : 'transparent',
-                color:      activeNav === value ? '#E8E6F0' : '#7A7890',
+                background: activeNav === value ? 'var(--color-surface-overlay)' : 'transparent',
+                color:      activeNav === value ? 'var(--color-text)' : 'var(--color-text-muted)',
                 fontSize: 13, fontWeight: activeNav === value ? 500 : 400, cursor: 'pointer',
               }}
             >
               {label}
             </button>
           ))}
-          <span style={{ width: 1, height: 20, background: '#2E2E38', flexShrink: 0, margin: '0 6px', alignSelf: 'center' }} />
-          <span style={{ fontSize: 10, color: '#7A7890', padding: '6px 6px', flexShrink: 0, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          <span style={{ width: 1, height: 20, background: 'var(--color-border)', flexShrink: 0, margin: '0 6px', alignSelf: 'center' }} />
+          <span style={{ fontSize: 10, color: 'var(--color-text-muted)', padding: '6px 6px', flexShrink: 0, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             Streak
           </span>
           {STREAK_ITEMS.map(({ value, label }) => (
@@ -440,15 +440,15 @@ export function LeaderboardPage() {
               style={{
                 padding: '5px 12px', borderRadius: 9999, flexShrink: 0,
                 border: 'none',
-                background: activeNav === value ? '#222228' : 'transparent',
-                color:      activeNav === value ? '#E8E6F0' : '#7A7890',
+                background: activeNav === value ? 'var(--color-surface-overlay)' : 'transparent',
+                color:      activeNav === value ? 'var(--color-text)' : 'var(--color-text-muted)',
                 fontSize: 13, fontWeight: activeNav === value ? 500 : 400, cursor: 'pointer',
               }}
             >
               {label}
             </button>
           ))}
-          <span style={{ width: 1, height: 20, background: '#2E2E38', flexShrink: 0, margin: '0 6px', alignSelf: 'center' }} />
+          <span style={{ width: 1, height: 20, background: 'var(--color-border)', flexShrink: 0, margin: '0 6px', alignSelf: 'center' }} />
           <Link to={PATHS.groupLeaderboards} className="rounded-full px-3 py-[5px] text-[13px] text-ink-secondary hover:bg-depth-raised hover:text-ink-primary">
             Groups
           </Link>
@@ -460,8 +460,8 @@ export function LeaderboardPage() {
         className="hidden shrink-0 overflow-y-auto md:block"
         style={{
           width:       160,
-          background:  '#0D0D10',
-          borderRight: '1px solid #2E2E38',
+          background:  'var(--color-surface-base)',
+          borderRight: '1px solid var(--color-border)',
           padding:     '24px 12px',
         }}
       >
@@ -493,7 +493,7 @@ export function LeaderboardPage() {
           <h1 style={{
             fontSize:    28,
             fontWeight:  600,
-            color:       '#E8E6F0',
+            color:       'var(--color-text)',
             textAlign:   'center',
             margin:      '0 0 8px',
           }}>
@@ -527,14 +527,14 @@ export function LeaderboardPage() {
               }}>
                 Active
               </span>
-              <span style={{ fontSize: 13, color: '#7A7890', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{scopeLabel}</span>
+              <span style={{ fontSize: 13, color: 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{scopeLabel}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
               {isTimeMode && <PeriodCountdown periodType={activeNav} periodKey={periodKey} />}
               {isTimeMode && (
                 <div style={{
                   display:      'flex',
-                  background:   '#1C1C23',
+                  background:   'var(--color-surface-overlay)',
                   borderRadius: 9999,
                   padding:      2,
                   gap:          2,
@@ -559,8 +559,8 @@ export function LeaderboardPage() {
 
             return (
               <div style={{
-                border:          isRanked ? '1px solid #2E2E38' : '1px solid #2E2E38',
-                borderLeft:      isRanked ? '3px solid #4B9EFF' : '1px solid #2E2E38',
+                border:          isRanked ? '1px solid var(--color-border)' : '1px solid var(--color-border)',
+                borderLeft:      isRanked ? '3px solid #4B9EFF' : '1px solid var(--color-border)',
                 borderRadius:    10,
                 padding:         '12px 20px',
                 display:         'flex',
@@ -569,7 +569,7 @@ export function LeaderboardPage() {
                 flexWrap:        'wrap',
                 gap:             8,
                 marginBottom:    16,
-                background:      isRanked ? 'rgba(75,158,255,0.05)' : '#141417',
+                background:      isRanked ? 'rgba(75,158,255,0.05)' : 'var(--color-surface-raised)',
               }}>
                 {isRanked ? (
                   <>
@@ -577,23 +577,23 @@ export function LeaderboardPage() {
                       <span className="font-data" style={{ fontSize: 22, color: '#4B9EFF', fontWeight: 700 }}>
                         #{rankNum}
                       </span>
-                      <span style={{ fontSize: 12, color: '#7A7890' }}>
+                      <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
                         of {entries.length} users
                       </span>
                     </div>
                     {focusMins !== undefined && (
-                      <span className="font-data" style={{ fontSize: 14, color: '#E8E6F0' }}>
+                      <span className="font-data" style={{ fontSize: 14, color: 'var(--color-text)' }}>
                         {formatMinutesToHours(focusMins)}
                       </span>
                     )}
-                    <span style={{ fontSize: 12, color: '#7A7890' }}>Your position</span>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>Your position</span>
                   </>
                 ) : (
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 500, color: '#7A7890', margin: 0 }}>Unranked</p>
+                    <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-muted)', margin: 0 }}>Unranked</p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-                      <Clock style={{ width: 14, height: 14, color: '#3D3B4E', flexShrink: 0 }} />
-                      <p style={{ fontSize: 12, color: '#3D3B4E', margin: 0 }}>
+                      <Clock style={{ width: 14, height: 14, color: 'var(--color-text-faint)', flexShrink: 0 }} />
+                      <p style={{ fontSize: 12, color: 'var(--color-text-faint)', margin: 0 }}>
                         You haven't tracked any focus time this period yet
                       </p>
                     </div>
@@ -610,15 +610,15 @@ export function LeaderboardPage() {
                 fontSize:      11,
                 textTransform: 'uppercase',
                 letterSpacing: '0.07em',
-                color:         '#7A7890',
+                color:         'var(--color-text-muted)',
                 marginBottom:  8,
                 fontWeight:    500,
               }}>
                 Incoming Requests
               </p>
               <div style={{
-                backgroundColor: '#141417',
-                border:          '1px solid #2E2E38',
+                backgroundColor: 'var(--color-surface-raised)',
+                border:          '1px solid var(--color-border)',
                 borderRadius:    10,
                 overflow:        'hidden',
               }}>
@@ -654,8 +654,8 @@ export function LeaderboardPage() {
               {searchQuery.length > 0 && (
                 <div style={{
                   marginTop:       8,
-                  backgroundColor: '#141417',
-                  border:          '1px solid #2E2E38',
+                  backgroundColor: 'var(--color-surface-raised)',
+                  border:          '1px solid var(--color-border)',
                   borderRadius:    10,
                   overflow:        'hidden',
                 }}>
@@ -664,11 +664,11 @@ export function LeaderboardPage() {
                       <Spinner />
                     </div>
                   ) : searchQuery.trim().length < 2 ? (
-                    <p style={{ fontSize: 12, color: '#3D3B4E', margin: 0, padding: '14px 16px' }}>
+                    <p style={{ fontSize: 12, color: 'var(--color-text-faint)', margin: 0, padding: '14px 16px' }}>
                       Type at least 2 characters to search
                     </p>
                   ) : searchResults.length === 0 ? (
-                    <p style={{ fontSize: 13, color: '#7A7890', margin: 0, padding: '16px 16px', textAlign: 'center' }}>
+                    <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0, padding: '16px 16px', textAlign: 'center' }}>
                       No users found
                     </p>
                   ) : (
@@ -687,8 +687,8 @@ export function LeaderboardPage() {
 
           {/* List */}
           <div style={{
-            backgroundColor: '#141417',
-            border:          '1px solid #2E2E38',
+            backgroundColor: 'var(--color-surface-raised)',
+            border:          '1px solid var(--color-border)',
             borderRadius:    14,
             overflow:        'hidden',
           }}>
@@ -697,7 +697,7 @@ export function LeaderboardPage() {
               display:      'flex',
               alignItems:   'center',
               padding:      '10px 20px',
-              borderBottom: '1px solid #2E2E38',
+              borderBottom: '1px solid var(--color-border)',
             }}>
               <div style={{ width: 48, flexShrink: 0 }} />
               <div style={{ width: 48, flexShrink: 0 }} />
@@ -706,7 +706,7 @@ export function LeaderboardPage() {
                 fontSize:      11,
                 textTransform: 'uppercase',
                 letterSpacing: '0.07em',
-                color:         '#7A7890',
+                color:         'var(--color-text-muted)',
               }}>
                 User
               </div>
@@ -717,7 +717,7 @@ export function LeaderboardPage() {
                 fontSize:      11,
                 textTransform: 'uppercase',
                 letterSpacing: '0.07em',
-                color:         '#7A7890',
+                color:         'var(--color-text-muted)',
               }}>
                 {isStreakMode ? 'Streak' : 'Time'}
               </div>
@@ -738,11 +738,11 @@ export function LeaderboardPage() {
               }}>
                 {viewTab === 'friends' && isTimeMode ? (
                   <>
-                    <Users style={{ width: 36, height: 36, color: '#3D3B4E' }} />
-                    <p style={{ fontSize: 15, fontWeight: 500, color: '#7A7890', margin: 0 }}>
+                    <Users style={{ width: 36, height: 36, color: 'var(--color-text-faint)' }} />
+                    <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text-muted)', margin: 0 }}>
                       No friends yet
                     </p>
-                    <p style={{ fontSize: 13, color: '#3D3B4E', margin: 0 }}>
+                    <p style={{ fontSize: 13, color: 'var(--color-text-faint)', margin: 0 }}>
                       Search above, or browse Everyone to find people to follow
                     </p>
                     <button
@@ -751,9 +751,9 @@ export function LeaderboardPage() {
                         marginTop:    6,
                         padding:      '6px 16px',
                         borderRadius: 8,
-                        border:       '1px solid #2E2E38',
-                        background:   '#222228',
-                        color:        '#7A7890',
+                        border:       '1px solid var(--color-border)',
+                        background:   'var(--color-surface-overlay)',
+                        color:        'var(--color-text-muted)',
                         fontSize:     13,
                         cursor:       'pointer',
                       }}
@@ -763,11 +763,11 @@ export function LeaderboardPage() {
                   </>
                 ) : (
                   <>
-                    <BarChart2 style={{ width: 36, height: 36, color: '#3D3B4E' }} />
-                    <p style={{ fontSize: 15, fontWeight: 500, color: '#7A7890', margin: 0 }}>
+                    <BarChart2 style={{ width: 36, height: 36, color: 'var(--color-text-faint)' }} />
+                    <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text-muted)', margin: 0 }}>
                       No data for this period
                     </p>
-                    <p style={{ fontSize: 13, color: '#3D3B4E', margin: 0 }}>
+                    <p style={{ fontSize: 13, color: 'var(--color-text-faint)', margin: 0 }}>
                       Complete a focus session to appear on the leaderboard
                     </p>
                     <Link

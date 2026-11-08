@@ -4,6 +4,7 @@ import type { Location } from 'react-router-dom'
 import { RouterProvider } from 'react-router-dom'
 
 import { LogoIntro } from '@/components/LogoIntro'
+import { ThemeSync } from '@/components/layout/ThemeSync'
 import { clearOAuthPending, getOAuthDestination, isOAuthPending } from '@/lib/oauthPending'
 import { router } from '@/routes'
 import { useIntroStore } from '@/store'
@@ -80,6 +81,7 @@ export default function App() {
 
   return (
     <>
+      <ThemeSync />
       {showIntro && <LogoIntro onComplete={handleIntroComplete} />}
       <RouterProvider router={router} />
     </>

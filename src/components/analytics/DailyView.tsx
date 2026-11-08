@@ -221,7 +221,7 @@ export function DailyView({ date, projectId, projectLabel }: DailyViewProps) {
           >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={hours} margin={{ left: -20, right: 0, top: 8, bottom: 0 }}>
-                <CartesianGrid stroke="var(--color-depth-border, #2e2e38)" vertical={false} />
+                <CartesianGrid stroke="var(--color-depth-border, var(--color-border))" vertical={false} />
                 <XAxis
                   dataKey="hour"
                   tickFormatter={(hour) => `${String(hour).padStart(2, '0')}`}
@@ -243,12 +243,12 @@ export function DailyView({ date, projectId, projectLabel }: DailyViewProps) {
                   }
                   formatter={(value) => [`${value} min`, 'Focus time']}
                   contentStyle={{
-                    backgroundColor: '#141417',
-                    borderColor: '#2e2e38',
+                    backgroundColor: 'var(--color-surface-raised)',
+                    borderColor: 'var(--color-border)',
                     borderRadius: 8,
-                    color: '#e8e6f0',
+                    color: 'var(--color-text)',
                   }}
-                  itemStyle={{ color: '#e8e6f0' }}
+                  itemStyle={{ color: 'var(--color-text)' }}
                 />
                 <Bar
                   dataKey="minutes"

@@ -28,11 +28,11 @@ function avatarColor(name: string): string {
 
 function StatCell({ value, label }: { value: string; label: string }) {
   return (
-    <div style={{ background: '#1C1C23', borderRadius: 10, padding: '12px 16px' }}>
-      <p className="font-data" style={{ fontSize: 20, fontWeight: 600, color: '#E8E6F0', margin: 0 }}>
+    <div style={{ background: 'var(--color-surface-overlay)', borderRadius: 10, padding: '12px 16px' }}>
+      <p className="font-data" style={{ fontSize: 20, fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
         {value}
       </p>
-      <p style={{ fontSize: 12, color: '#7A7890', margin: '4px 0 0' }}>{label}</p>
+      <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: '4px 0 0' }}>{label}</p>
     </div>
   )
 }
@@ -57,7 +57,7 @@ function FollowActionButton({ targetUserId }: { targetUserId: string }) {
           variant="ghost"
           size="sm"
           onClick={() => setConfirmUnfriendOpen(true)}
-          style={{ color: '#7A7890' }}
+          style={{ color: 'var(--color-text-muted)' }}
         >
           Friends
         </Button>
@@ -77,7 +77,7 @@ function FollowActionButton({ targetUserId }: { targetUserId: string }) {
 
   if (status === 'pending_sent') {
     return (
-      <Button variant="ghost" size="sm" disabled style={{ color: '#7A7890' }}>
+      <Button variant="ghost" size="sm" disabled style={{ color: 'var(--color-text-muted)' }}>
         Requested
       </Button>
     )
@@ -102,7 +102,7 @@ function FollowActionButton({ targetUserId }: { targetUserId: string }) {
           isLoading={declineRequest.isPending}
           disabled={!incoming}
           onClick={() => incoming && declineRequest.mutate({ requestRowId: incoming.id, requesterId: targetUserId })}
-          style={{ color: '#7A7890' }}
+          style={{ color: 'var(--color-text-muted)' }}
         >
           Decline
         </Button>
@@ -133,7 +133,7 @@ export function UserProfileModal({ userId, onClose }: UserProfileModalProps) {
     <Dialog open onOpenChange={open => { if (!open) onClose() }}>
       <DialogContent
         className="p-0 gap-0 overflow-hidden"
-        style={{ maxWidth: 420, background: '#141417', border: '1px solid #2E2E38' }}
+        style={{ maxWidth: 420, background: 'var(--color-surface-raised)', border: '1px solid var(--color-border)' }}
       >
         {isLoading || !profile ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}>
@@ -142,7 +142,7 @@ export function UserProfileModal({ userId, onClose }: UserProfileModalProps) {
         ) : (
           <>
             {/* Header */}
-            <div style={{ padding: '28px 24px 20px', borderBottom: '1px solid #2E2E38' }}>
+            <div style={{ padding: '28px 24px 20px', borderBottom: '1px solid var(--color-border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14 }}>
                 {profile.avatar_url ? (
                   <img
@@ -161,10 +161,10 @@ export function UserProfileModal({ userId, onClose }: UserProfileModalProps) {
                   </div>
                 )}
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ fontSize: 20, fontWeight: 500, color: '#E8E6F0', margin: 0 }}>
+                  <p style={{ fontSize: 20, fontWeight: 500, color: 'var(--color-text)', margin: 0 }}>
                     {profile.display_name}
                   </p>
-                  <p style={{ fontSize: 13, color: '#7A7890', margin: '3px 0 0' }}>
+                  <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: '3px 0 0' }}>
                     @{profile.profile_slug}
                   </p>
                 </div>

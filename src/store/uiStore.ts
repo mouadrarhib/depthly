@@ -1,9 +1,14 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+import type { ThemePreference } from '@/lib/theme'
+
 export type FullscreenTimerStyle = 'orbit' | 'minimal' | 'panel'
 
 interface UiState {
+  theme: ThemePreference
+  setTheme: (theme: ThemePreference) => void
+
   sidebarOpen:      boolean
   setSidebarOpen:   (open: boolean) => void
   toggleSidebar:    () => void
@@ -34,6 +39,9 @@ interface UiState {
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
+      theme: 'system',
+      setTheme: (theme) => set({ theme }),
+
       sidebarOpen:      true,
       setSidebarOpen:   (open) => set({ sidebarOpen: open }),
       toggleSidebar:    () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),

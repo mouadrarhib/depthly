@@ -49,7 +49,7 @@ export function TimerControls() {
               background: 'rgba(75, 158, 255, 0.08)',
               border: '1px solid rgba(75, 158, 255, 0.22)',
               color: '#B8D4FF',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+              boxShadow: 'inset 0 1px 0 var(--color-border-subtle)',
             }}
             onMouseEnter={(e) => {
               const el = e.currentTarget
@@ -57,14 +57,14 @@ export function TimerControls() {
               el.style.borderColor = 'rgba(75, 158, 255, 0.38)'
               el.style.color = '#D0E4FF'
               el.style.boxShadow =
-                'inset 0 1px 0 rgba(255,255,255,0.06), 0 0 18px rgba(75,158,255,0.1)'
+                'inset 0 1px 0 var(--color-border-subtle), 0 0 18px var(--color-brand-subtle)'
             }}
             onMouseLeave={(e) => {
               const el = e.currentTarget
               el.style.background = 'rgba(75, 158, 255, 0.08)'
               el.style.borderColor = 'rgba(75, 158, 255, 0.22)'
               el.style.color = '#B8D4FF'
-              el.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.04)'
+              el.style.boxShadow = 'inset 0 1px 0 var(--color-border-subtle)'
             }}
           >
             Resume
@@ -119,21 +119,21 @@ export function TimerControls() {
             'h-[44px] min-w-[100px] rounded-[12px] px-4 text-[13px] sm:h-[48px] sm:min-w-[120px] sm:px-6 sm:text-[14px]'
           )}
           style={{
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid rgba(255, 255, 255, 0.09)',
-            color: '#7A7890',
+            background: 'var(--color-surface-overlay)',
+            border: '1px solid var(--color-border)',
+            color: 'var(--color-text-muted)',
           }}
           onMouseEnter={(e) => {
             const el = e.currentTarget
-            el.style.background = 'rgba(255, 255, 255, 0.07)'
-            el.style.borderColor = 'rgba(255, 255, 255, 0.14)'
+            el.style.background = 'var(--color-brand-subtle)'
+            el.style.borderColor = 'var(--color-brand)'
             el.style.color = '#B0AECB'
           }}
           onMouseLeave={(e) => {
             const el = e.currentTarget
-            el.style.background = 'rgba(255, 255, 255, 0.04)'
-            el.style.borderColor = 'rgba(255, 255, 255, 0.09)'
-            el.style.color = '#7A7890'
+            el.style.background = 'var(--color-surface-overlay)'
+            el.style.borderColor = 'var(--color-border)'
+            el.style.color = 'var(--color-text-muted)'
           }}
         >
           Pause
@@ -186,21 +186,21 @@ function SkipBreakButton({ onClick, disabled }: { onClick: () => void; disabled:
         'h-[44px] min-w-[100px] rounded-[12px] px-4 text-[13px] sm:h-[48px] sm:min-w-[120px] sm:px-6 sm:text-[14px]'
       )}
       style={{
-        background: 'rgba(255, 255, 255, 0.04)',
-        border: '1px solid rgba(255, 255, 255, 0.09)',
-        color: '#7A7890',
+        background: 'var(--color-surface-overlay)',
+        border: '1px solid var(--color-border)',
+        color: 'var(--color-text-muted)',
       }}
       onMouseEnter={(e) => {
         const el = e.currentTarget
-        el.style.background = 'rgba(255, 255, 255, 0.07)'
-        el.style.borderColor = 'rgba(255, 255, 255, 0.14)'
+        el.style.background = 'var(--color-brand-subtle)'
+        el.style.borderColor = 'var(--color-brand)'
         el.style.color = '#B0AECB'
       }}
       onMouseLeave={(e) => {
         const el = e.currentTarget
-        el.style.background = 'rgba(255, 255, 255, 0.04)'
-        el.style.borderColor = 'rgba(255, 255, 255, 0.09)'
-        el.style.color = '#7A7890'
+        el.style.background = 'var(--color-surface-overlay)'
+        el.style.borderColor = 'var(--color-border)'
+        el.style.color = 'var(--color-text-muted)'
       }}
     >
       Skip Break

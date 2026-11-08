@@ -83,9 +83,9 @@ export function FilterPill({ label, active, onClick, color }: FilterPillProps) {
       onClick={onClick}
       className="flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors"
       style={{
-        borderColor: active ? '#4B9EFF' : '#2E2E38',
+        borderColor: active ? '#4B9EFF' : 'var(--color-border)',
         backgroundColor: active ? '#4B9EFF1A' : 'transparent',
-        color: active ? '#4B9EFF' : '#7A7890',
+        color: active ? '#4B9EFF' : 'var(--color-text-muted)',
       }}
     >
       {color && (
@@ -199,7 +199,7 @@ function TaskRow({
           }}
           className="min-w-0 flex-1 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           style={{
-            color: done ? '#B9B6C8' : '#E8E6F0',
+            color: done ? '#B9B6C8' : 'var(--color-text)',
             textDecoration: 'none',
             display: '-webkit-box',
             WebkitLineClamp: 2,
@@ -238,7 +238,7 @@ function TaskRow({
           {dueText && (
             <span
               className="shrink-0"
-              style={{ fontSize: 12, color: overdue ? '#F25C5C' : '#7A7890' }}
+              style={{ fontSize: 12, color: overdue ? '#F25C5C' : 'var(--color-text-muted)' }}
             >
               {dueText}
             </span>
@@ -401,7 +401,7 @@ export function TaskListView({
                 fontSize: 11,
                 fontWeight: 600,
                 letterSpacing: '0.08em',
-                color: '#7A7890',
+                color: 'var(--color-text-muted)',
                 textTransform: 'uppercase',
               }}
             >
@@ -433,7 +433,7 @@ export function TaskListView({
                 fontSize: 11,
                 fontWeight: 600,
                 letterSpacing: '0.08em',
-                color: '#7A7890',
+                color: 'var(--color-text-muted)',
                 textTransform: 'uppercase',
               }}
             >

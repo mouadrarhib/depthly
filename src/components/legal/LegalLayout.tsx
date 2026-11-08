@@ -25,8 +25,8 @@ export function LegalLayout({ title, lastUpdated, children }: LegalLayoutProps) 
   }, [])
 
   return (
-    <div style={{ backgroundColor: '#0D0D10', minHeight: '100dvh' }}>
-      <header className="px-5 md:px-8" style={{ borderBottom: '0.5px solid #2E2E38' }}>
+    <div style={{ backgroundColor: 'var(--color-surface-base)', minHeight: '100dvh' }}>
+      <header className="px-5 md:px-8" style={{ borderBottom: '0.5px solid var(--color-border)' }}>
         <div className="mx-auto flex items-center" style={{ maxWidth: 720, height: 64 }}>
           <Link to={PATHS.home} style={{ textDecoration: 'none' }}>
             <Logo size={26} withWordmark />
@@ -44,12 +44,12 @@ export function LegalLayout({ title, lastUpdated, children }: LegalLayoutProps) 
               fontSize: 'clamp(26px, 4vw, 34px)',
               fontWeight: 500,
               letterSpacing: '-0.03em',
-              color: '#E8E6F0',
+              color: 'var(--color-text)',
             }}
           >
             {title}
           </h1>
-          <p style={{ fontSize: 13, color: '#7A7890' }}>Last updated: {lastUpdated}</p>
+          <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>Last updated: {lastUpdated}</p>
 
           <div
             className="flex flex-col gap-4"
@@ -57,10 +57,10 @@ export function LegalLayout({ title, lastUpdated, children }: LegalLayoutProps) 
               marginTop: 24,
               padding: 20,
               borderRadius: 10,
-              background: '#141417',
-              border: '0.5px solid #2E2E38',
+              background: 'var(--color-surface-raised)',
+              border: '0.5px solid var(--color-border)',
               fontSize: 14,
-              color: '#7A7890',
+              color: 'var(--color-text-muted)',
               lineHeight: 1.7,
             }}
           >

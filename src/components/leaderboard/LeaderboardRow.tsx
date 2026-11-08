@@ -53,13 +53,13 @@ export function LeaderboardRow({ entry, rank, isCurrentUser, valueDisplay, onCli
         display:      'flex',
         alignItems:   'center',
         padding:      '12px 20px',
-        borderBottom: '1px solid #2E2E38',
+        borderBottom: '1px solid var(--color-border)',
         cursor:       'pointer',
         transition:   'background 0.12s',
         ...ROW_ACCENT[rank] ?? {},
       }}
       onMouseEnter={e => {
-        if (!ROW_ACCENT[rank]) (e.currentTarget as HTMLDivElement).style.background = '#1C1C23'
+        if (!ROW_ACCENT[rank]) (e.currentTarget as HTMLDivElement).style.background = 'var(--color-surface-overlay)'
       }}
       onMouseLeave={e => {
         if (!ROW_ACCENT[rank]) (e.currentTarget as HTMLDivElement).style.background = 'transparent'
@@ -74,7 +74,7 @@ export function LeaderboardRow({ entry, rank, isCurrentUser, valueDisplay, onCli
             className="font-data"
             style={{
               fontSize:   14,
-              color:      isCurrentUser ? '#4B9EFF' : '#3D3B4E',
+              color:      isCurrentUser ? '#4B9EFF' : 'var(--color-text-faint)',
               fontWeight: isCurrentUser ? 700 : 400,
             }}
           >
@@ -108,7 +108,7 @@ export function LeaderboardRow({ entry, rank, isCurrentUser, valueDisplay, onCli
           <span style={{
             fontSize:    14,
             fontWeight:  500,
-            color:       isCurrentUser ? '#4B9EFF' : '#E8E6F0',
+            color:       isCurrentUser ? '#4B9EFF' : 'var(--color-text)',
             overflow:    'hidden',
             textOverflow:'ellipsis',
             whiteSpace:  'nowrap',
@@ -137,7 +137,7 @@ export function LeaderboardRow({ entry, rank, isCurrentUser, valueDisplay, onCli
 
       {/* Value — 100px right-aligned */}
       <div style={{ width: 100, flexShrink: 0, textAlign: 'right' }}>
-        <span className="font-data" style={{ fontSize: 15, fontWeight: 600, color: '#E8E6F0' }}>
+        <span className="font-data" style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
           {valueDisplay}
         </span>
       </div>

@@ -1,14 +1,14 @@
 import type { Task } from '@/lib/supabase/queries/tasks'
 
 export const PRIORITY_CONFIG = {
-  low:    { label: 'Low',    color: '#7A7890' },
+  low:    { label: 'Low',    color: 'var(--color-text-muted)' },
   medium: { label: 'Medium', color: '#4B9EFF' },
   high:   { label: 'High',   color: '#F5A623' },
   urgent: { label: 'Urgent', color: '#F25C5C' },
 } as const
 
 export const STATUS_CONFIG = {
-  todo:        { label: 'To Do',       color: '#7A7890' },
+  todo:        { label: 'To Do',       color: 'var(--color-text-muted)' },
   in_progress: { label: 'In Progress', color: '#4B9EFF' },
   done:        { label: 'Done',        color: '#3DD68C' },
 } as const

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { Archive, ArrowLeft, CalendarClock, Plus, Users } from 'lucide-react'
+import { Archive, CalendarClock, Plus, Users } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { CreateGroupLeaderboardDialog } from '@/components/leaderboard/CreateGroupLeaderboardDialog'
@@ -21,14 +21,12 @@ export function GroupLeaderboardsPage() {
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-7">
       <div className="mx-auto max-w-[900px]">
-        <Link to={PATHS.leaderboard} className="mb-5 inline-flex items-center gap-2 text-sm text-ink-secondary hover:text-ink-primary"><ArrowLeft /> All leaderboards</Link>
         <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-muted">Private focus circles</p>
             <h1 className="text-3xl font-semibold tracking-tight text-ink-primary">Your groups</h1>
             <p className="mt-2 max-w-xl text-sm text-ink-secondary">Invite people to focus alongside you. Only trusted timer sessions completed after joining count.</p>
           </div>
-          <Button variant="primary" onClick={() => setCreateOpen(true)} disabled={atLimit}><Plus /> Create leaderboard</Button>
+          <Button variant="primary" onClick={() => setCreateOpen(true)} disabled={atLimit}><Plus /> Create group</Button>
         </div>
 
         {atLimit ? <div className="mb-4 rounded-lg border border-depth-border bg-depth-raised px-4 py-3 text-sm text-ink-secondary">You’re using all {groupLimit.max} active leaderboard slot{groupLimit.max === 1 ? '' : 's'}. Close one to create another.</div> : null}

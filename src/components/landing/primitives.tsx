@@ -11,7 +11,7 @@ export function Eyebrow({ children }: { children: ReactNode }) {
         fontWeight: 500,
         textTransform: 'uppercase',
         letterSpacing: '0.14em',
-        color: '#7A7890',
+        color: 'var(--color-text-muted)',
       }}
     >
       {children}
@@ -48,13 +48,13 @@ export function SectionHeader({ eyebrow, title, subtext, align = 'center' }: Sec
           fontSize: 'clamp(26px, 4vw, 36px)',
           fontWeight: 500,
           letterSpacing: '-0.03em',
-          color: '#E8E6F0',
+          color: 'var(--color-text)',
           lineHeight: 1.15,
         }}
       >
         {title}
       </h2>
-      <p data-reveal style={{ fontSize: 15, color: '#7A7890', lineHeight: 1.6 }}>
+      <p data-reveal style={{ fontSize: 15, color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
         {subtext}
       </p>
     </div>
@@ -76,8 +76,8 @@ export function FeatureBlock({
   Icon,
   title,
   description,
-  iconColor = '#7A7890',
-  descriptionColor = '#7A7890',
+  iconColor = 'var(--color-text-muted)',
+  descriptionColor = 'var(--color-text-muted)',
 }: FeatureBlockProps) {
   return (
     <div data-reveal className="flex items-start gap-4">
@@ -87,14 +87,14 @@ export function FeatureBlock({
           width: 38,
           height: 38,
           borderRadius: 10,
-          backgroundColor: '#222228',
-          border: '1px solid #2E2E38',
+          backgroundColor: 'var(--color-surface-overlay)',
+          border: '1px solid var(--color-border)',
         }}
       >
         <Icon size={18} style={{ color: iconColor }} strokeWidth={1.75} />
       </span>
       <div className="flex flex-col gap-1.5">
-        <h3 style={{ fontSize: 16, fontWeight: 500, color: '#E8E6F0', letterSpacing: '-0.01em' }}>
+        <h3 style={{ fontSize: 16, fontWeight: 500, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
           {title}
         </h3>
         <p style={{ fontSize: 14, color: descriptionColor, lineHeight: 1.6 }}>{description}</p>

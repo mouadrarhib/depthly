@@ -378,7 +378,7 @@ export function YearlyView({ date, projectId, projectLabel, onSelectDay }: Yearl
                 }))}
                 margin={{ left: -20, right: 0, top: 8, bottom: 0 }}
               >
-                <CartesianGrid stroke="#2e2e38" vertical={false} />
+                <CartesianGrid stroke="var(--color-border)" vertical={false} />
                 <XAxis
                   dataKey="label"
                   tick={{ fill: '#aaa7ba', fontSize: 10 }}
@@ -397,12 +397,12 @@ export function YearlyView({ date, projectId, projectLabel, onSelectDay }: Yearl
                   cursor={{ fill: '#ffffff08' }}
                   formatter={(value) => [formatMinutesToHours(Number(value)), 'Focus time']}
                   contentStyle={{
-                    backgroundColor: '#141417',
-                    borderColor: '#2e2e38',
+                    backgroundColor: 'var(--color-surface-raised)',
+                    borderColor: 'var(--color-border)',
                     borderRadius: 8,
-                    color: '#e8e6f0',
+                    color: 'var(--color-text)',
                   }}
-                  itemStyle={{ color: '#e8e6f0' }}
+                  itemStyle={{ color: 'var(--color-text)' }}
                 />
                 <Bar dataKey="minutes" radius={[3, 3, 0, 0]} isAnimationActive={false}>
                   {months.map((item) => (

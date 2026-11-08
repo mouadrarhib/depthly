@@ -13,7 +13,7 @@ interface PreviewTask {
 
 // Match the real KanbanColumn status colors and tinted surfaces.
 const STATUS_CONFIG: Record<Status, { bg: string; color: string; label: string }> = {
-  todo: { bg: 'rgba(122, 120, 144, 0.06)', color: '#7A7890', label: 'To Do' },
+  todo: { bg: 'rgba(122, 120, 144, 0.06)', color: 'var(--color-text-muted)', label: 'To Do' },
   in_progress: { bg: 'rgba(75, 158, 255, 0.06)', color: '#4B9EFF', label: 'In Progress' },
   done: { bg: 'rgba(61, 214, 140, 0.06)', color: '#3DD68C', label: 'Done' },
 }

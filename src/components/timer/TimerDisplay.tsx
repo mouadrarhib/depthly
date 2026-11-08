@@ -44,7 +44,7 @@ export function TimerDisplay() {
   const typeLabel  = sessionType === 'focus' ? 'FOCUS' : 'BREAK'
   const countLabel = `${sessionCount} session${sessionCount === 1 ? '' : 's'} today`
 
-  const ringColor = sessionType === 'focus' ? 'var(--color-brand)' : '#7A7890'
+  const ringColor = sessionType === 'focus' ? 'var(--color-brand)' : 'var(--color-text-muted)'
 
   // Scale font proportionally to ring size (baseline: 340px ring → 72px / 48px)
   const scale    = ringSize / 340

@@ -14,41 +14,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { Card } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
 import { useProfile } from '@/hooks/useAnalytics'
 import { useSubscriptions, useCancelSubscription } from '@/hooks/useBilling'
 import { usePlan, FREE_LIMITS } from '@/hooks/usePlan'
 import { parseCheckoutIntent } from '@/lib/checkoutIntent'
-
-const FEATURES = [
-  'Unlimited projects',
-  'Unlimited sessions',
-  'Kanban board view',
-  'Full analytics history',
-  '52-week heatmap',
-  'Global leaderboard',
-  '10 private group leaderboards',
-  'CSV export',
-  'Priority new features',
-]
-
-const cardStyle: React.CSSProperties = {
-  backgroundColor: '#141417',
-  border:          '1px solid #2E2E38',
-  borderRadius:    14,
-  padding:         28,
-}
-
-// Section-label recipe already used for UpgradeModal's "Pro Features" eyebrow —
-// reused here rather than introducing a new label style.
-const eyebrowStyle: React.CSSProperties = {
-  fontSize:      11,
-  fontWeight:    600,
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase',
-  color:         '#7A7890',
-  marginBottom:  12,
-}
 
 export function BillingPage() {
   const { plan, isLoading: isPlanLoading } = usePlan()
@@ -57,8 +29,8 @@ export function BillingPage() {
   // subscriptions table, which can hold rows for older/unrelated subscriptions
   // (e.g. a Pro trial before upgrading to Lifetime) that would otherwise show
   // stale billing info here.
-  const { data: profile } = useProfile()
-  const { data: subscriptions } = useSubscriptions()
+  const { data: profile, isError: profileError, refetch: retryProfile } = useProfile()
+  const { data: subscriptions, isLoading: historyLoading, isError: historyError, refetch: retryHistory } = useSubscriptions()
   const cancelSubscription = useCancelSubscription()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
@@ -138,402 +110,104 @@ export function BillingPage() {
     active:    { text: '#3DD68C', bg: 'rgba(61,214,140,0.12)',  border: 'rgba(61,214,140,0.3)'  },
     trialing:  { text: '#4B9EFF', bg: 'rgba(75,158,255,0.12)',  border: 'rgba(75,158,255,0.3)'  },
     past_due:  { text: '#F5A623', bg: 'rgba(245,166,35,0.12)',  border: 'rgba(245,166,35,0.3)'  },
-    canceled:  { text: '#7A7890', bg: 'rgba(122,120,144,0.12)', border: 'rgba(122,120,144,0.3)' },
-    expired:   { text: '#7A7890', bg: 'rgba(122,120,144,0.12)', border: 'rgba(122,120,144,0.3)' },
-    unpaid:    { text: '#E5484D', bg: 'rgba(229,72,77,0.12)',   border: 'rgba(229,72,77,0.3)'   },
+    canceled:  { text: '#ABA8BB', bg: 'rgba(122,120,144,0.12)', border: 'rgba(122,120,144,0.3)' },
+    expired:   { text: '#ABA8BB', bg: 'rgba(122,120,144,0.12)', border: 'rgba(122,120,144,0.3)' },
+    unpaid:    { text: '#FF878B', bg: 'rgba(229,72,77,0.12)',   border: 'rgba(229,72,77,0.3)'   },
   }
 
+  const paidFeatures = [
+    { title: 'Organize & focus', detail: 'Unlimited projects and focus sessions · Kanban board' },
+    { title: 'Review & share', detail: 'Full analytics history · Year heatmap · CSV export' },
+    { title: 'Focus together', detail: '10 private groups · Invite-only rankings' },
+  ]
+  const freeFeatures = [
+    { title: 'Organize your work', detail: `Up to ${FREE_LIMITS.maxProjects} active projects` },
+    { title: 'Build your focus', detail: `${FREE_LIMITS.maxSessionsPerMonth} focus sessions per month` },
+    { title: 'Review recent progress', detail: `${FREE_LIMITS.analyticsWindowDays} days of analytics history` },
+  ]
+  const panel = 'min-w-0 rounded-2xl border-border bg-surface-raised shadow-none'
+  const details = plan === 'founding'
+    ? [['Billing type', 'One-time purchase'], ['Next renewal', 'No renewal'], ['Access', 'Lifetime']]
+    : plan === 'free'
+      ? [['Billing type', 'Free'], ['Recurring charge', 'None'], ['Access', 'Free features']]
+      : [['Billing cycle', planInterval], [isInGracePeriod ? 'Access ends' : 'Next billing date', isInGracePeriod ? graceEndDate : billingDate], ['Access', 'Pro features']]
+
   return (
-    <div className="px-4 py-4 sm:px-8 sm:py-6">
-      <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-        {/* Title */}
-        <h1
-          className="text-ink-primary"
-          style={{ fontSize: 22, fontWeight: 500, letterSpacing: '-0.03em', margin: 0 }}
-        >
-          Billing
-        </h1>
-
-        {selectedPlan && !showCheckoutSuccess && (
-          <SelectedPlanCheckout
-            key={selectedPlan.planType}
-            intent={selectedPlan}
-            disabled={isPlanLoading}
-            onDismiss={() => {
-              const params = new URLSearchParams(searchParams)
-              params.delete('plan')
-              params.delete('interval')
-              setSearchParams(params, { replace: true })
-            }}
-          />
-        )}
-
-        {/* Post-checkout notice — webhook may take a second or two to sync */}
-        {showCheckoutSuccess && (
-          <div
-            style={{
-              backgroundColor: 'rgba(61,214,140,0.1)',
-              border:          '1px solid rgba(61,214,140,0.3)',
-              borderRadius:    10,
-              padding:         '10px 14px',
-              fontSize:        13,
-              color:           '#3DD68C',
-            }}
-          >
-            Payment received — updating your plan…
-          </div>
-        )}
-
-        {/* Current Plan Card */}
-        <div style={cardStyle}>
-          <div style={eyebrowStyle}>Current plan</div>
-          {isPlanLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
-              <Spinner />
-            </div>
-          ) : plan === 'free' ? (
-            <>
-              <h2 style={{ fontSize: 18, fontWeight: 600, color: '#E8E6F0', margin: 0 }}>
-                Free Plan
-              </h2>
-              <p style={{ fontSize: 13, color: '#3D3B4E', marginTop: 6, marginBottom: 16, lineHeight: 1.5 }}>
-                You're on the free plan. Upgrade to unlock unlimited access.
-              </p>
-
-              <ul style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 0, listStyle: 'none', margin: '0 0 20px 0' }}>
-                {[
-                  `${FREE_LIMITS.maxProjects} projects max`,
-                  `${FREE_LIMITS.maxSessionsPerMonth} sessions/month`,
-                  `${FREE_LIMITS.analyticsWindowDays} days analytics history`,
-                ].map(item => (
-                  <li key={item} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#2E2E38', flexShrink: 0 }} />
-                    <span style={{ fontSize: 12, color: '#7A7890' }}>{item}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button variant="primary" className="w-full" onClick={() => setUpgradeOpen(true)}>
-                Upgrade to Pro
-              </Button>
-            </>
-          ) : plan === 'founding' ? (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 600, color: '#E8E6F0', margin: 0 }}>
-                  Depthly Lifetime
-                </h2>
-                <span style={{
-                  fontSize:      11,
-                  fontWeight:    600,
-                  color:         '#F5A623',
-                  background:    'rgba(245,166,35,0.15)',
-                  border:        '1px solid rgba(245,166,35,0.3)',
-                  borderRadius:  999,
-                  padding:       '2px 8px',
-                  letterSpacing: '0.05em',
-                }}>
-                  FOUNDING MEMBER
-                </span>
-              </div>
-
-              <p style={{ fontSize: 12, color: '#7A7890', marginBottom: 20, lineHeight: 1.5 }}>
-                One-time purchase — lifetime access to every Pro feature, forever. No renewal, no billing date.
-              </p>
-            </>
-          ) : (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 600, color: '#E8E6F0', margin: 0 }}>
-                  Depthly Pro
-                </h2>
-                <span style={{
-                  fontSize:      11,
-                  fontWeight:    600,
-                  color:         '#4B9EFF',
-                  background:    'rgba(75,158,255,0.15)',
-                  border:        '1px solid rgba(75,158,255,0.3)',
-                  borderRadius:  999,
-                  padding:       '2px 8px',
-                  letterSpacing: '0.05em',
-                }}>
-                  PRO
-                </span>
-              </div>
-
-              {/* No in-app "update payment method" flow exists yet (only cancellation
-                  has been built — see BILLING_STATUS.md). Lemon Squeezy subscription
-                  objects expose a per-subscription urls.update_payment_method link
-                  (same shape as urls.customer_portal), which the webhook doesn't
-                  currently capture or persist anywhere. Wiring that up — store it on
-                  the subscriptions row, link to it here instead of this email-based
-                  fallback — is a reasonable next task, not done in this pass. */}
-              {profile?.subscription_status === 'past_due' && (
-                <div
-                  style={{
-                    display:         'flex',
-                    gap:             10,
-                    alignItems:      'flex-start',
-                    backgroundColor: 'rgba(245,166,35,0.1)',
-                    border:          '1px solid rgba(245,166,35,0.3)',
-                    borderRadius:    10,
-                    padding:         '12px 14px',
-                    marginBottom:    20,
-                  }}
-                >
-                  <AlertTriangle size={16} style={{ color: '#F5A623', flexShrink: 0, marginTop: 2 }} />
-                  <div>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: '#F5A623', margin: 0 }}>
-                      Your last payment failed
-                    </p>
-                    <p style={{ fontSize: 12, color: '#7A7890', marginTop: 4, marginBottom: 0, lineHeight: 1.5 }}>
-                      Update your payment method to avoid losing Pro access. Lemon Squeezy
-                      should have emailed you a link to update it on your original purchase
-                      receipt — check that email, or reply to it for help.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div
-                style={{
-                  display:             'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap:                 16,
-                  padding:             '14px 16px',
-                  marginBottom:        20,
-                  backgroundColor:     '#0D0D10',
-                  border:              '1px solid #2E2E38',
-                  borderRadius:        10,
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#7A7890' }}>
-                    Next billing date
-                  </div>
-                  <div className="font-data" style={{ fontSize: 13, color: '#E8E6F0', marginTop: 4 }}>
-                    {billingDate}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#7A7890' }}>
-                    Plan
-                  </div>
-                  <div style={{ fontSize: 13, color: '#E8E6F0', marginTop: 4 }}>
-                    {planInterval}
-                  </div>
-                </div>
-              </div>
-
-              {isInGracePeriod ? (
-                <div
-                  style={{
-                    backgroundColor: 'rgba(245,166,35,0.1)',
-                    border:          '1px solid rgba(245,166,35,0.3)',
-                    borderRadius:    10,
-                    padding:         '10px 14px',
-                    fontSize:        13,
-                    color:           '#F5A623',
-                    lineHeight:      1.5,
-                  }}
-                >
-                  Your subscription is cancelled and will end on {graceEndDate}. You'll keep Pro access until then.
-                </div>
-              ) : canCancel ? (
-                <Button
-                  variant="danger"
-                  className="w-full"
-                  onClick={() => { setCancelResult(null); setCancelDialogOpen(true) }}
-                >
-                  Cancel subscription
-                </Button>
-              ) : null}
-
-              {cancelResult && (
-                <p
-                  style={{
-                    fontSize:  12,
-                    marginTop: 10,
-                    color:     cancelResult.type === 'success' ? '#3DD68C' : '#E5484D',
-                  }}
-                >
-                  {cancelResult.message}
-                </p>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Billing History */}
-        {subscriptions && subscriptions.length > 0 && (
-          <div style={cardStyle}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: '#E8E6F0', margin: '0 0 16px 0' }}>
-              Billing history
-            </h3>
-
-            {/* Horizontally scrollable on narrow viewports rather than
-                cramming 4 columns — minWidth keeps every column readable. */}
-            <div style={{ overflowX: 'auto' }}>
-              <div style={{ minWidth: 460 }}>
-                <div
-                  style={{
-                    display:             'grid',
-                    gridTemplateColumns: '1.2fr 1.6fr 0.8fr 0.9fr',
-                    gap:                 12,
-                    padding:             '0 4px 10px',
-                    borderBottom:        '1px solid #2E2E38',
-                  }}
-                >
-                  {['Plan', 'Period', 'Amount', 'Status'].map((label, i) => (
-                    <span
-                      key={label}
-                      style={{
-                        fontSize:      10,
-                        fontWeight:    600,
-                        letterSpacing: '0.08em',
-                        textTransform: 'uppercase',
-                        color:         '#7A7890',
-                        textAlign:     i >= 2 ? 'right' : 'left',
-                      }}
-                    >
-                      {label}
-                    </span>
-                  ))}
-                </div>
-
-                {subscriptions.map((sub, i) => {
-                  const statusStyle = STATUS_STYLE[sub.status] ?? STATUS_STYLE.canceled
-                  // Lifetime purchases are one-time orders, not subscriptions —
-                  // current_period_end is a non-null sentinel far-future date
-                  // for them (the column can't be null), so a real date range
-                  // would be misleading here; show plan_interval instead, which
-                  // is the reliable signal for "this row is a Lifetime purchase".
-                  const isLifetime = sub.plan_interval === 'lifetime'
-                  return (
-                    <div
-                      key={sub.id}
-                      style={{
-                        display:             'grid',
-                        gridTemplateColumns: '1.2fr 1.6fr 0.8fr 0.9fr',
-                        gap:                 12,
-                        alignItems:          'center',
-                        padding:             '12px 4px',
-                        borderBottom:        i < subscriptions.length - 1 ? '1px solid #2E2E38' : 'none',
-                      }}
-                    >
-                      <span style={{ fontSize: 13, color: '#E8E6F0', fontWeight: 500 }}>
-                        {isLifetime
-                          ? PLAN_LABEL[sub.plan] ?? sub.plan
-                          : `${PLAN_LABEL[sub.plan] ?? sub.plan} · ${INTERVAL_LABEL[sub.plan_interval] ?? sub.plan_interval}`}
-                      </span>
-                      {isLifetime ? (
-                        <span style={{ fontSize: 12, color: '#7A7890' }}>Lifetime access</span>
-                      ) : (
-                        <span className="font-data" style={{ fontSize: 12, color: '#7A7890' }}>
-                          {formatSubDate(sub.current_period_start)} – {formatSubDate(sub.current_period_end)}
-                        </span>
-                      )}
-                      <span className="font-data" style={{ fontSize: 12, color: '#E8E6F0', textAlign: 'right' }}>
-                        {formatAmount(sub.amount_cents, sub.currency)}
-                      </span>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <span
-                          style={{
-                            fontSize:      10,
-                            fontWeight:    600,
-                            letterSpacing: '0.04em',
-                            textTransform: 'capitalize',
-                            color:         statusStyle.text,
-                            background:    statusStyle.bg,
-                            border:        `1px solid ${statusStyle.border}`,
-                            borderRadius:  999,
-                            padding:       '2px 8px',
-                            whiteSpace:    'nowrap',
-                          }}
-                        >
-                          {sub.status.replace('_', ' ')}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* What's included */}
-        <div style={cardStyle}>
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: '#E8E6F0', margin: '0 0 16px 0' }}>
-            What's included with Pro
-          </h3>
-          <ul style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 0, listStyle: 'none', margin: 0 }}>
-            {FEATURES.map(feature => (
-              <li key={feature} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <CheckCircle style={{ width: 14, height: 14, color: '#3DD68C', flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: '#E8E6F0' }}>{feature}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
+    <div className="mx-auto w-full max-w-[1440px] space-y-6 px-1 py-3 sm:px-4 sm:py-5">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight text-text sm:text-3xl">Your plan & billing</h1>
+        <p className="mt-2 text-sm leading-relaxed text-text/70">See what’s included in your plan and review your billing records.</p>
       </div>
 
+      {selectedPlan && !showCheckoutSuccess && (
+        <SelectedPlanCheckout key={selectedPlan.planType} intent={selectedPlan} disabled={isPlanLoading || profileError} onDismiss={() => {
+          const params = new URLSearchParams(searchParams)
+          params.delete('plan')
+          params.delete('interval')
+          setSearchParams(params, { replace: true })
+        }} />
+      )}
+      {showCheckoutSuccess && <p role="status" className="rounded-xl border border-brand/30 bg-brand/10 p-4 text-sm text-text">Checkout completed. Your plan may take a moment to update.</p>}
+
+      <div className="grid items-stretch gap-5 xl:grid-cols-[1.45fr_1fr]">
+        <Card className={`${panel} p-5 sm:p-7`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-base font-semibold text-text">Your current plan</h2>
+            {!isPlanLoading && !profileError && plan !== 'free' && <Badge variant="secondary" className="bg-brand/10 text-brand">{plan === 'founding' ? 'Founding member' : 'Pro'}</Badge>}
+          </div>
+          {profileError ? (
+            <div role="alert" className="py-6"><p className="text-sm text-text/70">Could not load your current plan. Try again before making billing changes.</p><Button variant="ghost" className="mt-3" onClick={() => void retryProfile()}>Try again</Button></div>
+          ) : isPlanLoading ? <div className="flex justify-center py-12"><Spinner /></div> : (
+            <>
+              <h3 className="mt-6 text-2xl font-semibold tracking-tight text-text sm:text-3xl">{plan === 'founding' ? 'Depthly Lifetime' : plan === 'pro' ? 'Depthly Pro' : 'Depthly Free'}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-text/70">{plan === 'founding' ? 'Every Pro feature, with lifetime access.' : plan === 'pro' ? 'More room for your projects, focus sessions, and progress.' : 'Plan your work and build a steady focus habit.'}</p>
+              <dl className="mt-6 grid gap-5 border-t border-border pt-6 sm:grid-cols-3">
+                {details.map(([label, value]) => <div key={label}><dt className="text-xs text-text/70">{label}</dt><dd className={`mt-2 text-sm font-medium text-text ${label.includes('date') || label === 'Access ends' ? 'font-data' : ''}`}>{value}</dd></div>)}
+              </dl>
+              {plan === 'founding' && <p className="mt-6 text-xs leading-relaxed text-text/70">No recurring charge. Your Lifetime plan does not expire.</p>}
+              {plan === 'free' && <Button variant="primary" className="mt-6 min-h-11" onClick={() => setUpgradeOpen(true)}>Explore paid plans</Button>}
+              {plan === 'pro' && <div className="mt-6 space-y-4">
+                {profile?.subscription_status === 'past_due' && <div role="alert" className="flex gap-3 rounded-lg border border-border p-4 text-sm text-text"><AlertTriangle size={18} className="mt-0.5 shrink-0" /><div><p className="font-semibold">Your last payment failed</p><p className="mt-1 leading-relaxed text-text/70">Check your Lemon Squeezy purchase email for a payment-update link, or reply to it for help.</p></div></div>}
+                {historyError ? <p className="text-sm text-text/70">Subscription controls are unavailable while plan history cannot be loaded.</p> : isInGracePeriod ? <p role="status" className="text-sm leading-relaxed text-text/70">Your subscription is cancelled. You’ll keep Pro access until {graceEndDate}, with no further renewal.</p> : canCancel ? <Button variant="ghost" className="min-h-11" onClick={() => { setCancelResult(null); setCancelDialogOpen(true) }}>Cancel subscription</Button> : null}
+                {cancelResult && <p role={cancelResult.type === 'error' ? 'alert' : 'status'} className="text-sm text-text">{cancelResult.message}</p>}
+              </div>}
+            </>
+          )}
+        </Card>
+        <Card className={`${panel} p-5 sm:p-7`}>
+          <h2 className="text-base font-semibold text-text">Included in your plan</h2>
+          {isPlanLoading ? <div className="flex justify-center py-12"><Spinner /></div> : profileError ? <p className="mt-6 text-sm text-text/70">Your features will appear when your plan is available.</p> : <ul className="mt-6 space-y-6">{(plan === 'free' ? freeFeatures : paidFeatures).map(feature => <li key={feature.title} className="flex gap-3"><CheckCircle aria-hidden="true" size={17} className="mt-0.5 shrink-0 text-brand" /><div><h3 className="text-sm font-medium text-text">{feature.title}</h3><p className="mt-1 text-xs leading-relaxed text-text/70">{feature.detail}</p></div></li>)}</ul>}
+        </Card>
+      </div>
+
+      <Card className={`${panel} overflow-hidden`}>
+        <div className="p-5 sm:px-7 sm:py-6"><h2 className="text-lg font-semibold text-text">Plan history</h2><p className="mt-2 text-xs leading-relaxed text-text/70">Previous and current plan records. Statuses reflect each record, not your current plan.</p></div>
+        {historyLoading ? <div className="flex justify-center p-10"><Spinner /></div> : historyError ? <div role="alert" className="px-5 pb-6 sm:px-7"><p className="text-sm text-text/70">Could not load your plan history.</p><Button variant="ghost" className="mt-3" onClick={() => void retryHistory()}>Try again</Button></div> : !subscriptions?.length ? <div className="px-5 pb-6 sm:px-7"><p className="text-sm text-text">No billing records yet</p><p className="mt-1 text-sm text-text/70">Paid plan records will appear here after a purchase.</p>{plan === 'free' && <Button variant="ghost" className="mt-3" onClick={() => setUpgradeOpen(true)}>Explore paid plans</Button>}</div> : (
+          <div className="max-h-[440px] overflow-auto" tabIndex={0} role="region" aria-label="Plan history table" >
+            <table className="w-full min-w-[680px] text-left text-sm">
+              <caption className="sr-only">Plan records including access period, amount, and recorded status</caption>
+              <thead className="sticky top-0 bg-surface-overlay text-xs text-text/70"><tr>{['Plan', 'Period / access', 'Amount', 'Recorded status'].map(label => <th key={label} scope="col" className="px-5 py-4 font-medium sm:px-7">{label}</th>)}</tr></thead>
+              <tbody className="divide-y divide-border">{subscriptions.map(sub => {
+                const isLifetime = sub.plan_interval === 'lifetime'
+                const statusStyle = STATUS_STYLE[sub.status] ?? STATUS_STYLE.canceled
+                return <tr key={sub.id}>
+                  <th scope="row" className="px-5 py-4 font-medium text-text sm:px-7">{isLifetime ? PLAN_LABEL[sub.plan] ?? sub.plan : `${PLAN_LABEL[sub.plan] ?? sub.plan} · ${INTERVAL_LABEL[sub.plan_interval] ?? sub.plan_interval}`}<span className="mt-1 block text-xs font-normal text-text/70">{isLifetime ? 'One-time purchase' : 'Subscription'}</span></th>
+                  <td className="px-5 py-4 text-xs text-text/70 sm:px-7">{isLifetime ? 'Lifetime access' : <span className="font-data">{formatSubDate(sub.current_period_start)} – {formatSubDate(sub.current_period_end)}</span>}</td>
+                  <td className="whitespace-nowrap px-5 py-4 font-data text-text sm:px-7">{formatAmount(sub.amount_cents, sub.currency)}</td>
+                  <td className="px-5 py-4 sm:px-7"><Badge variant="secondary" className="whitespace-nowrap capitalize" style={{ color: statusStyle.text, background: statusStyle.bg }}>{sub.status.replace(/_/g, ' ')}</Badge></td>
+                </tr>
+              })}</tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+      <div className="px-1"><h2 className="text-sm font-medium text-text">Looking for a receipt?</h2><p className="mt-2 text-xs leading-relaxed text-text/70">Check your Lemon Squeezy purchase email for payment details and receipts.</p></div>
+
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
-
-      <Dialog open={cancelDialogOpen} onOpenChange={v => { if (!v) setCancelDialogOpen(false) }}>
-        <DialogContent
-          className="max-w-sm"
-          style={{
-            backgroundColor: '#141417',
-            border:          '0.5px solid #2E2E38',
-            padding:         28,
-          }}
-        >
-          <DialogHeader>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-              <div
-                style={{
-                  display:         'flex',
-                  alignItems:      'center',
-                  justifyContent:  'center',
-                  width:           32,
-                  height:          32,
-                  borderRadius:    999,
-                  backgroundColor: 'rgba(245,166,35,0.12)',
-                  border:          '1px solid rgba(245,166,35,0.3)',
-                  flexShrink:      0,
-                }}
-              >
-                <AlertTriangle size={16} style={{ color: '#F5A623' }} />
-              </div>
-              <DialogTitle className="text-ink-primary">Cancel your subscription?</DialogTitle>
-            </div>
-            <DialogDescription className="text-ink-secondary">
-              Cancellation takes effect at the end of your current billing period, not immediately — you'll keep full Pro access until then, and won't be charged again after that.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="pt-3">
-            <Button
-              type="button"
-              variant="outline"
-              style={{ border: '1px solid #2E2E38' }}
-              onClick={() => setCancelDialogOpen(false)}
-              disabled={cancelSubscription.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              isLoading={cancelSubscription.isPending}
-              onClick={handleConfirmCancel}
-            >
-              Cancel subscription
-            </Button>
-          </DialogFooter>
+      <Dialog open={cancelDialogOpen} onOpenChange={open => { if (!cancelSubscription.isPending) setCancelDialogOpen(open) }}>
+        <DialogContent className="max-w-md rounded-2xl border-border bg-surface-raised p-6" onEscapeKeyDown={e => { if (cancelSubscription.isPending) e.preventDefault() }} onPointerDownOutside={e => { if (cancelSubscription.isPending) e.preventDefault() }}>
+          <DialogHeader><DialogTitle>Cancel your subscription?</DialogTitle><DialogDescription className="leading-relaxed text-text/70">You’ll keep Pro access until the end of your current billing period. Your subscription won’t renew after that.</DialogDescription></DialogHeader>
+          <DialogFooter className="gap-2 pt-3"><Button variant="ghost" disabled={cancelSubscription.isPending} onClick={() => setCancelDialogOpen(false)}>Keep subscription</Button><Button variant="danger" isLoading={cancelSubscription.isPending} onClick={handleConfirmCancel}>Cancel subscription</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

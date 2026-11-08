@@ -11,7 +11,7 @@ export function Skeleton({ width, height, borderRadius, className }: SkeletonPro
   return (
     <div
       className={cn('animate-pulse', className)}
-      style={{ backgroundColor: '#222228', width, height, borderRadius }}
+      style={{ backgroundColor: 'var(--color-surface-overlay)', width, height, borderRadius }}
     />
   )
 }

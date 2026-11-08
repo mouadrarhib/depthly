@@ -45,7 +45,7 @@ export function FeatureSection({
   children,
   viewportFit = false,
   compactCopy = false,
-  bodyColor = '#7A7890',
+  bodyColor = 'var(--color-text-muted)',
 }: FeatureSectionProps) {
   const rowClass = mockupSide === 'left' ? 'md:flex-row' : 'md:flex-row-reverse'
   const hasCenteredHeader = Boolean(eyebrow && title && subtext)
@@ -112,7 +112,7 @@ export function FeatureSection({
                     fontSize: 'clamp(26px, 4vw, 36px)',
                     fontWeight: 500,
                     letterSpacing: '-0.03em',
-                    color: '#E8E6F0',
+                    color: 'var(--color-text)',
                     lineHeight: 1.15,
                   }}
                 >

@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Composite the complete palettes as two snapshots instead of repainting
+   every component through intermediate gray colors. */
+@keyframes theme-reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+html.theme-crossfade::view-transition-group(root) {
+  animation-duration: 500ms;
+}
+
+html.theme-crossfade::view-transition-old(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html.theme-crossfade::view-transition-new(root) {
+  animation: theme-reveal 500ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  mix-blend-mode: normal;
+}
+
+html.theme-crossfade::view-transition { pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-crossfade::view-transition-group(root),
+  html.theme-crossfade::view-transition-new(root) { animation: none; }
+}
+
 /* Auth route transitions live here so Vite hot reloads them reliably. */
 @keyframes auth-visual-enter {
   from {
@@ -83,33 +111,34 @@
 }
 
 /* ── Depthly design tokens (shadcn HSL format) ────────────────────────────
-   :root and .dark are identical — this is a dark-mode-only app.
+   The unqualified root is the light theme. `.dark` restores the original
+   Depthly palette. An inline bootstrap in index.html chooses a class before
+   React loads, preventing a light/dark flash during startup.
    ─────────────────────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    --background:           240 4% 5%;
-    --foreground:           240 11% 92%;
-    --card:                 240 5% 8%;
-    --card-foreground:      240 11% 92%;
-    --popover:              240 5% 8%;
-    --popover-foreground:   240 11% 92%;
-    --primary:              213 100% 65%;
+    --background:           220 23% 97%;
+    --foreground:           229 20% 16%;
+    --card:                 0 0% 100%;
+    --card-foreground:      229 20% 16%;
+    --popover:              0 0% 100%;
+    --popover-foreground:   229 20% 16%;
+    --primary:              221 83% 53%;
     --primary-foreground:   0 0% 100%;
-    --secondary:            240 4% 13%;
-    --secondary-foreground: 240 11% 92%;
-    --muted:                240 4% 13%;
-    --muted-foreground:     240 5% 49%;
-    --accent:               240 4% 13%;
-    --accent-foreground:    240 11% 92%;
-    --destructive:          0 68% 65%;
+    --secondary:            220 21% 95%;
+    --secondary-foreground: 229 20% 16%;
+    --muted:                220 21% 95%;
+    --muted-foreground:     222 13% 42%;
+    --accent:               220 21% 95%;
+    --accent-foreground:    229 20% 16%;
+    --destructive:          352 59% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border:               240 4% 18%;
-    --input:                240 4% 18%;
-    --ring:                 213 100% 65%;
+    --border:               222 20% 87%;
+    --input:                222 20% 87%;
+    --ring:                 221 83% 53%;
     --radius:               0.625rem;
   }
 
-  /* Keep .dark identical — dark-only app, no light-mode switching */
   .dark {
     --background:           240 4% 5%;
     --foreground:           240 11% 92%;
@@ -135,6 +164,34 @@
 
   /* ── Legacy Depthly CSS-var tokens (components still reference these) ── */
   :root {
+    --color-brand:        #2563EB;
+    --color-brand-hover:  #1D4ED8;
+    --color-brand-subtle: rgba(37, 99, 235, 0.10);
+
+    --color-surface-base:    #F7F8FA;
+    --color-surface-raised:  #FFFFFF;
+    --color-surface-overlay: #EEF0F4;
+
+    --color-border:        #D8DCE5;
+    --color-border-subtle: rgba(32, 35, 48, 0.06);
+
+    --color-text:       #202330;
+    --color-text-muted: #555D70;
+    --color-text-faint: #687083;
+
+    --color-streak: #456B10;
+
+    --color-success: #147D52;
+    --color-warning: #875700;
+    --color-error:   #B42332;
+    --color-info:    #2563EB;
+
+    --color-backdrop: rgba(32, 35, 48, 0.52);
+    --shadow-card: 0 2px 8px -2px rgba(32, 35, 48, 0.12), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    --shadow-modal: 0 24px 64px -16px rgba(32, 35, 48, 0.28);
+  }
+
+  .dark {
     --color-brand:        #4B9EFF;
     --color-brand-hover:  #6BAFFF;
     --color-brand-subtle: rgba(75, 158, 255, 0.12);
@@ -156,6 +213,19 @@
     --color-warning: #F5A623;
     --color-error:   #F25C5C;
     --color-info:    #4B9EFF;
+
+    --color-backdrop: rgba(0, 0, 0, 0.62);
+    --shadow-card: 0 2px 8px -2px rgba(0, 0, 0, 0.25), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+    --shadow-modal: 0 24px 64px -16px rgba(0, 0, 0, 0.6);
+  }
+
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow !important;
+    transition-duration: 360ms !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
   /* ── Global resets ──────────────────────────────────────────────────── */
@@ -168,6 +238,9 @@
     overflow-x: clip;
     -webkit-text-size-adjust: 100%;
   }
+
+  html.light { color-scheme: light; }
+  html.dark { color-scheme: dark; }
 
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
@@ -197,7 +270,7 @@
   button, [role="button"] { cursor: pointer; }
 
   :focus-visible {
-    outline: 2px solid #4B9EFF;
+    outline: 2px solid var(--color-brand);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -227,6 +300,20 @@
 
   *::-webkit-scrollbar-thumb:hover {
     background-color: var(--color-text-faint);
+  }
+
+  ::selection {
+    background: var(--color-brand);
+    color: #fff;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-transition,
+    .theme-transition *,
+    .theme-transition *::before,
+    .theme-transition *::after {
+      transition: none !important;
+    }
   }
 
   /* Native <input type="date"|"time"> center their value on iOS/WebKit no

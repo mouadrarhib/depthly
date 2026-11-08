@@ -66,8 +66,8 @@ export function KanbanCard({
         transition: composedTransition,
         borderRadius: 10,
         padding: 12,
-        backgroundColor: showHover ? '#222228' : '#141417',
-        border: showHover ? '1px solid rgba(75, 158, 255, 0.3)' : '1px solid #2E2E38',
+        backgroundColor: showHover ? 'var(--color-surface-overlay)' : 'var(--color-surface-raised)',
+        border: showHover ? '1px solid rgba(75, 158, 255, 0.3)' : '1px solid var(--color-border)',
         boxShadow: showHover ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none',
         opacity: isDragging ? 0.5 : 1,
         outline: isDragging ? '1px solid #4B9EFF' : 'none',
@@ -117,7 +117,7 @@ export function KanbanCard({
         style={{
           fontSize: 13,
           fontWeight: 500,
-          color: '#E8E6F0',
+          color: 'var(--color-text)',
           marginTop: 8,
           textDecoration: 'none',
           opacity: done ? 0.5 : 1,
@@ -133,7 +133,7 @@ export function KanbanCard({
           style={{
             marginTop: 10,
             paddingTop: 10,
-            borderTop: '1px solid #2E2E38',
+            borderTop: '1px solid var(--color-border)',
           }}
         >
           {/* Due date chip */}
@@ -151,8 +151,8 @@ export function KanbanCard({
                     }
                   : {
                       backgroundColor: 'transparent',
-                      color: '#7A7890',
-                      border: '1px solid #2E2E38',
+                      color: 'var(--color-text-muted)',
+                      border: '1px solid var(--color-border)',
                       borderRadius: 6,
                       padding: '2px 8px',
                       fontSize: 11,

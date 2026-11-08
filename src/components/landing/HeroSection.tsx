@@ -7,11 +7,11 @@ import { PATHS } from '@/routes/paths'
 /** Public hero for students, freelancers, and independent learners. */
 export function HeroSection() {
   return (
-    <section className="relative flex min-h-[calc(100svh-4rem)] items-center overflow-hidden px-4 pb-12 pt-12 sm:px-5 sm:pt-16 lg:pb-6">
+    <section className="relative flex min-h-[calc(100svh-4rem)] items-center overflow-hidden px-4 pb-12 pt-12 sm:px-5 sm:pt-16 lg:min-h-[calc(72svh-4rem)] lg:items-start lg:pb-8 lg:pt-[clamp(3rem,6vh,4.5rem)]">
       {/* Background dot grid — absolutely positioned to cover the full
           section, sits behind the text content (below, in the relative
           content wrapper's stacking order). Dot color uses the app's
-          ink-secondary token directly (#7A7890) for real contrast against
+          ink-secondary token directly (var(--color-text-muted)) for real contrast against
           the dark background; overall opacity is the only fade knob. */}
       <div
         data-hero-grid
@@ -23,7 +23,7 @@ export function HeroSection() {
           right: 0,
           bottom: 0,
           pointerEvents: 'none',
-          backgroundImage: 'radial-gradient(circle, #7A7890 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(circle, var(--color-text-muted) 1px, transparent 1px)',
           backgroundSize: '24px 24px',
           opacity: 0.14,
           maskImage: 'radial-gradient(ellipse 68% 72% at 50% 46%, black 20%, transparent 100%)',
@@ -46,8 +46,8 @@ export function HeroSection() {
             data-hero
             className="mt-6 max-w-[540px] text-base leading-relaxed text-ink-primary/80 sm:mt-8"
           >
-            Whether you&apos;re studying or working with clients, track focused sessions by task,
-            work toward a daily goal, and see where your time goes.
+            Track focused sessions for study or client work. Keep time linked to your tasks, work
+            toward a daily goal, and see where your time goes.
           </p>
 
           <div

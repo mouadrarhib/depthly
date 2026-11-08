@@ -51,15 +51,15 @@ export function SessionRow({ session, onOpenDetail, onEdit }: SessionRowProps) {
         'transition-all duration-150',
         isBreak ? 'px-[18px] py-[10px]' : 'px-[18px] py-[14px]',
       )}
-      style={{ backgroundColor: '#1A1A20' }}
+      style={{ backgroundColor: 'var(--color-surface-overlay)' }}
       onMouseEnter={e => {
         const el = e.currentTarget
-        el.style.backgroundColor = '#222228'
+        el.style.backgroundColor = 'var(--color-surface-overlay)'
         el.style.borderColor = 'rgba(75,158,255,0.25)'
       }}
       onMouseLeave={e => {
         const el = e.currentTarget
-        el.style.backgroundColor = '#1A1A20'
+        el.style.backgroundColor = 'var(--color-surface-overlay)'
         el.style.borderColor = ''
       }}
     >
@@ -71,7 +71,7 @@ export function SessionRow({ session, onOpenDetail, onEdit }: SessionRowProps) {
         <span
           className={cn(
             'font-data text-[14px] font-medium leading-none whitespace-nowrap',
-            isBreak ? 'text-ink-muted' : 'text-ink-primary',
+            isBreak ? 'text-muted-foreground' : 'text-foreground',
           )}
         >
           {formatTime(session.started_at)}
@@ -99,7 +99,7 @@ export function SessionRow({ session, onOpenDetail, onEdit }: SessionRowProps) {
               className="inline-block shrink-0 rounded-full"
               style={{ width: 10, height: 10, backgroundColor: session.projects.color }}
             />
-            <span className="truncate text-[13px] font-medium text-ink-primary">
+            <span className="truncate text-[13px] font-medium text-foreground">
               {session.projects.name}
             </span>
           </div>
@@ -125,7 +125,7 @@ export function SessionRow({ session, onOpenDetail, onEdit }: SessionRowProps) {
           <span
             className={cn(
               'font-data text-[15px] font-semibold',
-              isBreak ? 'text-ink-muted' : 'text-ink-primary',
+              isBreak ? 'text-muted-foreground' : 'text-foreground',
             )}
           >
             {formatDuration(session.duration_mins)}

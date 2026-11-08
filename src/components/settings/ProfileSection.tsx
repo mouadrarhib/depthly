@@ -363,7 +363,7 @@ export function ProfileSection() {
               <p style={{ fontSize: 12, color: 'var(--color-text-muted)', maxWidth: 320 }}>
                 {!canAppear && profile?.is_public
                   ? 'Your saved public preference is paused on the Free plan and will reactivate after upgrading.'
-                  : 'Appear on the global leaderboard and allow others to view your profile'}
+                  : 'Allow others to view your profile through your public profile link'}
               </p>
             </div>
             <Switch

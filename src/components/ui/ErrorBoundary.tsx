@@ -40,10 +40,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
           textAlign:      'center',
         }}>
           <AlertCircle size={40} style={{ color: '#F25C5C' }} />
-          <div style={{ fontSize: 16, fontWeight: 500, color: '#E8E6F0', marginTop: 16 }}>
+          <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--color-text)', marginTop: 16 }}>
             Something went wrong
           </div>
-          <div style={{ fontSize: 13, color: '#7A7890', marginTop: 8 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 8 }}>
             An unexpected error occurred. Please reload the page and try again.
           </div>
           <button

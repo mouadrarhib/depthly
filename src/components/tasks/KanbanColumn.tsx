@@ -10,7 +10,7 @@ type Status = 'todo' | 'in_progress' | 'done'
 const COLUMN_MAX_HEIGHT = 640
 
 const COLUMN_CONFIG: Record<Status, { bg: string; color: string; label: string }> = {
-  todo: { bg: 'rgba(122, 120, 144, 0.06)', color: '#7A7890', label: 'To Do' },
+  todo: { bg: 'rgba(122, 120, 144, 0.06)', color: 'var(--color-text-muted)', label: 'To Do' },
   in_progress: { bg: 'rgba(75, 158, 255, 0.06)', color: '#4B9EFF', label: 'In Progress' },
   done: { bg: 'rgba(61, 214, 140, 0.06)', color: '#3DD68C', label: 'Done' },
 }
@@ -50,7 +50,7 @@ export function KanbanColumn({
         borderRadius: 14,
         padding: 16,
         border: '1px solid rgba(46, 46, 56, 0.8)',
-        backgroundColor: 'var(--color-depth-surface, #141417)',
+        backgroundColor: 'var(--color-depth-surface, var(--color-surface-raised))',
         display: 'flex',
         flexDirection: 'column',
       }}

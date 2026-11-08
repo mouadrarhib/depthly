@@ -97,11 +97,11 @@ export function getTourSteps(isMobile: boolean): DriveStep[] {
       data: { location: 'sidebar' },
     },
     {
-      element: '[data-tour="leaderboard"]',
+      element: '[data-tour="groups"]',
       popover: {
-        title: 'Leaderboard',
+        title: 'Groups',
         description:
-          'Compare focus hours with others (or just friends) and keep your streak alive.',
+          'Invite friends or teammates to a private focus group and see your progress together.',
         side: navSide,
         align: navAlign,
       },

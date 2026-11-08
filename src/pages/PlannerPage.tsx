@@ -482,23 +482,24 @@ export function PlannerPage() {
                           onClick={() => setSelectedDate(key)}
                           aria-label={`${day.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}, ${dayTasks.length} tasks`}
                           aria-pressed={key === selectedDate}
-                          className={`min-h-28 border-b border-r border-depth-border p-2 text-left align-top transition-colors focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${view === 'week' ? 'min-h-72' : ''} ${key === selectedDate ? 'bg-brand/15 ring-1 ring-inset ring-brand' : 'hover:bg-depth-raised'} ${day.getMonth() !== selected.getMonth() && view === 'month' ? 'opacity-45' : ''}`}
+                          className={`flex min-h-36 min-w-0 flex-col items-stretch border-b border-r border-border p-2 text-left transition-colors focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${view === 'week' ? 'min-h-72' : ''} ${key === selectedDate ? 'bg-brand/5 ring-1 ring-inset ring-brand' : 'hover:bg-muted/60'} ${day.getMonth() !== selected.getMonth() && view === 'month' ? 'opacity-45' : ''}`}
                         >
-                          <span className="font-data text-sm font-medium text-ink-primary">
+                          <span className={`font-data flex size-7 items-center justify-center rounded-full text-xs font-medium ${key === today ? 'bg-brand text-white' : 'text-foreground'}`}>
                             {day.getDate()}
                           </span>
-                          <span className="mt-3 block space-y-1">
+                          <span className="mt-2 block min-w-0 space-y-1.5">
                             {dayTasks.slice(0, view === 'week' ? 5 : 2).map((entry) => (
                               <span
                                 key={entry.task.id}
-                                className={`flex items-center gap-1 truncate rounded px-1.5 py-1 text-[11px] ${entry.state === 'done' ? 'bg-depth-raised text-ink-secondary line-through' : entry.state === 'skipped' ? 'bg-depth-raised text-ink-secondary' : 'bg-brand/20 text-ink-primary'}`}
+                                title={`${entry.task.title} · ${projectNames.get(entry.task.project_id) ?? 'Project'}${entry.recurring ? ' · Repeats' : ''}`}
+                                className={`flex min-w-0 items-start gap-1.5 rounded-md border border-border px-1.5 py-1.5 text-[11px] font-medium leading-4 ${entry.state === 'done' ? 'bg-muted text-muted-foreground line-through' : entry.state === 'skipped' ? 'bg-muted text-muted-foreground' : 'bg-card text-foreground'}`}
                               >
-                                {entry.recurring && <Repeat2 size={11} aria-hidden="true" />}
-                                <span className="truncate">{entry.task.title}</span>
+                                {entry.state === 'done' ? <Check size={11} className="mt-0.5 shrink-0 text-brand" aria-hidden="true" /> : entry.recurring ? <Repeat2 size={11} className="mt-0.5 shrink-0 text-brand" aria-hidden="true" /> : <span className="mt-1 size-1.5 shrink-0 rounded-full" style={{ backgroundColor: projects.find((project) => project.id === entry.task.project_id)?.color ?? 'var(--color-brand)' }} aria-hidden="true" />}
+                                <span className="line-clamp-2 min-w-0 break-words">{entry.task.title}</span>
                               </span>
                             ))}
                             {dayTasks.length > (view === 'week' ? 5 : 2) && (
-                              <span className="block text-[11px] text-ink-secondary">
+                              <span className="block px-1 text-[11px] font-medium text-muted-foreground">
                                 +{dayTasks.length - (view === 'week' ? 5 : 2)} more
                               </span>
                             )}

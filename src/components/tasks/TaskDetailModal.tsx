@@ -31,12 +31,12 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
           fontWeight:    600,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
-          color:         '#7A7890',
+          color:         'var(--color-text-muted)',
         }}
       >
         {label}
       </span>
-      <div className="min-w-0" style={{ fontSize: 13, color: '#E8E6F0' }}>{children}</div>
+      <div className="min-w-0" style={{ fontSize: 13, color: 'var(--color-text)' }}>{children}</div>
     </div>
   )
 }
@@ -92,7 +92,7 @@ export function TaskDetailModal({ open, onClose, task, sessionMins, onEdit, onSt
                 {task.description}
               </p>
             ) : (
-              <span style={{ color: '#3D3B4E', fontStyle: 'italic' }}>No description</span>
+              <span style={{ color: 'var(--color-text-faint)', fontStyle: 'italic' }}>No description</span>
             )}
           </DetailRow>
 
@@ -102,19 +102,19 @@ export function TaskDetailModal({ open, onClose, task, sessionMins, onEdit, onSt
               {dueText ? (
                 <span
                   className="inline-flex items-center gap-1.5"
-                  style={{ color: overdue ? '#F25C5C' : '#E8E6F0' }}
+                  style={{ color: overdue ? '#F25C5C' : 'var(--color-text)' }}
                 >
                   <Calendar size={13} />
                   {dueText}
                 </span>
               ) : (
-                <span style={{ color: '#3D3B4E' }}>—</span>
+                <span style={{ color: 'var(--color-text-faint)' }}>—</span>
               )}
             </DetailRow>
 
             <DetailRow label="Focus sessions">
               <span className="font-data inline-flex items-center gap-1.5">
-                <Timer size={13} style={{ color: '#7A7890' }} />
+                <Timer size={13} style={{ color: 'var(--color-text-muted)' }} />
                 {task.actual_pomodoros ?? 0}
                 {task.estimated_pomodoros != null && ` / ${task.estimated_pomodoros}`}
               </span>
@@ -122,7 +122,7 @@ export function TaskDetailModal({ open, onClose, task, sessionMins, onEdit, onSt
 
             <DetailRow label="Time logged">
               <span className="font-data inline-flex items-center gap-1.5">
-                <Clock size={13} style={{ color: '#7A7890' }} />
+                <Clock size={13} style={{ color: 'var(--color-text-muted)' }} />
                 {sessionMins != null && sessionMins > 0 ? formatMinutesToHours(sessionMins) : '—'}
               </span>
             </DetailRow>

@@ -34,7 +34,7 @@ const TRIGGER_DESC: Record<Trigger, string> = {
   sessions:    "You've reached your monthly limit",
   analytics:   'Unlock your full history',
   export:      'CSV export is a Pro feature',
-  leaderboard: 'Join the leaderboard with Pro',
+  leaderboard: 'Share your public profile with Pro',
   kanban:      'Unlock the Kanban Board',
 }
 
@@ -43,7 +43,6 @@ const FEATURES: Array<{ title: string; desc: string }> = [
   { title: 'Kanban Board',                   desc: 'Visual workflow management for your tasks' },
   { title: 'Full Analytics History',         desc: 'Deep dive into all your past focus sessions' },
   { title: '52-Week Heatmap',                desc: 'See your full year of focus activity at a glance' },
-  { title: 'Global Leaderboard',             desc: 'Compete and rank with the Depthly community' },
   { title: 'CSV Export',                     desc: 'Download your data anytime for invoicing or analysis' },
   { title: 'Early Supporter Benefits',       desc: 'Help shape Depthly as one of our first Pro members' },
   { title: 'All Future Pro Features',        desc: 'Instant access to everything we ship next' },
@@ -121,7 +120,7 @@ export function UpgradeModal({ open, onClose, trigger }: UpgradeModalProps) {
           fontWeight:    600,
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          color:         '#7A7890',
+          color:         'var(--color-text-muted)',
           flexShrink:    0,
         }}>
           Pro Features
@@ -139,8 +138,8 @@ export function UpgradeModal({ open, onClose, trigger }: UpgradeModalProps) {
             <div key={title} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
               <CheckCircle size={16} style={{ color: '#3DD68C', flexShrink: 0, marginTop: 2 }} />
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#E8E6F0' }}>{title}</div>
-                <div style={{ fontSize: 11, color: '#7A7890', marginTop: 2 }}>{desc}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{title}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>{desc}</div>
               </div>
             </div>
           ))}
@@ -149,7 +148,7 @@ export function UpgradeModal({ open, onClose, trigger }: UpgradeModalProps) {
         {/* Fixed bottom — pricing cards + footer */}
         <div style={{
           padding:    '20px 24px 24px',
-          borderTop:  '1px solid #2E2E38',
+          borderTop:  '1px solid var(--color-border)',
           marginTop:  8,
           flexShrink: 0,
         }}>
@@ -164,20 +163,20 @@ export function UpgradeModal({ open, onClose, trigger }: UpgradeModalProps) {
             >
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 160, padding: 14 }}>
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', color: '#7A7890', textTransform: 'uppercase', marginBottom: 8 }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
                     Monthly
                   </div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                    <span className="font-data" style={{ fontSize: 28, fontWeight: 700, color: '#E8E6F0', lineHeight: 1 }}>$5</span>
-                    <span style={{ fontSize: 12, color: '#7A7890', fontWeight: 400 }}>/mo</span>
+                    <span className="font-data" style={{ fontSize: 28, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>$5</span>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 400 }}>/mo</span>
                   </div>
-                  <div style={{ fontSize: 11, color: '#7A7890', marginTop: 6 }}>Billed monthly</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 6 }}>Billed monthly</div>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   className="w-full text-[12px]"
-                  style={{ border: '1px solid #2E2E38' }}
+                  style={{ border: '1px solid var(--color-border)' }}
                   isLoading={loadingPlan === 'pro_monthly'}
                   disabled={loadingPlan !== null}
                   onClick={() => handleChoose('pro_monthly')}
@@ -215,12 +214,12 @@ export function UpgradeModal({ open, onClose, trigger }: UpgradeModalProps) {
               >
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 160, padding: 14 }}>
                   <div>
-                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', color: '#7A7890', textTransform: 'uppercase', marginBottom: 8 }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
                       Yearly
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                      <span className="font-data" style={{ fontSize: 28, fontWeight: 700, color: '#E8E6F0', lineHeight: 1 }}>$39</span>
-                      <span style={{ fontSize: 12, color: '#7A7890', fontWeight: 400 }}>/year</span>
+                      <span className="font-data" style={{ fontSize: 28, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>$39</span>
+                      <span style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 400 }}>/year</span>
                     </div>
                     <span
                       style={{
@@ -259,12 +258,12 @@ export function UpgradeModal({ open, onClose, trigger }: UpgradeModalProps) {
             >
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 160, padding: 14 }}>
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', color: '#7A7890', textTransform: 'uppercase', marginBottom: 8 }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
                     Lifetime
                   </div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                    <span className="font-data" style={{ fontSize: 28, fontWeight: 700, color: '#E8E6F0', lineHeight: 1 }}>$79</span>
-                    <span style={{ fontSize: 12, color: '#7A7890', fontWeight: 400 }}>once</span>
+                    <span className="font-data" style={{ fontSize: 28, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>$79</span>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 400 }}>once</span>
                   </div>
                   <div style={{
                     display:      'inline-block',
@@ -284,7 +283,7 @@ export function UpgradeModal({ open, onClose, trigger }: UpgradeModalProps) {
                   variant="outline"
                   size="sm"
                   className="w-full text-[12px]"
-                  style={{ border: '1px solid #2E2E38' }}
+                  style={{ border: '1px solid var(--color-border)' }}
                   isLoading={loadingPlan === 'lifetime'}
                   disabled={loadingPlan !== null}
                   onClick={() => handleChoose('lifetime')}

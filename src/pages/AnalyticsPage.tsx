@@ -122,11 +122,11 @@ export function AnalyticsPage() {
               padding: '96px 0',
             }}
           >
-            <BarChart2 size={48} style={{ color: '#3D3B4E' }} />
-            <p style={{ fontSize: 20, fontWeight: 500, color: '#E8E6F0', marginTop: 16 }}>
+            <BarChart2 size={48} style={{ color: 'var(--color-text-faint)' }} />
+            <p style={{ fontSize: 20, fontWeight: 500, color: 'var(--color-text)', marginTop: 16 }}>
               No data yet
             </p>
-            <p style={{ fontSize: 13, color: '#7A7890', marginTop: 8 }}>
+            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 8 }}>
               Complete your first focus session to start seeing your analytics
             </p>
             <Button variant="primary" onClick={() => navigate(PATHS.timer)} className="mt-5">

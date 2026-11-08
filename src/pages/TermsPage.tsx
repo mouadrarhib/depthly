@@ -8,9 +8,9 @@ import { PATHS } from '@/routes/paths'
 const EMAIL = 'contact@getdepthly.com'
 const MAILTO = `mailto:${EMAIL}`
 
-const h2Style: CSSProperties = { fontSize: 17, fontWeight: 500, color: '#E8E6F0', letterSpacing: '-0.01em' }
-const h3Style: CSSProperties = { fontSize: 15, fontWeight: 500, color: '#E8E6F0' }
-const pStyle: CSSProperties = { fontSize: 14, color: '#7A7890', lineHeight: 1.75 }
+const h2Style: CSSProperties = { fontSize: 17, fontWeight: 500, color: 'var(--color-text)', letterSpacing: '-0.01em' }
+const h3Style: CSSProperties = { fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }
+const pStyle: CSSProperties = { fontSize: 14, color: 'var(--color-text-muted)', lineHeight: 1.75 }
 const ulStyle: CSSProperties = { paddingLeft: 20, margin: 0, listStyleType: 'disc', display: 'flex', flexDirection: 'column', gap: 6 }
 const linkStyle: CSSProperties = { color: '#4B9EFF', textDecoration: 'underline', textDecorationColor: 'rgba(75,158,255,0.35)' }
 
@@ -52,7 +52,7 @@ function Section({ id, number, title, children }: { id: string; number: number; 
       style={{
         marginTop: 32,
         paddingTop: 32,
-        borderTop: '0.5px solid #2E2E38',
+        borderTop: '0.5px solid var(--color-border)',
         display: 'flex',
         flexDirection: 'column',
         gap: 12,
@@ -88,8 +88,7 @@ export function TermsPage() {
         Depthly is a focus session and time-tracking web application for students, freelancers, and
         developers. Users track deep work sessions with a Pomodoro/custom timer, organize work into
         projects and tasks (list and kanban views), and review their focus habits through daily,
-        weekly, monthly, and yearly analytics. Depthly includes an optional public leaderboard and
-        profile system, and offers a free plan alongside a paid subscription tier with expanded
+        weekly, monthly, and yearly analytics. Depthly includes optional public profiles and private focus groups, and offers a free plan alongside a paid subscription tier with expanded
         limits and features.
       </p>
       <p style={pStyle}>
@@ -117,7 +116,7 @@ export function TermsPage() {
       <p style={pStyle}>We recommend that you print a copy of these Legal Terms for your records.</p>
 
       {/* Table of contents */}
-      <div style={{ marginTop: 32, paddingTop: 32, borderTop: '0.5px solid #2E2E38' }}>
+      <div style={{ marginTop: 32, paddingTop: 32, borderTop: '0.5px solid var(--color-border)' }}>
         <h2 style={{ ...h2Style, marginBottom: 12 }}>TABLE OF CONTENTS</h2>
         <nav
           style={{
@@ -210,7 +209,7 @@ export function TermsPage() {
           you have when you post or upload any content through the Services.
         </p>
         <p style={pStyle}>
-          <strong style={{ color: '#E8E6F0' }}>Submissions:</strong> By directly sending us any
+          <strong style={{ color: 'var(--color-text)' }}>Submissions:</strong> By directly sending us any
           question, comment, suggestion, idea, feedback, or other information about the Services
           ("Submissions"), you agree to assign to us all intellectual property rights in such
           Submission. You agree that we shall own this Submission and be entitled to its
@@ -218,7 +217,7 @@ export function TermsPage() {
           without acknowledgment or compensation to you.
         </p>
         <p style={pStyle}>
-          <strong style={{ color: '#E8E6F0' }}>Contributions:</strong> The Services may invite you
+          <strong style={{ color: 'var(--color-text)' }}>Contributions:</strong> The Services may invite you
           to chat, contribute to, or participate in blogs, message boards, online forums, and other
           functionality during which you may create, submit, post, display, transmit, publish,
           distribute, or broadcast content and materials to us or through the Services, including
@@ -231,7 +230,7 @@ export function TermsPage() {
           possibly through third-party websites.
         </p>
         <p style={pStyle}>
-          <strong style={{ color: '#E8E6F0' }}>
+          <strong style={{ color: 'var(--color-text)' }}>
             When you post Contributions, you grant us a license (including use of your name,
             trademarks, and logos):
           </strong>{' '}
@@ -251,7 +250,7 @@ export function TermsPage() {
           commercial images you provide.
         </p>
         <p style={pStyle}>
-          <strong style={{ color: '#E8E6F0' }}>You are responsible for what you post or
+          <strong style={{ color: 'var(--color-text)' }}>You are responsible for what you post or
           upload:</strong> By sending us Submissions and/or posting Contributions through any part
           of the Services or making Contributions accessible through the Services by linking your
           account through the Services to any of your social networking accounts, you:
@@ -287,7 +286,7 @@ export function TermsPage() {
           law.
         </p>
         <p style={pStyle}>
-          <strong style={{ color: '#E8E6F0' }}>We may remove or edit your Content:</strong>{' '}
+          <strong style={{ color: 'var(--color-text)' }}>We may remove or edit your Content:</strong>{' '}
           Although we have no obligation to monitor any Contributions, we shall have the right to
           remove or edit any Contributions at any time without notice if in our reasonable opinion
           we consider such Contributions harmful or in breach of these Legal Terms. If we remove or
@@ -933,7 +932,7 @@ export function TermsPage() {
           regarding use of the Services, please contact us at:
         </p>
         <p style={{ ...pStyle, marginTop: -6 }}>
-          <strong style={{ color: '#E8E6F0' }}>Depthly</strong>
+          <strong style={{ color: 'var(--color-text)' }}>Depthly</strong>
           <br />
           <a href={MAILTO} style={linkStyle}>{EMAIL}</a>
         </p>

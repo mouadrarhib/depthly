@@ -28,12 +28,12 @@ function ProjectTooltip({ active, payload }: ProjectTooltipProps) {
   const entry = payload[0].payload
   return (
     <div style={{
-      backgroundColor: '#141417',
-      border:          '1px solid #2E2E38',
+      backgroundColor: 'var(--color-surface-raised)',
+      border:          '1px solid var(--color-border)',
       borderRadius:    8,
       padding:         '8px 12px',
     }}>
-      <span style={{ fontSize: 13, color: '#E8E6F0' }}>
+      <span style={{ fontSize: 13, color: 'var(--color-text)' }}>
         {entry.name}: {formatMinutesToHours(entry.minutes)} ({entry.pct}%)
       </span>
     </div>
@@ -41,8 +41,8 @@ function ProjectTooltip({ active, payload }: ProjectTooltipProps) {
 }
 
 const card: React.CSSProperties = {
-  backgroundColor: '#141417',
-  border:          '1px solid #2E2E38',
+  backgroundColor: 'var(--color-surface-raised)',
+  border:          '1px solid var(--color-border)',
   borderRadius:    14,
   padding:         16,
 }
@@ -52,12 +52,12 @@ function CardHeader({ title, subtitle }: { title: string; subtitle?: string }) {
     <>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <Tag size={16} style={{ color: '#4B9EFF', flexShrink: 0 }} />
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#E8E6F0' }}>{title}</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{title}</span>
       </div>
       {subtitle && (
-        <p style={{ fontSize: 12, color: '#7A7890', marginTop: 2 }}>{subtitle}</p>
+        <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 2 }}>{subtitle}</p>
       )}
-      <div style={{ height: 1, backgroundColor: '#2E2E38', margin: '8px 0' }} />
+      <div style={{ height: 1, backgroundColor: 'var(--color-border)', margin: '8px 0' }} />
     </>
   )
 }
@@ -128,7 +128,7 @@ export function ProjectBreakdownCard({
                 dataKey="minutes"
                 startAngle={90}
                 endAngle={-270}
-                stroke="#141417"
+                stroke="var(--color-surface-raised)"
                 strokeWidth={2}
               >
                 {pieData.map((entry, i) => (
@@ -177,14 +177,14 @@ export function ProjectBreakdownCard({
                         width: 10, height: 10, borderRadius: '50%',
                         backgroundColor: entry.color, flexShrink: 0,
                       }} />
-                      <span title={entry.name} style={{ fontSize: 13, fontWeight: 600, color: '#E8E6F0', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span title={entry.name} style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {entry.name}
                       </span>
                     </span>
-                    <span className="font-data" style={{ fontSize: 13, color: '#7A7890', flexShrink: 0 }}>
+                    <span className="font-data" style={{ fontSize: 13, color: 'var(--color-text-muted)', flexShrink: 0 }}>
                       {formatMinutesToHours(entry.minutes)}
                     </span>
-                    <span style={{ fontSize: 12, color: '#3D3B4E', flexShrink: 0, minWidth: 30, textAlign: 'right' }}>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-faint)', flexShrink: 0, minWidth: 30, textAlign: 'right' }}>
                       {entry.pct}%
                     </span>
                   </div>
@@ -206,8 +206,8 @@ export function ProjectBreakdownCard({
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0' }}>
-          <Tag size={28} style={{ color: '#3D3B4E' }} />
-          <p style={{ fontSize: 13, color: '#7A7890', marginTop: 10 }}>
+          <Tag size={28} style={{ color: 'var(--color-text-faint)' }} />
+          <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 10 }}>
             {emptyText}
           </p>
           <Link
