@@ -124,22 +124,26 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
             )
           }
 
-          pathSteps.forEach((step) => {
-            pathTimeline.fromTo(
+          // Card starts are independent of their internal preview duration:
+          // 0.22s, 0.46s, 0.70s. Preview animations may overlap naturally.
+          pathSteps.forEach((step, index) => {
+            const stepTimeline = gsap.timeline()
+            stepTimeline.fromTo(
               step,
               { y: 14, opacity: 0 },
               { y: 0, opacity: 1, duration: 0.42, ease: 'power3.out' }
             )
-            animatePreview(pathTimeline, step)
+            animatePreview(stepTimeline, step)
             const connector = step.querySelector('[data-focus-connector]')
             if (connector) {
-              pathTimeline.fromTo(
+              stepTimeline.fromTo(
                 connector,
                 { opacity: 0, scale: 0.55 },
                 { opacity: 1, scale: 1, duration: 0.22, ease: 'power2.out' },
                 '-=0.08'
               )
             }
+            pathTimeline.add(stepTimeline, 0.22 + index * 0.24)
           })
         } else {
           if (pathHeader) {

@@ -19,11 +19,11 @@ export function AuthJourney() {
           <g key={x} className="auth-journey-node" style={{ animationDelay: `${0.45 + index * 0.32}s` }}>
             <circle cx={x} cy="18" r="7" fill="currentColor" className="text-depth-bg" />
             <circle cx={x} cy="18" r="5" fill="currentColor" className="text-brand" />
-            <circle cx={x} cy="18" r="1.5" fill="currentColor" className="text-ink-primary" />
+            <circle cx={x} cy="18" r="1.5" fill="currentColor" className="text-white" />
           </g>
         ))}
       </svg>
-      <div className="mt-1 grid grid-cols-3 text-sm font-medium text-ink-primary/85">
+      <div className="mt-1 grid grid-cols-3 text-sm font-medium text-white/85">
         <span>Focus</span>
         <span className="text-center">Track</span>
         <span className="text-right">Reflect</span>

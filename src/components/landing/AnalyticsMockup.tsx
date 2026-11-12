@@ -5,12 +5,12 @@ import { formatMinutesToHours } from '@/lib/utils/analytics'
 
 // Same intensity scale as the real analytics heatmap (MonthlyView).
 function cellColor(minutes: number): string {
-  if (minutes === 0) return '#1A1A1F'
-  if (minutes < 30) return 'rgba(75,158,255,0.18)'
-  if (minutes < 60) return 'rgba(75,158,255,0.35)'
-  if (minutes < 120) return 'rgba(75,158,255,0.55)'
-  if (minutes < 180) return 'rgba(75,158,255,0.75)'
-  return '#4B9EFF'
+  if (minutes === 0) return 'var(--color-surface-overlay)'
+  if (minutes < 30) return 'color-mix(in srgb, var(--color-brand) 12%, var(--color-surface-raised))'
+  if (minutes < 60) return 'color-mix(in srgb, var(--color-brand) 22%, var(--color-surface-raised))'
+  if (minutes < 120) return 'color-mix(in srgb, var(--color-brand) 32%, var(--color-surface-raised))'
+  if (minutes < 180) return '#2563EB'
+  return '#1D4ED8'
 }
 
 // Illustrative month — 28 days of fake focus minutes.
@@ -47,7 +47,7 @@ function StatCard({
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-1.5">
       <span className="flex items-center gap-2" style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
-        <Icon size={14} style={{ color: '#4B9EFF' }} strokeWidth={1.75} />
+        <Icon size={14} style={{ color: 'var(--color-brand)' }} strokeWidth={1.75} />
         {label}
       </span>
       <span
@@ -127,7 +127,7 @@ export function AnalyticsMockup() {
                 borderRadius: '50%',
                 backgroundColor: cellColor(minutes),
                 fontSize: 11,
-                color: minutes >= 60 ? 'var(--color-text)' : 'var(--color-text-muted)',
+                color: minutes >= 120 ? '#FFFFFF' : minutes === 0 ? 'var(--color-text-muted)' : 'var(--color-text)',
               }}
             >
               {i + 1}

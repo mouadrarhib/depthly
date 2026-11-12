@@ -14,7 +14,7 @@ export function AuthLayout() {
 
   return (
     <div className="min-h-dvh bg-depth-bg lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(440px,0.95fr)]">
-      <aside className="relative hidden min-h-dvh overflow-hidden border-r border-depth-border lg:flex">
+      <aside className="dark relative hidden min-h-dvh overflow-hidden border-r border-depth-border bg-background text-foreground lg:flex">
         <img
           src="/images/focus-work-hero.png"
           alt=""
@@ -25,22 +25,22 @@ export function AuthLayout() {
           aria-hidden="true"
           className="absolute inset-0 bg-[linear-gradient(180deg,rgba(13,13,16,0.38)_0%,rgba(13,13,16,0.2)_38%,rgba(13,13,16,0.94)_100%)]"
         />
-        <div aria-hidden="true" className="absolute inset-0 bg-depth-bg/20" />
+        <div aria-hidden="true" className="absolute inset-0 bg-black/20" />
 
         <div className="relative flex min-h-dvh w-full flex-col p-10 xl:p-14">
           <Link
             to={PATHS.home}
             aria-label="Depthly home"
-            className="w-fit text-ink-primary transition-opacity hover:opacity-80"
+            className="w-fit text-white transition-opacity hover:opacity-80"
           >
             <Logo size={30} withWordmark />
           </Link>
 
           <div className="auth-copy-enter mt-auto max-w-[590px]">
-            <p className="text-[clamp(38px,4.6vw,64px)] font-medium leading-[1.03] tracking-[-0.045em] text-ink-primary">
+            <p className="text-[clamp(38px,4.6vw,64px)] font-medium leading-[1.03] tracking-[-0.03em] text-white">
               Focus on the work. Keep the progress.
             </p>
-            <p className="mt-6 max-w-[500px] text-base leading-7 text-ink-primary/75">
+            <p className="mt-6 max-w-[500px] text-base leading-7 text-white/80">
               A focused place for study, client work, and everything you are learning.
             </p>
 
