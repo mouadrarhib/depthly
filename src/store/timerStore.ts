@@ -207,7 +207,7 @@ export const useTimerStore = create<TimerState>()(persist((set, get) => ({
   setMode: (mode) => {
     const { focusDuration } = get()
     set({
-      mode,
+      mode: mode === 'custom' ? 'pomodoro' : mode,
       elapsed:     0,
       clockBaseElapsed: 0,
       clockStartedAt: null,
@@ -264,6 +264,14 @@ export const useTimerStore = create<TimerState>()(persist((set, get) => ({
   },
 }), {
   name: TIMER_SETTINGS_STORAGE_KEY,
+  merge: (persisted, current) => {
+    const saved = persisted as Partial<typeof current> | undefined
+    return {
+      ...current,
+      ...saved,
+      mode: saved?.mode === 'custom' ? 'pomodoro' : (saved?.mode ?? current.mode),
+    }
+  },
   partialize: (state) => ({
     mode: state.mode,
     pomodoroPreset: state.pomodoroPreset,

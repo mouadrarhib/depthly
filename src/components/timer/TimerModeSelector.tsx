@@ -1,11 +1,10 @@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useTimerStore } from '@/store/timerStore'
 
-type TimerMode = 'pomodoro' | 'custom' | 'free'
+type TimerMode = 'pomodoro' | 'free'
 
 const MODES: { value: TimerMode; label: string }[] = [
   { value: 'pomodoro', label: 'Pomodoro' },
-  { value: 'custom',   label: 'Custom'   },
   { value: 'free',     label: 'Free'     },
 ]
 
@@ -15,7 +14,7 @@ export function TimerModeSelector() {
 
   return (
     <Tabs
-      value={mode}
+      value={mode === 'custom' ? 'pomodoro' : mode}
       onValueChange={(v) => {
         if (v === mode) return
         if (isActive) return

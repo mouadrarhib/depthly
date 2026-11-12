@@ -76,7 +76,7 @@ export function LogoIntro({ onComplete }: LogoIntroProps) {
               cx="24"
               cy="24"
               r="3"
-              fill="#4B9EFF"
+              fill="var(--color-brand)"
             />
           </svg>
 

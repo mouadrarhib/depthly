@@ -66,7 +66,7 @@ function TypePills({
   disabled: boolean
 }) {
   const pills: { v: 'timer' | 'free'; label: string }[] = [
-    { v: 'timer', label: 'Timer' },
+    { v: 'timer', label: 'Pomodoro' },
     { v: 'free',  label: 'Free'  },
   ]
   return (

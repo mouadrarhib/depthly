@@ -32,7 +32,7 @@ TimerPage — two-column timer workspace
 ├── useSaveSession()         — TanStack Query mutation → trusted start, pause,
 │                               resume, finish, and cancel timer RPCs
 │
-├── TimerModeSelector        — shadcn Tabs: Pomodoro / Custom / Free
+├── TimerModeSelector        — shadcn Tabs: Pomodoro / Free
 ├── SessionDots              — 2 dots showing focus ● / break ○ position
 ├── TimerDisplay             — ProgressRing + countdown + label
 │   └── ProgressRing         — responsive SVG stroke ring (290px desktop)
@@ -269,7 +269,8 @@ All buttons: `h-48px`, `rounded-[12px]`, `min-w-[120px]`. Start button: `w-[220p
 
 Tabs component (shadcn `Tabs / TabsList / TabsTrigger`) styled as pills.
 
-- Three modes: **Pomodoro**, **Custom**, **Free**
+- Two visible modes: **Pomodoro** (configurable countdown and breaks) and **Free** (stopwatch).
+- Custom durations remain available within Pomodoro settings. Legacy persisted `custom` mode is normalized to `pomodoro` without resetting durations.
 - Disabled while `isRunning` (changing mode stops the current session)
 - `TabsList`: `background: var(--color-surface-overlay)`, `rounded-full`, `p-1`
 - Active `TabsTrigger`: `bg: var(--color-surface-raised)`, `color: var(--color-brand)`, `border: rgba(75,158,255,0.3)`

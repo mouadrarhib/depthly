@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 
 import { Button, Logo } from '@/components/ui'
+import { ThemeButton } from '@/components/ui/ThemeButton'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,7 +78,7 @@ export function LandingNav() {
       data-landing-nav
       className="sticky top-0 z-50 border-b border-depth-border bg-depth-bg/95 backdrop-blur-md"
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-5 md:px-8">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-1 px-3 sm:gap-4 sm:px-5 md:px-8">
         <div className="flex min-w-0 items-center gap-9">
           <Link
             to={PATHS.home}
@@ -107,6 +108,8 @@ export function LandingNav() {
           >
             Pricing
           </a>
+
+          <ThemeButton />
 
           {/* Auth CTAs */}
           {user ? (

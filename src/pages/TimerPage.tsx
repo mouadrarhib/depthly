@@ -102,7 +102,7 @@ function TimerContext() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-ink-primary">Session rhythm</h2>
-            <p className="mt-1 text-xs text-ink-secondary">{mode === 'free' ? 'Count up at your own pace' : mode === 'custom' ? 'Custom durations' : 'Current Pomodoro preset'}</p>
+            <p className="mt-1 text-xs text-ink-secondary">{mode === 'free' ? 'Count up at your own pace' : 'Your focus and break durations'}</p>
           </div>
           <button type="button" onClick={toggleSettings} className="inline-flex min-h-9 items-center text-xs font-medium text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Edit</button>
         </div>

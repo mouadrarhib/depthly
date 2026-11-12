@@ -1,4 +1,4 @@
-import { Check, CheckCircle, CircleHelp, Clock, Flame, Menu, Monitor, Moon, Sun } from 'lucide-react'
+import { CheckCircle, CircleHelp, Clock, Flame, Menu } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 
 import {
@@ -9,10 +9,10 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { StreakBadge } from '@/components/ui/StreakBadge'
+import { ThemeButton } from '@/components/ui/ThemeButton'
 import { clearOnboardingTourSeen, runOnboardingTour } from '@/hooks/useOnboardingTour'
 import { clearProjectsTourSeen, runProjectsTour } from '@/hooks/useProjectsTour'
 import { useTodayStats } from '@/hooks/useTodayStats'
-import type { ThemePreference } from '@/lib/theme'
 import { PATHS } from '@/routes/paths'
 import { useAuthStore, useUiStore } from '@/store'
 
@@ -43,43 +43,6 @@ const PAGE_TITLES: Record<string, string> = {
   [PATHS.groupLeaderboards]: 'Groups',
   [PATHS.billing]: 'Billing',
   [PATHS.settings]: 'Settings',
-}
-
-const THEME_OPTIONS: Array<{ value: ThemePreference; label: string; Icon: typeof Sun }> = [
-  { value: 'light', label: 'Light', Icon: Sun },
-  { value: 'dark', label: 'Dark', Icon: Moon },
-  { value: 'system', label: 'System', Icon: Monitor },
-]
-
-function ThemeButton() {
-  const theme = useUiStore((state) => state.theme)
-  const setTheme = useUiStore((state) => state.setTheme)
-  const current = THEME_OPTIONS.find((option) => option.value === theme) ?? THEME_OPTIONS[2]
-  const Icon = current.Icon
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          aria-label={`Change theme, current: ${current.label}`}
-          title={`Theme: ${current.label}`}
-          className="flex size-11 shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-overlay hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
-        >
-          <Icon size={18} aria-hidden="true" />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-40">
-        {THEME_OPTIONS.map(({ value, label, Icon: OptionIcon }) => (
-          <DropdownMenuItem key={value} onClick={() => setTheme(value)} className="min-h-11 gap-2.5" aria-label={`${label} theme${theme === value ? ', selected' : ''}`}>
-            <OptionIcon size={16} aria-hidden="true" />
-            <span className="flex-1">{label}</span>
-            {theme === value && <Check size={15} className="text-brand" aria-hidden="true" />}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
 }
 
 // ── Help button (opens onboarding-tour replay menu) ─────────────────────────

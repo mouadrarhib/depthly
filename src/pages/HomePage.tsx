@@ -11,6 +11,7 @@ import { SessionDetailModal } from '@/components/sessions/SessionDetailModal'
 import { SessionModal } from '@/components/sessions/SessionModal'
 import { SessionRow } from '@/components/sessions/SessionRow'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { ProgressRing } from '@/components/ui/ProgressRing'
 import { useDailySummariesRange, useDailySummary, useProfile } from '@/hooks/useAnalytics'
 import { useGoals } from '@/hooks/useGoals'
 import { useProjects } from '@/hooks/useProjects'
@@ -325,7 +326,7 @@ export function HomePage() {
         </section>
 
         <section
-          className="rounded-2xl border border-border bg-card p-5 text-card-foreground lg:min-h-[270px]"
+          className="flex flex-col rounded-2xl border border-border bg-card p-5 text-card-foreground lg:min-h-[270px]"
           aria-labelledby="daily-goal-heading"
         >
           <h2 id="daily-goal-heading" className="text-base font-semibold text-foreground">
@@ -333,32 +334,29 @@ export function HomePage() {
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">Keep your target in view as you work.</p>
           {dailyGoalMins ? (
-            <>
-              <p className="font-data mt-6 text-[26px] font-semibold text-foreground">
-                {focusMinutes}{' '}
-                <span className="text-sm font-normal text-muted-foreground">
-                  / {dailyGoalMins} min
-                </span>
-              </p>
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 pt-5">
               <div
                 role="progressbar"
                 aria-label="Daily focus goal"
                 aria-valuenow={goalPct}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                className="mt-3 h-2 overflow-hidden rounded-full bg-muted"
+                aria-valuetext={`${focusMinutes} of ${dailyGoalMins} minutes, ${goalPct}% of daily goal`}
               >
-                <div className="h-full rounded-full bg-brand" style={{ width: `${goalPct}%` }} />
+                <ProgressRing progress={goalPct / 100} size={192} strokeWidth={10}>
+                  <div className="flex flex-col items-center gap-1 text-center">
+                    <span className="font-data text-[34px] font-semibold leading-tight tracking-tight text-foreground">{focusMinutes}</span>
+                    <span className="text-xs text-muted-foreground">of <span className="font-data">{dailyGoalMins}</span> min focused</span>
+                    <span className="font-data mt-2 rounded-full bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">{goalPct}%</span>
+                  </div>
+                </ProgressRing>
               </div>
-              <div className="mt-3 flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">
+              <p className="text-center text-sm font-medium text-muted-foreground" aria-live="polite">
                   {minutesRemaining === 0
                     ? 'Goal reached today'
                     : `${minutesRemaining} min to your target`}
-                </span>
-                <span className="font-data text-brand">{goalPct}%</span>
-              </div>
-            </>
+              </p>
+            </div>
           ) : (
             <div className="mt-6">
               <p className="text-sm text-muted-foreground">

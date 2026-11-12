@@ -60,7 +60,7 @@ export function TimerWidget({
   const hasCompleted = !isFree && duration > 0 && elapsed >= duration
   const progress = isFree || duration === 0 ? 0 : elapsed / duration
   const remaining = isFree ? elapsed : Math.max(0, duration - elapsed)
-  const modeLabel = mode === 'pomodoro' ? 'Pomodoro' : mode === 'custom' ? 'Custom' : 'Free'
+  const modeLabel = mode === 'free' ? 'Free' : 'Pomodoro'
   const showPlanTask =
     !!nextTask &&
     isIdle &&

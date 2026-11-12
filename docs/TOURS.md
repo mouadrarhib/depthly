@@ -22,7 +22,7 @@ User-facing copy says **guide**. Existing code identifiers retain `tour` and
 - Package: `driver.js`
 - Base stylesheet: `driver.js/dist/driver.css`
 - Depthly theme overrides: `src/lib/onboarding/onboarding.css`
-- Popovers use the existing dark surfaces, borders, typography, and brand action color.
+- Popovers, arrows, buttons, and text use shared theme tokens. Light mode uses a lighter dimming overlay; dark mode retains its existing overlay.
 - Progress is always shown (`1 of 9`, `1 of 3`, and so on).
 - Closing with the X, Escape, or the final Done button counts the guide as seen.
 - Page guides must never target an element that is not currently rendered.
