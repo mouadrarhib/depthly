@@ -55,25 +55,10 @@ function SubHeading({ children }: { children: ReactNode }) {
 
 export function PrivacyPage() {
   return (
-    <LegalLayout title="Privacy Policy" lastUpdated="August 27, 2026">
-      {/* Table of contents */}
-      <h2 style={{ ...h2Style, marginBottom: 4 }}>TABLE OF CONTENTS</h2>
-      <nav
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-          gap: '6px 16px',
-        }}
-      >
-        {TOC_ITEMS.map(({ id, label }) => (
-          <a key={id} href={`#${id}`} style={{ ...linkStyle, fontSize: 13 }}>
-            {label}
-          </a>
-        ))}
-      </nav>
+    <LegalLayout title="Privacy Policy" lastUpdated="November 12, 2026" contents={TOC_ITEMS}>
 
       <Section id="intro" number={1} title="INTRODUCTION">
-        <p style={pStyle}>We are Depthly ("Company," "we," "us," "our").</p>
+        <p style={pStyle}>Depthly is powered by OMBRIVA LLC ("Company," "we," "us," "our").</p>
         <p style={pStyle}>
           This Privacy Policy describes how we collect, use, store, and share information when you
           use our website and application at{' '}
@@ -365,7 +350,7 @@ export function PrivacyPage() {
 
       <Section id="dpo" number={12} title="DATA PROTECTION OFFICER">
         <p style={pStyle}>
-          Depthly serves as the entity responsible for privacy matters. You may contact us at{' '}
+          OMBRIVA LLC is responsible for privacy matters relating to Depthly. You may contact us at{' '}
           <a href={MAILTO} style={linkStyle}>{EMAIL}</a> regarding any privacy-related questions or
           concerns.
         </p>
@@ -394,7 +379,7 @@ export function PrivacyPage() {
           practices, please contact us at:
         </p>
         <p style={{ ...pStyle, marginTop: -6 }}>
-          <strong style={strongStyle}>Depthly</strong>
+          <strong style={strongStyle}>OMBRIVA LLC — Depthly</strong>
           <br />
           Email: <a href={MAILTO} style={linkStyle}>{EMAIL}</a>
         </p>

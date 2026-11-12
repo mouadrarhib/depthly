@@ -6,6 +6,11 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
+// Keep completed triggers registered until matchMedia cleanup. `once: true`
+// can mutate ScrollTrigger's registry during another trigger's refresh when
+// mounting at a restored scroll position. No replay/reverse is needed here.
+const revealActions = 'play none none none'
+
 /**
  * One coordinated GSAP motion system for the public landing page.
  * Hero content stays opaque so the value proposition remains readable on
@@ -49,7 +54,7 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
       const weekBars = root.querySelectorAll('[data-hero-week-bar]')
       if (goalFill && weekBars.length) {
         const progressTimeline = gsap.timeline({
-          scrollTrigger: { trigger: goalFill, start: 'top 90%', once: true },
+          scrollTrigger: { trigger: goalFill, start: 'top 90%', toggleActions: revealActions },
         })
         progressTimeline.fromTo(
           goalFill,
@@ -108,7 +113,7 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
 
         if (window.matchMedia('(min-width: 768px)').matches) {
           const pathTimeline = gsap.timeline({
-            scrollTrigger: { trigger: pathHeader ?? focusPath, start: 'top 85%', once: true },
+            scrollTrigger: { trigger: pathHeader ?? focusPath, start: 'top 85%', toggleActions: revealActions },
           })
 
           if (pathHeader) {
@@ -146,14 +151,14 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
                 opacity: 1,
                 duration: 0.55,
                 ease: 'power3.out',
-                scrollTrigger: { trigger: pathHeader, start: 'top 85%', once: true },
+                scrollTrigger: { trigger: pathHeader, start: 'top 85%', toggleActions: revealActions },
               }
             )
           }
 
           pathSteps.forEach((step) => {
             const stepTimeline = gsap.timeline({
-              scrollTrigger: { trigger: step, start: 'top 88%', once: true },
+              scrollTrigger: { trigger: step, start: 'top 88%', toggleActions: revealActions },
             })
             stepTimeline.fromTo(
               step,
@@ -177,7 +182,7 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
         const pricingLine = pricingGraphic.querySelector('[data-pricing-line]')
         const pricingNodes = pricingGraphic.querySelectorAll('[data-pricing-node]')
         const pricingTimeline = gsap.timeline({
-          scrollTrigger: { trigger: pricingGraphic, start: 'top 88%', once: true },
+          scrollTrigger: { trigger: pricingGraphic, start: 'top 88%', toggleActions: revealActions },
         })
         if (pricingLine) {
           const lineLength = (pricingLine as SVGPathElement).getTotalLength()
@@ -206,7 +211,7 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
             strokeDashoffset: 0,
             duration: 0.8,
             ease: 'power2.out',
-            scrollTrigger: { trigger: answersLine, start: 'top 88%', once: true },
+            scrollTrigger: { trigger: answersLine, start: 'top 88%', toggleActions: revealActions },
           }
         )
       }
@@ -224,7 +229,7 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
               opacity: 1,
               duration: 0.58,
               ease: 'power3.out',
-              scrollTrigger: { trigger: item, start: 'top 88%', once: true },
+              scrollTrigger: { trigger: item, start: 'top 88%', toggleActions: revealActions },
             }
           )
         })
@@ -242,7 +247,7 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
             duration: 0.38,
             ease: 'back.out(1.7)',
             stagger: { each: 0.012, from: 'start' },
-            scrollTrigger: { trigger: map, start: 'top 82%', once: true },
+            scrollTrigger: { trigger: map, start: 'top 82%', toggleActions: revealActions },
           }
         )
       })
@@ -256,7 +261,7 @@ export function useLandingAnimations(rootRef: RefObject<HTMLElement>) {
           value: end,
           duration: 1.4,
           ease: 'power2.out',
-          scrollTrigger: { trigger: element, start: 'top 88%', once: true },
+          scrollTrigger: { trigger: element, start: 'top 88%', toggleActions: revealActions },
           onUpdate: () => {
             element.textContent = `${Math.round(proxy.value)}${suffix}`
           },

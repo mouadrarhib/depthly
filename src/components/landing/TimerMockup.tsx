@@ -26,7 +26,7 @@ export function TimerMockup() {
     const st = ScrollTrigger.create({
       trigger: ref.current,
       start: 'top 75%',
-      once: true,
+      // Retain the trigger until effect cleanup to keep refresh iteration stable.
       onEnter: () => setProgress(RING_PROGRESS),
     })
     return () => st.kill()

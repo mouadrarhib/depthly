@@ -70,11 +70,11 @@ function SubHeading({ children }: { children: ReactNode }) {
 
 export function TermsPage() {
   return (
-    <LegalLayout title="Terms of Service" lastUpdated="July 20, 2026">
+    <LegalLayout title="Terms of Service" lastUpdated="November 12, 2026" contents={TOC_ITEMS}>
       {/* Preamble */}
       <h2 style={h2Style}>AGREEMENT TO OUR LEGAL TERMS</h2>
       <p style={pStyle}>
-        We are Depthly ("Company," "we," "us," "our").
+        Depthly is powered by OMBRIVA LLC ("Company," "we," "us," "our").
       </p>
       <p style={pStyle}>
         We operate the website{' '}
@@ -96,7 +96,7 @@ export function TermsPage() {
       </p>
       <p style={pStyle}>
         These Legal Terms constitute a legally binding agreement made between you, whether
-        personally or on behalf of an entity ("you"), and Depthly, concerning your access to
+        personally or on behalf of an entity ("you"), and OMBRIVA LLC, concerning your access to
         and use of the Services. You agree that by accessing the Services, you have read,
         understood, and agreed to be bound by all of these Legal Terms. IF YOU DO NOT AGREE WITH ALL
         OF THESE LEGAL TERMS, THEN YOU ARE EXPRESSLY PROHIBITED FROM USING THE SERVICES AND YOU MUST
@@ -114,24 +114,6 @@ export function TermsPage() {
         agree to these Legal Terms prior to you using the Services.
       </p>
       <p style={pStyle}>We recommend that you print a copy of these Legal Terms for your records.</p>
-
-      {/* Table of contents */}
-      <div style={{ marginTop: 32, paddingTop: 32, borderTop: '0.5px solid var(--color-border)' }}>
-        <h2 style={{ ...h2Style, marginBottom: 12 }}>TABLE OF CONTENTS</h2>
-        <nav
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-            gap: '6px 16px',
-          }}
-        >
-          {TOC_ITEMS.map(({ id, label }) => (
-            <a key={id} href={`#${id}`} style={{ ...linkStyle, fontSize: 13 }}>
-              {label}
-            </a>
-          ))}
-        </nav>
-      </div>
 
       <Section id="services" number={1} title="OUR SERVICES">
         <p style={pStyle}>
@@ -932,7 +914,7 @@ export function TermsPage() {
           regarding use of the Services, please contact us at:
         </p>
         <p style={{ ...pStyle, marginTop: -6 }}>
-          <strong style={{ color: 'var(--color-text)' }}>Depthly</strong>
+          <strong style={{ color: 'var(--color-text)' }}>OMBRIVA LLC — Depthly</strong>
           <br />
           <a href={MAILTO} style={linkStyle}>{EMAIL}</a>
         </p>

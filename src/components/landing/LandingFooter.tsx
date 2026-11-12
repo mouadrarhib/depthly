@@ -96,11 +96,11 @@ export function LandingFooter() {
       </div>
 
       <div
-        data-reveal
-        className="mx-auto border-t border-depth-border py-6 text-center text-xs text-ink-primary/75 sm:text-left"
+        className="mx-auto flex flex-col items-center gap-2 border-t border-depth-border py-6 text-center text-xs text-text-muted"
         style={{ maxWidth: 1100 }}
       >
-        © 2026 Depthly. All rights reserved.
+        <span>© {new Date().getFullYear()} Depthly. All rights reserved.</span>
+        <span>Depthly is a product of <span className="font-medium text-text">OMBRIVA LLC</span>.</span>
       </div>
     </footer>
   )
