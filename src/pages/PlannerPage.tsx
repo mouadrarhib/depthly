@@ -526,7 +526,9 @@ export function PlannerPage() {
                     ? `${scheduled.length} tasks on this day`
                     : 'No tasks on this day yet'}
                 </p>
-                {view !== 'today' &&
+                {view !== 'today' && scheduled.length > 0 && (
+                  <div className="mt-3 max-h-80 overflow-y-auto overscroll-contain pr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" role="region" aria-label="Tasks on this day" tabIndex={0}>
+                  {
                   scheduled.map((entry) => (
                     <div key={entry.task.id} className="mt-4 border-t border-depth-border pt-4">
                       <p className="flex items-center gap-1 text-sm font-medium text-ink-primary">
@@ -571,6 +573,8 @@ export function PlannerPage() {
                       </div>
                     </div>
                   ))}
+                  </div>
+                )}
               </div>
               {unfinished.length > 0 && (
                 <div className="rounded-xl border border-depth-border bg-depth-surface p-4">
@@ -579,6 +583,7 @@ export function PlannerPage() {
                     Unfinished work stays visible. Repeats show the latest missed day from this
                     week.
                   </p>
+                  <div className="mt-3 max-h-80 overflow-y-auto overscroll-contain pr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" role="region" aria-label="Still to do tasks" tabIndex={0}>
                   {unfinished.map((entry) => (
                     <div
                       key={`${entry.task.id}:${entry.date}`}
@@ -616,6 +621,7 @@ export function PlannerPage() {
                       )}
                     </div>
                   ))}
+                  </div>
                 </div>
               )}
               <div className="rounded-xl border border-depth-border bg-depth-surface p-4">
