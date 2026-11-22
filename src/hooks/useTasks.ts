@@ -143,7 +143,7 @@ export function useReorderKanban(projectId: string) {
       }
     },
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: taskKeys.byProject(projectId) })
+      return qc.invalidateQueries({ queryKey: taskKeys.byProject(projectId) })
     },
   })
 }

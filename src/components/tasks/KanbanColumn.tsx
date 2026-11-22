@@ -16,6 +16,7 @@ const COLUMN_CONFIG: Record<Status, { bg: string; color: string; label: string }
 }
 
 interface KanbanColumnProps {
+  dragDisabled?: boolean
   status: Status
   tasks: Task[]
   sessionMinsMap?: Record<string, number>
@@ -27,6 +28,7 @@ interface KanbanColumnProps {
 }
 
 export function KanbanColumn({
+  dragDisabled,
   status,
   tasks,
   sessionMinsMap,
@@ -142,6 +144,7 @@ export function KanbanColumn({
               <KanbanCard
                 key={task.id}
                 task={task}
+                dragDisabled={dragDisabled}
                 sessionMins={sessionMinsMap?.[task.id]}
                 onOpen={onOpenTask}
                 onEdit={onEditTask}

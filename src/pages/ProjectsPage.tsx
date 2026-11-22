@@ -325,42 +325,25 @@ export function ProjectsPage() {
             id="project-filters"
             className="grid shrink-0 gap-4 rounded-xl border border-depth-border bg-depth-surface p-4 sm:grid-cols-3"
           >
-            <label className="flex flex-col gap-2 text-xs text-ink-primary/75">
-              Tasks
-              <select className={field} value={tasks} onChange={(e) => setTasks(e.target.value)}>
-                <option value="any">Any tasks</option>
-                <option value="unfinished">Has unfinished tasks</option>
-                <option value="completed">All tasks completed</option>
-                <option value="none">No tasks</option>
-              </select>
-            </label>
-            <label className="flex flex-col gap-2 text-xs text-ink-primary/75">
-              Focus activity
-              <select
-                className={field}
-                value={activity}
-                onChange={(e) => setActivity(e.target.value)}
-              >
-                <option value="any">Any activity</option>
-                <option value="week">Focused this week</option>
-                <option value="inactive">Not focused this week</option>
-                <option value="never">Never focused</option>
-              </select>
-            </label>
-            <label className="flex flex-col gap-2 text-xs text-ink-primary/75">
-              Created
-              <select
-                className={field}
-                value={created}
-                onChange={(e) => setCreated(e.target.value)}
-              >
-                <option value="any">Any time</option>
-                <option value="1">Today</option>
-                <option value="7">Last 7 days</option>
-                <option value="30">Last 30 days</option>
-                <option value="custom">Custom date range</option>
-              </select>
-            </label>
+            {[
+              { id: 'tasks', label: 'Tasks', value: tasks, change: setTasks, options: [['any', 'Any tasks'], ['unfinished', 'Has unfinished tasks'], ['completed', 'All tasks completed'], ['none', 'No tasks']] },
+              { id: 'activity', label: 'Focus activity', value: activity, change: setActivity, options: [['any', 'Any activity'], ['week', 'Focused this week'], ['inactive', 'Not focused this week'], ['never', 'Never focused']] },
+              { id: 'created', label: 'Created', value: created, change: setCreated, options: [['any', 'Any time'], ['1', 'Today'], ['7', 'Last 7 days'], ['30', 'Last 30 days'], ['custom', 'Custom date range']] },
+            ].map((filter) => (
+              <div key={filter.id} className="flex min-w-0 flex-col gap-2">
+                <span id={`project-filter-${filter.id}`} className="text-xs font-medium text-text-muted">{filter.label}</span>
+                <Select value={filter.value} onValueChange={filter.change}>
+                  <SelectTrigger aria-labelledby={`project-filter-${filter.id}`} className="h-11 w-full min-w-0 gap-3 border-border bg-surface-base text-text focus:ring-brand [&>span]:truncate [&>svg]:shrink-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="border-border bg-surface-raised text-text">
+                    {filter.options.map(([value, label]) => (
+                      <SelectItem key={value} value={value} className="min-h-11 focus:bg-surface-overlay focus:text-text">{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
             {created === 'custom' && (
               <div className="flex flex-wrap gap-3 sm:col-span-3">
                 <label className="flex flex-col gap-2 text-xs text-ink-primary/75">

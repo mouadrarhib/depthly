@@ -24,8 +24,8 @@ import type { PlannerEntry, OccurrenceState } from '@/lib/utils/recurrence'
 import { PATHS } from '@/routes/paths'
 import { useAuthStore } from '@/store/authStore'
 import { useTimerStore } from '@/store/timerStore'
+import { useUiStore } from '@/store/uiStore'
 
-type View = 'today' | 'week' | 'month'
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const PRIORITY_SCORE = { urgent: 4, high: 3, medium: 2, low: 1 }
 
@@ -121,7 +121,8 @@ export function PlannerPage() {
   const updateTask = useUpdateTask()
   const createTask = useCreateTask()
   const setOccurrence = useSetTaskOccurrence()
-  const [view, setView] = useState<View>('month')
+  const view = useUiStore((state) => state.plannerView)
+  const setView = useUiStore((state) => state.setPlannerView)
   const [selectedDate, setSelectedDate] = useState(() => dateKey(new Date()))
   const [dialogOpen, setDialogOpen] = useState(false)
   const [title, setTitle] = useState('')
@@ -199,10 +200,8 @@ export function PlannerPage() {
           (task) =>
             !task.scheduled_date &&
             !task.repeat_days &&
-            task.planned_start_date &&
-            task.planned_end_date &&
-            task.planned_start_date <= selectedDate &&
-            task.planned_end_date >= selectedDate
+            (!task.planned_start_date || task.planned_start_date <= selectedDate) &&
+            (!task.planned_end_date || task.planned_end_date >= selectedDate)
         )
         .sort(compareTasks)
         .slice(0, 3),
@@ -457,9 +456,14 @@ export function PlannerPage() {
                       />
                     ))
                   ) : (
-                    <p className="px-5 py-8 text-sm text-ink-secondary">
-                      No tasks planned for this day. Add a task or choose one from your suggestions.
-                    </p>
+                    <div className="px-5 py-8">
+                      <p className="text-sm font-medium text-text">Make a little room for focus.</p>
+                      <p className="mt-2 text-sm text-text-muted">Choose a project task or add something you want to work on.</p>
+                      <div className="mt-4 flex flex-wrap gap-3">
+                        <Button onClick={() => setDialogOpen(true)}><Plus size={15} />Add task</Button>
+                        <a href="#planner-unplanned" className="inline-flex min-h-11 items-center text-sm text-brand hover:underline">Choose from your projects →</a>
+                      </div>
+                    </div>
                   )}
                 </div>
               ) : (
@@ -482,7 +486,7 @@ export function PlannerPage() {
                           onClick={() => setSelectedDate(key)}
                           aria-label={`${day.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}, ${dayTasks.length} tasks`}
                           aria-pressed={key === selectedDate}
-                          className={`flex min-h-36 min-w-0 flex-col items-stretch border-b border-r border-border p-2 text-left transition-colors focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${view === 'week' ? 'min-h-72' : ''} ${key === selectedDate ? 'bg-brand/5 ring-1 ring-inset ring-brand' : 'hover:bg-muted/60'} ${day.getMonth() !== selected.getMonth() && view === 'month' ? 'opacity-45' : ''}`}
+                          className={`flex min-w-0 flex-col items-stretch border-b border-r border-border p-2 text-left transition-colors focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${view === 'week' ? 'min-h-72' : 'min-h-28'} ${key === selectedDate ? 'bg-brand/5 ring-1 ring-inset ring-brand' : 'hover:bg-muted/60'} ${day.getMonth() !== selected.getMonth() && view === 'month' ? 'opacity-45' : ''}`}
                         >
                           <span className={`font-data flex size-7 items-center justify-center rounded-full text-xs font-medium ${key === today ? 'bg-brand text-white' : 'text-foreground'}`}>
                             {day.getDate()}
@@ -526,6 +530,12 @@ export function PlannerPage() {
                     ? `${scheduled.length} tasks on this day`
                     : 'No tasks on this day yet'}
                 </p>
+                {scheduled.length === 0 && view !== 'today' && (
+                  <div className="mt-4 flex flex-col items-start gap-1">
+                    <Button onClick={() => setDialogOpen(true)} size="sm"><Plus size={15} />Add task</Button>
+                    <a href="#planner-unplanned" className="inline-flex min-h-11 items-center text-xs font-medium text-brand hover:underline">Choose from your projects →</a>
+                  </div>
+                )}
                 {view !== 'today' && scheduled.length > 0 && (
                   <div className="mt-3 max-h-80 overflow-y-auto overscroll-contain pr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" role="region" aria-label="Tasks on this day" tabIndex={0}>
                   {
@@ -624,10 +634,10 @@ export function PlannerPage() {
                   </div>
                 </div>
               )}
-              <div className="rounded-xl border border-depth-border bg-depth-surface p-4">
-                <h3 className="font-semibold text-ink-primary">Suggested from your plan</h3>
+              {suggested.length > 0 && <div className="rounded-xl border border-depth-border bg-depth-surface p-4">
+                <h3 className="font-semibold text-ink-primary">Choose your next task</h3>
                 <p className="mt-1 text-xs text-ink-secondary">
-                  Tasks in this week or month without a work day.
+                  Unscheduled project tasks you can add to this day.
                 </p>
                 {suggested.length ? (
                   suggested.map((task) => (
@@ -651,11 +661,11 @@ export function PlannerPage() {
                     Plan a task for this week or month to see suggestions here.
                   </p>
                 )}
-              </div>
+              </div>}
             </aside>
           </div>
 
-          <section className="rounded-xl border border-depth-border bg-depth-surface p-5">
+          <section id="planner-unplanned" className="scroll-mt-6 rounded-xl border border-depth-border bg-depth-surface p-5">
             <h2 className="font-semibold text-ink-primary">Unplanned tasks</h2>
             <p className="mt-1 text-xs text-ink-secondary">
               Bring existing project tasks into your week or month.

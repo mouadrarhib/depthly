@@ -17,6 +17,7 @@ import { formatMinutesToHours } from '@/lib/utils/analytics'
 import { formatDueDate, isOverdue } from '@/lib/utils/tasks'
 
 interface KanbanCardProps {
+  dragDisabled?: boolean
   task: Task
   sessionMins?: number
   onOpen: (task: Task) => void
@@ -26,6 +27,7 @@ interface KanbanCardProps {
 }
 
 export function KanbanCard({
+  dragDisabled = false,
   task,
   sessionMins,
   onOpen,
@@ -37,6 +39,8 @@ export function KanbanCard({
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
+    disabled: dragDisabled,
+    transition: { duration: 200, easing: 'cubic-bezier(0.2, 0, 0, 1)' },
   })
 
   const done = task.status === 'done'
@@ -69,13 +73,13 @@ export function KanbanCard({
         backgroundColor: showHover ? 'var(--color-surface-overlay)' : 'var(--color-surface-raised)',
         border: showHover ? '1px solid rgba(75, 158, 255, 0.3)' : '1px solid var(--color-border)',
         boxShadow: showHover ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none',
-        opacity: isDragging ? 0.5 : 1,
+        opacity: isDragging ? 0 : 1,
         outline: isDragging ? '1px solid #4B9EFF' : 'none',
-        cursor: isDragging ? 'grabbing' : 'grab',
+        cursor: isDragging ? 'grabbing' : dragDisabled ? 'default' : 'grab',
       }}
       {...attributes}
       {...listeners}
-      className="group flex flex-col"
+      className="group flex flex-col motion-reduce:!transition-none"
     >
       {/* Top row: priority badge + menu */}
       <div className="flex items-center justify-between gap-2">

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { Check, Clock, ListTodo, MoreHorizontal, Timer } from 'lucide-react'
+import { Check, ChevronDown, Clock, ListTodo, MoreHorizontal, Timer } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -101,10 +101,11 @@ export function FilterPill({ label, active, onClick, color }: FilterPillProps) {
 
 // ─── Status group header ──────────────────────────────────────────────────────
 
-function GroupHeader({ status, count }: { status: Status; count: number }) {
+function GroupHeader({ status, count, expanded, onToggle, controls }: { status: Status; count: number; expanded: boolean; onToggle: () => void; controls: string }) {
   const cfg = STATUS_CONFIG[status]
   return (
-    <div className="mb-1.5 flex items-center gap-2">
+    <button type="button" onClick={onToggle} aria-expanded={expanded} aria-controls={controls} className="flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-left transition-colors hover:bg-depth-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand">
+      <ChevronDown size={15} aria-hidden="true" className={`shrink-0 text-text-muted transition-transform duration-150 motion-reduce:transition-none ${expanded ? '' : '-rotate-90'}`} />
       <span
         className="inline-block h-2 w-2 shrink-0 rounded-full"
         style={{ backgroundColor: cfg.color }}
@@ -120,8 +121,9 @@ function GroupHeader({ status, count }: { status: Status; count: number }) {
       >
         {cfg.label}
       </span>
-      <span style={{ fontSize: 11, color: '#aaa7ba' }}>{count}</span>
-    </div>
+      <span className="font-data text-xs text-text-muted">{count}</span>
+      <span className="ml-auto text-xs text-text-muted">{expanded ? 'Collapse' : 'Expand'}</span>
+    </button>
   )
 }
 
@@ -332,7 +334,7 @@ export function TaskListView({
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all')
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
-  const [showCompleted, setShowCompleted] = useState(false)
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
   const activeStatus = filters?.status ?? statusFilter
   const activePriority = filters?.priority ?? priorityFilter
   const filtered = tasks
@@ -503,7 +505,7 @@ export function TaskListView({
           role="region"
           aria-label="Project tasks"
           tabIndex={0}
-          className="flex flex-col gap-5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-2"
+          className="flex max-h-[65dvh] flex-col gap-3 overflow-y-auto overscroll-contain rounded-lg pr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand lg:max-h-none lg:min-h-0 lg:flex-1"
         >
           <div className="sticky top-0 z-10 hidden shrink-0 items-center gap-2.5 border-b border-depth-border bg-depth-bg px-3 py-3 text-xs text-ink-primary/75 md:flex">
             <span className="flex-1">Task</span>
@@ -516,26 +518,16 @@ export function TaskListView({
             <span className="w-7" />
           </div>
 
-          {groups.map(({ status, items }) => (
-            <div key={status}>
-              {status === 'done' && activeStatus === 'all' && (
-                <button
-                  onClick={() => setShowCompleted(!showCompleted)}
-                  aria-expanded={showCompleted}
-                  className="mb-3 flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-depth-border bg-depth-surface px-4 text-left text-sm text-ink-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                >
-                  <span>Completed tasks · {items.length}</span>
-                  <span className="text-brand">
-                    {showCompleted ? 'Hide completed' : 'Show completed'}
-                  </span>
-                </button>
-              )}
-              {(status !== 'done' || activeStatus !== 'all' || showCompleted) && (
-                <>
-                  {activeStatus === 'all' && status !== 'done' && (
-                    <GroupHeader status={status} count={items.length} />
-                  )}
-                  <div className="flex flex-col gap-1.5">
+          {groups.map(({ status, items }) => {
+            const groupKey = `${projectId}:${status}`
+            // Explicit filters and searches expose their matches immediately.
+            const forceOpen = activeStatus !== 'all' || !!filters?.search.trim()
+            const expanded = forceOpen || !(collapsedGroups[groupKey] ?? status === 'done')
+            const controls = `project-${projectId}-tasks-${status}`
+            return (
+            <section key={status} className="shrink-0">
+              {!forceOpen && <GroupHeader status={status} count={items.length} expanded={expanded} controls={controls} onToggle={() => setCollapsedGroups((current) => ({ ...current, [groupKey]: expanded }))} />}
+                  <div id={controls} hidden={!expanded} className={expanded ? 'flex flex-col gap-1.5' : 'hidden'}>
                     {items.map((task) => (
                       <TaskRow
                         key={task.id}
@@ -549,10 +541,9 @@ export function TaskListView({
                       />
                     ))}
                   </div>
-                </>
-              )}
-            </div>
-          ))}
+            </section>
+            )
+          })}
         </div>
       )}
 

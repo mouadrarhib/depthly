@@ -104,7 +104,12 @@ export function ProjectSessionsList({ projectId }: ProjectSessionsListProps) {
           <span>Date &amp; start time</span>
           <span className="text-right">Duration</span>
         </div>
-        <div className="divide-y divide-depth-border">
+        <div
+          role="region"
+          aria-label="Project session history"
+          tabIndex={0}
+          className="max-h-[min(480px,60dvh)] divide-y divide-depth-border overflow-y-auto overscroll-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
+        >
           {sessions.map((session) => (
             <button
               key={session.id}

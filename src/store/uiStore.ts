@@ -6,6 +6,8 @@ import type { ThemePreference } from '@/lib/theme'
 export type FullscreenTimerStyle = 'orbit' | 'minimal' | 'panel'
 
 interface UiState {
+  plannerView: 'today' | 'week' | 'month'
+  setPlannerView: (view: 'today' | 'week' | 'month') => void
   theme: ThemePreference
   setTheme: (theme: ThemePreference) => void
 
@@ -39,6 +41,8 @@ interface UiState {
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
+      plannerView: 'week',
+      setPlannerView: (plannerView) => set({ plannerView }),
       theme: 'system',
       setTheme: (theme) => set({ theme }),
 

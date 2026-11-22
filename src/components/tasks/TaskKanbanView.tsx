@@ -55,11 +55,18 @@ export function TaskKanbanView({
   const reorderKanban = useReorderKanban(projectId)
 
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const [pendingPlacement, setPendingPlacement] = useState<{ id: string; status: Status; kanban_order: number } | null>(null)
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all')
+  const [moveError, setMoveError] = useState(false)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
-  const filteredTasks = tasks.filter(
+  // Bridge the asynchronous onMutate cancellation before the cache update.
+  // Never show the source position again while a successful drop is saving.
+  const boardTasks = pendingPlacement
+    ? tasks.map((task) => task.id === pendingPlacement.id ? { ...task, ...pendingPlacement } : task)
+    : tasks
+  const filteredTasks = boardTasks.filter(
     (t) =>
       (!filters?.search ||
         t.title.toLocaleLowerCase().includes(filters.search.trim().toLocaleLowerCase())) &&
@@ -75,6 +82,8 @@ export function TaskKanbanView({
   }
 
   function handleDragStart(event: DragStartEvent) {
+    if (pendingPlacement) return
+    setMoveError(false)
     setActiveTask(tasks.find((t) => t.id === event.active.id) ?? null)
   }
 
@@ -109,11 +118,13 @@ export function TaskKanbanView({
     const insertAt = rawIndex < 0 ? targetColumnTasks.length : rawIndex
     const newOrder = getKanbanOrder(targetColumnTasks, insertAt)
 
-    if (sourceStatus === targetStatus) {
-      reorderKanban.mutate([{ id: draggedId, kanban_order: newOrder }])
-    } else {
-      reorderKanban.mutate([{ id: draggedId, kanban_order: newOrder, status: targetStatus }])
-    }
+    setPendingPlacement({ id: draggedId, status: targetStatus, kanban_order: newOrder })
+    void reorderKanban.mutateAsync([
+      { id: draggedId, kanban_order: newOrder, ...(sourceStatus !== targetStatus && { status: targetStatus }) },
+    ]).catch(() => {
+      // The mutation hook restores the cached source placement on failure.
+      setMoveError(true)
+    }).finally(() => setPendingPlacement(null))
   }
 
   // ─── Loading ──────────────────────────────────────────────────────────────
@@ -146,6 +157,7 @@ export function TaskKanbanView({
 
   return (
     <div className="flex flex-col gap-4">
+      {moveError && <p role="alert" className="text-sm text-destructive">Couldn’t save the move. The task was restored; please try again.</p>}
       {/* Standalone priority filter */}
       {!filters && (
         <div className="flex flex-wrap gap-1.5">
@@ -185,6 +197,7 @@ export function TaskKanbanView({
             <KanbanColumn
               key={status}
               status={status}
+              dragDisabled={pendingPlacement !== null}
               tasks={getColumnTasks(status)}
               sessionMinsMap={sessionMinsMap}
               onOpenTask={onOpenTask}
@@ -197,11 +210,11 @@ export function TaskKanbanView({
         </div>
 
         {/* Drag overlay — inline card to avoid useSortable re-entrant isDragging */}
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {activeTask && (
             <div
               className="flex flex-col gap-2.5 border border-depth-border bg-depth-surface p-3"
-              style={{ width: 300, opacity: 0.9, borderRadius: 10, cursor: 'grabbing' }}
+              style={{ opacity: 0.98, borderRadius: 10, cursor: 'grabbing', boxShadow: 'var(--shadow-modal)' }}
             >
               <div className="flex items-center gap-2">
                 {activeTask.priority && (
