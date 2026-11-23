@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="860" viewBox="0 0 1440 860" role="img" aria-labelledby="title description">
+  <title id="title">How projects, tasks, and sessions fit together in Depthly</title>
+  <desc id="description">A project groups related tasks. Choose a task, focus in a session, and Depthly saves that session under the task and project. Session time adds to your daily goal and history, which you can review over time. Private groups are optional.</desc>
+  <defs>
+    <style>
+      text { font-family: Inter, Arial, sans-serif; fill: #E8E6F0; }
+      .muted { fill: #9290A4; }
+      .quiet { fill: #69677B; }
+      .small { font-size: 13px; }
+    </style>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#12151C"/><stop offset="1" stop-color="#0D0D10"/>
+    </linearGradient>
+    <linearGradient id="goalFill" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#4B9EFF"/><stop offset="1" stop-color="#79B8FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1440" height="860" rx="24" fill="url(#canvas)"/>
+  <circle cx="96" cy="92" r="22" fill="#18263A"/>
+  <circle cx="96" cy="92" r="12" fill="none" stroke="#4B9EFF" stroke-width="2"/>
+  <circle cx="96" cy="92" r="4" fill="#4B9EFF"/>
+  <text x="132" y="99" font-size="17" font-weight="650">Depthly</text>
+  <text x="1344" y="99" text-anchor="end" class="small muted">Focus, one session at a time</text>
+  <text x="96" y="205" font-size="48" font-weight="600" letter-spacing="-1.8">Your work stays connected.</text>
+  <text x="96" y="246" font-size="18" class="muted">Projects hold tasks. Focus sessions keep track of the time you spend on them.</text>
+
+  <path d="M260 458H1180" fill="none" stroke="#303743" stroke-width="2" stroke-dasharray="5 9"/>
+  <path d="M260 458H968" fill="none" stroke="#4B9EFF" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+
+  <g>
+    <circle cx="260" cy="458" r="26" fill="#18263A" stroke="#4B9EFF" stroke-width="2"/>
+    <text x="260" y="464" text-anchor="middle" font-size="15" font-weight="700" style="fill:#79B8FF">1</text>
+    <rect x="96" y="310" width="328" height="110" rx="14" fill="#15171D" stroke="#30323B"/>
+    <text x="120" y="338" class="small muted" letter-spacing="1.1">PROJECT</text>
+    <rect x="120" y="349" width="280" height="28" rx="6" fill="#22252D"/>
+    <circle cx="134" cy="363" r="4" fill="#E6A65B"/>
+    <text x="147" y="368" font-size="12" font-weight="600">Biology revision</text>
+    <text x="120" y="397" font-size="10" class="quiet" letter-spacing=".7">TASK IN THIS PROJECT</text>
+    <rect x="137" y="401" width="263" height="14" rx="4" fill="#1C2028"/>
+    <path d="M128 378v16h7" fill="none" stroke="#596273" stroke-width="1.4"/>
+    <text x="146" y="412" font-size="10" class="muted">Cell structure</text>
+    <text x="96" y="520" font-size="16" font-weight="600">A project groups your tasks</text>
+    <text x="96" y="548" class="small muted">Choose a task inside it, or start</text>
+    <text x="96" y="569" class="small muted">a session without a project.</text>
+  </g>
+  <g>
+    <circle cx="566" cy="458" r="26" fill="#18263A" stroke="#4B9EFF" stroke-width="2"/>
+    <text x="566" y="464" text-anchor="middle" font-size="15" font-weight="700" style="fill:#79B8FF">2</text>
+    <rect x="432" y="290" width="268" height="130" rx="14" fill="#15171D" stroke="#30323B"/>
+    <circle cx="566" cy="357" r="40" fill="#111720" stroke="#344154" stroke-width="5"/>
+    <circle cx="566" cy="357" r="40" fill="none" stroke="#4B9EFF" stroke-width="5" stroke-linecap="round" stroke-dasharray="82 250" transform="rotate(-90 566 357)"/>
+    <text x="566" y="362" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="19" font-weight="650">25:00</text>
+    <text x="432" y="520" font-size="16" font-weight="600">Focus on that task</text>
+    <text x="432" y="548" class="small muted">Start a countdown or stopwatch.</text>
+    <text x="432" y="569" class="small muted">The timer records your session.</text>
+  </g>
+  <g>
+    <circle cx="872" cy="458" r="26" fill="#18263A" stroke="#4B9EFF" stroke-width="2"/>
+    <text x="872" y="464" text-anchor="middle" font-size="15" font-weight="700" style="fill:#79B8FF">3</text>
+    <rect x="728" y="310" width="288" height="110" rx="14" fill="#15171D" stroke="#30323B"/>
+    <text x="752" y="337" class="small muted">SESSION SAVED</text>
+    <text x="752" y="362" font-size="15" font-weight="600">25 min · Cell structure</text>
+    <text x="752" y="380" font-size="11" class="muted">Biology revision</text>
+    <path d="M752 391H992" stroke="#30323B"/>
+    <text x="752" y="410" font-size="11" class="quiet">TODAY'S GOAL</text>
+    <rect x="834" y="402" width="158" height="7" rx="3.5" fill="#292C35"/>
+    <rect x="834" y="402" width="79" height="7" rx="3.5" fill="url(#goalFill)"/>
+    <text x="728" y="520" font-size="16" font-weight="600">Session time adds up</text>
+    <text x="728" y="548" class="small muted">Each session stays under its task</text>
+    <text x="728" y="569" class="small muted">and moves you toward your goal.</text>
+  </g>
+  <g>
+    <circle cx="1180" cy="458" r="26" fill="#18263A" stroke="#4B9EFF" stroke-width="2"/>
+    <text x="1180" y="464" text-anchor="middle" font-size="15" font-weight="700" style="fill:#79B8FF">4</text>
+    <rect x="1040" y="310" width="304" height="110" rx="14" fill="#15171D" stroke="#30323B"/>
+    <text x="1064" y="343" class="small muted">YOUR WEEK</text>
+    <path d="M1064 399H1320" stroke="#30323B"/>
+    <g fill="#354258"><rect x="1080" y="379" width="18" height="20" rx="3"/><rect x="1120" y="362" width="18" height="37" rx="3"/><rect x="1200" y="372" width="18" height="27" rx="3"/><rect x="1240" y="350" width="18" height="49" rx="3"/></g>
+    <rect x="1160" y="340" width="18" height="59" rx="3" fill="#4B9EFF"/>
+    <g font-size="9" class="quiet" text-anchor="middle"><text x="1089" y="412">M</text><text x="1129" y="412">T</text><text x="1169" y="412">W</text><text x="1209" y="412">T</text><text x="1249" y="412">F</text></g>
+    <text x="1040" y="520" font-size="16" font-weight="600">See what changed</text>
+    <text x="1040" y="548" class="small muted">Review your days, habits, and</text>
+    <text x="1040" y="569" class="small muted">progress over the week.</text>
+  </g>
+
+  <path d="M566 630V679H872" fill="none" stroke="#596273" stroke-width="1.5" stroke-dasharray="4 6"/>
+  <rect x="432" y="680" width="712" height="94" rx="16" fill="#141820" stroke="#303743"/>
+  <circle cx="477" cy="727" r="21" fill="#202A39"/>
+  <circle cx="470" cy="723" r="5" fill="none" stroke="#79B8FF" stroke-width="1.6"/>
+  <circle cx="484" cy="723" r="5" fill="none" stroke="#79B8FF" stroke-width="1.6"/>
+  <path d="M461 738c1-6 5-9 9-9m5 0c4 0 8 3 9 9" fill="none" stroke="#79B8FF" stroke-width="1.6" stroke-linecap="round"/>
+  <text x="516" y="716" font-size="16" font-weight="600">Want a little accountability?</text>
+  <text x="516" y="741" class="small muted">Invite a few people to a private focus group and work toward a shared goal.</text>
+  <text x="516" y="760" font-size="11" class="quiet">Optional — your progress is yours either way.</text>
+  <text x="1344" y="824" text-anchor="end" font-size="11" class="quiet">Depthly · example flow</text>
+</svg>

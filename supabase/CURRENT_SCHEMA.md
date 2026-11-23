@@ -2,7 +2,7 @@
 
 This document describes the schema produced by applying every SQL file in
 `supabase/migrations/`, from `001_initial_schema.sql` through
-`023_explicit_client_table_grants.sql`, in filename order. The numbered migrations are
+`026_anchor_weekly_groups_to_creation.sql`, in filename order. The numbered migrations are
 the executable source of truth; this is a reviewable current-state inventory.
 
 ## Types
@@ -78,6 +78,9 @@ Important additions to original tables:
 - Migration 023 explicitly grants each authenticated table operation required
   by the matching RLS policies, so clean local and hosted schemas have the same
   least-privilege access model.
+- Migration 024 reconciles grants from a clean no-client-privileges baseline;
+  migrations 025–026 add filtered session pagination and creation-anchored
+  group periods.
 - Avatar object policies restrict writes to the authenticated user's folder;
   reads are public. The `avatars` bucket itself remains a documented manual
   Supabase Storage setup step.

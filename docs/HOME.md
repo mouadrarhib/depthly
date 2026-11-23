@@ -3,21 +3,21 @@
 The Home page (`/dashboard` — see the "Routes" note below on why the URL
 wasn't renamed to match) is the first screen users see after login.
 (The root `/` serves the public marketing landing page — see LANDING.md.)
-It combines the focus timer with an at-a-glance view of today's
-stats, recent activity, and quick navigation.
+It combines the focus timer with today's Planner tasks, progress, recent activity, and quick navigation.
 
 ---
 
 ## Layout
 
 Two-column responsive grid (`lg:grid-cols-[1.7fr_0.87fr]`).
-Single column on mobile; the daily goal and week chart share a row on medium screens.
+Single column below large screens. Cards form three aligned desktop rows: timer / today's plan, recent sessions / daily goal, and Keep moving / weekly focus.
 
-### Left column — focus and recent work
+### Dashboard sections
 
 | Section | Component(s) | Data source |
 |---------|-------------|-------------|
-| Timer workspace | `<TimerWidget />` with live project/task selectors, timer ring, controls, and notes/todo panels | `timerStore`, `useSaveSession`, project/task queries |
+| Timer workspace | `<TimerWidget />` offers the next open task from today's plan, with a manual selector and existing timer controls | `timerStore`, `useSaveSession`, Planner task queries |
+| Today's plan | `<TodayPlanCard />` shows three dated tasks, completion controls, the latest missed task, and a small coming-up area when today has one task | `usePlannerTasks`, `useTaskOccurrences`, task mutations |
 | Recent sessions list | `<SessionRow />` × 3 | `useSessionsPaginated(0)` |
 
 **Header activity summary**
@@ -25,7 +25,7 @@ Single column on mobile; the daily goal and week chart share a row on medium scr
 - **Focus today** — `focus_minutes` from `daily_summaries`
 - **Sessions today** — `session_count` from `daily_summaries`
 
-### Right column — progress and destinations
+### Progress and destinations
 
 | Section | Data source |
 |---------|-------------|
@@ -46,6 +46,11 @@ The greeting uses `profile.display_name`. Streak remains visible in the global t
 | `useGoals()` | daily_goal_minutes for the progress bar |
 | `useSessionsPaginated(0)` | First page of sessions; sliced to 3 for the recent list |
 | `useDailySummariesRange(weekStart, weekEnd)` | 7-day focus minutes for the mini bar chart |
+| `usePlannerTasks()` / `useTaskOccurrences()` | Today's one-off and repeated tasks, plus their per-day states |
+
+---
+
+Today's plan can select a task for the timer. The timer does not replace the task of a running or paused session. With no manual selection, starting focus from the timer uses the first open task in today's plan. A task can be marked complete in the dashboard; repeat completion affects only today. A failed plan query leaves the rest of Home usable.
 
 ---
 
@@ -69,6 +74,10 @@ A full-width banner is shown above the two-column grid:
 ```
 
 The timer widget is still rendered so the user can start immediately.
+
+### Today's plan — no tasks yet
+
+The card links to Planner and explains that the user can add a task or choose one from a project.
 
 ### Recent sessions — no sessions yet
 
@@ -102,6 +111,14 @@ metadata RPC. Session timing is immutable, and the Home page does not offer dele
 
 - `src/pages/HomePage.tsx` — page component
 - `src/components/home/TimerWidget.tsx` — the embedded timer widget
+- `src/components/home/TodayPlanCard.tsx` — today's task preview and completion controls
 - `src/components/ui/Skeleton.tsx` — loading skeleton primitives used here
 - `src/components/ui/ProgressRing.tsx` — goal progress ring
 - `src/components/sessions/SessionRow.tsx` — individual session rows
+
+
+### App navigation refresh
+
+The shared sidebar groups Home, Timer, Projects and Planner under Workspace, with Sessions, Analytics and Leaderboard under Review & connect. Billing and Settings stay in the footer. The account dropdown is anchored to the sidebar profile row and contains Settings and Sign out; the duplicate topbar avatar has been removed. Desktop collapse retains labeled tooltips, while mobile keeps full labels in its drawer. Navigation scrolls independently on short screens.
+
+The shared 72px header displays the current page, today’s focus statistics and guide replay menu. Small screens retain the page title, focus time and help; wider screens show streak and session counts. Sidebar and content-offset transitions respect reduced-motion preference.

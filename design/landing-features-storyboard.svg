@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="2780" viewBox="0 0 1440 2780" role="img" aria-labelledby="title description">
+  <title id="title">Depthly landing page feature storyboard</title>
+  <desc id="description">Animated concept for the existing Depthly landing page sections: focus workflow, project and task organization, daily goals and analytics, sharing progress, optional private focus groups, and pricing. Copy speaks to both students and freelancers.</desc>
+  <style>
+    text { font-family: Inter, Arial, sans-serif; fill: #E8E6F0; }
+    .muted { fill: #9290A4; }
+    .quiet { fill: #69677B; }
+    .tiny { font-size: 11px; }
+    .small { font-size: 13px; }
+    .body { font-size: 15px; }
+    .surface { fill: #141417; stroke: #2E2E38; stroke-width: 1; }
+    .line { stroke: #2E2E38; stroke-width: 1; }
+    .flow { stroke: #4B9EFF; stroke-width: 2; fill: none; stroke-dasharray: 7 8; animation: draw 2.8s ease-out infinite; }
+    .timer-ring { stroke-dasharray: 184 500; stroke-dashoffset: 0; animation: timer 8s linear infinite; transform-origin: center; }
+    .bar { transform-box: fill-box; transform-origin: bottom; animation: grow 850ms cubic-bezier(.16,1,.3,1) both; }
+    .bar:nth-child(2) { animation-delay: 120ms; }
+    .bar:nth-child(3) { animation-delay: 240ms; }
+    .bar:nth-child(4) { animation-delay: 360ms; }
+    .bar:nth-child(5) { animation-delay: 480ms; }
+    .task-card { animation: arrive 700ms cubic-bezier(.16,1,.3,1) both; }
+    .task-card:nth-of-type(2) { animation-delay: 120ms; }
+    .task-card:nth-of-type(3) { animation-delay: 240ms; }
+    .group-row { animation: arrive 650ms cubic-bezier(.16,1,.3,1) both; }
+    .group-row:nth-of-type(2) { animation-delay: 100ms; }
+    .group-row:nth-of-type(3) { animation-delay: 200ms; }
+    .group-row:nth-of-type(4) { animation-delay: 300ms; }
+    @keyframes draw { to { stroke-dashoffset: -60; } }
+    @keyframes timer { to { stroke-dashoffset: -684; } }
+    @keyframes grow { from { transform: scaleY(.15); opacity: .45; } to { transform: scaleY(1); opacity: 1; } }
+    @keyframes arrive { from { transform: translateY(12px); opacity: .3; } to { transform: translateY(0); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+    }
+  </style>
+  <defs>
+    <linearGradient id="heroBg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151C28"/><stop offset="1" stop-color="#0D0D10"/></linearGradient>
+    <linearGradient id="blueFill" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#4B9EFF"/><stop offset="1" stop-color="#78B8FF"/></linearGradient>
+    <clipPath id="heroPreview"><rect x="760" y="158" width="570" height="286" rx="18"/></clipPath>
+  </defs>
+  <rect width="1440" height="2780" fill="#0D0D10"/>
+
+  <!-- Navigation -->
+  <rect width="1440" height="72" fill="#0D0D10"/><path d="M0 71.5H1440" class="line"/>
+  <circle cx="78" cy="36" r="14" fill="none" stroke="#E8E6F0" stroke-width="1.5"/><circle cx="78" cy="36" r="8" fill="none" stroke="#7A7890"/><circle cx="78" cy="36" r="3" fill="#4B9EFF"/>
+  <text x="102" y="42" font-size="17" font-weight="650">Depthly</text><text x="180" y="42" class="tiny muted">Stay focused, work deeper</text>
+  <text x="460" y="42" class="small muted">Features</text><text x="540" y="42" class="small muted">Pricing</text>
+  <text x="1190" y="42" class="small muted">Log in</text><rect x="1250" y="17" width="104" height="40" rx="9" fill="#4B9EFF"/><text x="1302" y="42" text-anchor="middle" font-size="13" font-weight="650" style="fill:#0D0D10">Start free</text>
+
+  <!-- Hero -->
+  <rect x="0" y="72" width="1440" height="470" fill="url(#heroBg)"/>
+  <text x="88" y="218" font-size="50" font-weight="600" letter-spacing="-1.8">Focus on the work.</text>
+  <text x="88" y="275" font-size="50" font-weight="600" letter-spacing="-1.8" style="fill:#4B9EFF">We’ll track the time.</text>
+  <text x="88" y="326" class="body muted">For study, client work, and everything you want to finish.</text>
+  <text x="88" y="352" class="body muted">Choose a task, focus, and see where your time goes.</text>
+  <rect x="88" y="387" width="158" height="48" rx="10" fill="#4B9EFF"/><text x="167" y="417" text-anchor="middle" font-size="14" font-weight="650" style="fill:#0D0D10">Get started free</text>
+  <text x="268" y="417" class="small muted">See how it works ↓</text><text x="88" y="463" class="tiny muted">Free forever · No credit card required</text>
+  <rect x="760" y="158" width="570" height="286" rx="18" fill="#11141A" stroke="#343945"/>
+  <g clip-path="url(#heroPreview)">
+    <text x="790" y="193" class="tiny muted" letter-spacing="1">FOCUS SESSION</text><text x="790" y="222" font-size="15" font-weight="600">25:00</text>
+    <circle cx="1280" cy="196" r="4" fill="#3DD68C"/><text x="1293" y="200" class="tiny muted">Ready</text><path d="M790 237H1300" class="line"/>
+    <text x="790" y="261" class="tiny muted">PROJECT</text><rect x="790" y="271" width="230" height="34" rx="7" fill="#20232C"/><circle cx="806" cy="288" r="4" fill="#E6A65B"/><text x="819" y="293" class="small">Project Alpha</text>
+    <text x="790" y="328" class="tiny muted">TASK</text><rect x="790" y="338" width="230" height="34" rx="7" fill="#20232C"/><text x="806" y="360" class="small">Research outline</text>
+    <rect x="790" y="391" width="230" height="36" rx="8" fill="#4B9EFF"/><text x="905" y="414" text-anchor="middle" font-size="12" font-weight="650" style="fill:#0D0D10">Start focus session</text>
+    <path d="M1048 260V416" class="line"/><text x="1074" y="273" class="tiny muted">TODAY’S GOAL</text><text x="1074" y="302" font-size="21" font-weight="600">45 <tspan font-size="13" class="muted" font-weight="400">/ 90 min</tspan></text>
+    <rect x="1074" y="317" width="220" height="7" rx="3.5" fill="#292C35"/><rect x="1074" y="317" width="110" height="7" rx="3.5" fill="url(#blueFill)"/>
+    <text x="1074" y="355" class="tiny muted">THIS WEEK</text><path d="M1074 408H1294" stroke="#30323B"/>
+    <g fill="#354258"><rect class="bar" x="1086" y="379" width="16" height="29" rx="3"/><rect class="bar" x="1120" y="364" width="16" height="44" rx="3"/><rect class="bar" x="1154" y="386" width="16" height="22" rx="3"/><rect class="bar" x="1188" y="348" width="16" height="60" rx="3"/><rect class="bar" x="1222" y="369" width="16" height="39" rx="3"/></g>
+    <rect x="1256" y="340" width="16" height="68" rx="3" fill="#4B9EFF"/>
+    <g class="quiet" font-size="9" text-anchor="middle"><text x="1094" y="422">M</text><text x="1128" y="422">T</text><text x="1162" y="422">W</text><text x="1196" y="422">T</text><text x="1230" y="422">F</text><text x="1264" y="422">S</text></g>
+  </g>
+  <text x="1045" y="469" text-anchor="middle" class="tiny quiet">Example screen · illustrative data</text>
+
+  <!-- Existing Overview section becomes a visual workflow -->
+  <text x="88" y="616" font-size="32" font-weight="600" letter-spacing="-.8">One session connects your work to your progress.</text>
+  <text x="88" y="647" class="body muted">Projects keep tasks together. A focus session records the time you spend on one.</text>
+  <path d="M214 795H1220" class="flow"/>
+  <g>
+    <rect x="88" y="696" width="254" height="82" rx="12" class="surface"/><text x="108" y="722" class="tiny muted">PROJECT</text><text x="108" y="752" font-size="16" font-weight="600">Project Alpha</text><circle cx="321" cy="737" r="7" fill="#E6A65B"/>
+    <circle cx="214" cy="795" r="17" fill="#18263A" stroke="#4B9EFF"/><text x="214" y="800" text-anchor="middle" class="tiny" font-weight="700">1</text>
+    <text x="88" y="836" font-size="14" font-weight="600">Group related work</text><text x="88" y="859" class="tiny muted">For a class, client, or goal.</text>
+  </g>
+  <g>
+    <rect x="388" y="696" width="254" height="82" rx="12" class="surface"/><text x="408" y="722" class="tiny muted">TASK IN THIS PROJECT</text><text x="408" y="752" font-size="16" font-weight="600">Research outline</text><path d="M396 737h7" stroke="#596273" stroke-width="2"/>
+    <circle cx="514" cy="795" r="17" fill="#18263A" stroke="#4B9EFF"/><text x="514" y="800" text-anchor="middle" class="tiny" font-weight="700">2</text>
+    <text x="388" y="836" font-size="14" font-weight="600">Choose one task</text><text x="388" y="859" class="tiny muted">Focus on the next thing to do.</text>
+  </g>
+  <g>
+    <rect x="688" y="696" width="254" height="82" rx="12" class="surface"/><circle cx="730" cy="737" r="23" fill="#111720" stroke="#4B9EFF" stroke-width="4" class="timer-ring"/>
+    <text x="730" y="741" text-anchor="middle" font-size="10" font-weight="600">25:00</text><text x="768" y="732" class="tiny muted">FOCUS SESSION</text><text x="768" y="753" class="small" font-weight="600">Research outline</text>
+    <circle cx="814" cy="795" r="17" fill="#18263A" stroke="#4B9EFF"/><text x="814" y="800" text-anchor="middle" class="tiny" font-weight="700">3</text>
+    <text x="688" y="836" font-size="14" font-weight="600">Work for a while</text><text x="688" y="859" class="tiny muted">Depthly tracks the session.</text>
+  </g>
+  <g>
+    <rect x="988" y="696" width="364" height="82" rx="12" class="surface"/><text x="1010" y="722" class="tiny muted">SESSION ADDED TO YOUR DAY</text>
+    <text x="1010" y="752" font-size="15" font-weight="600">25 min toward your goal</text><rect x="1230" y="739" width="96" height="7" rx="3.5" fill="#292C35"/><rect x="1230" y="739" width="52" height="7" rx="3.5" fill="#4B9EFF"/>
+    <circle cx="1172" cy="795" r="17" fill="#18263A" stroke="#4B9EFF"/><text x="1172" y="800" text-anchor="middle" class="tiny" font-weight="700">4</text>
+    <text x="988" y="836" font-size="14" font-weight="600">See your time add up</text><text x="988" y="859" class="tiny muted">Review goals and weekly progress.</text>
+  </g>
+
+  <!-- Existing Trusted focus section -->
+  <rect x="0" y="914" width="1440" height="390" fill="#101116"/>
+  <text x="88" y="982" class="tiny muted" letter-spacing="1.4">FOCUS, WITHOUT LOSING YOUR PLACE</text>
+  <text x="88" y="1026" font-size="31" font-weight="600">Pick up where you left off.</text>
+  <text x="88" y="1060" class="body muted">Start a session for a task. Pause or switch tabs;</text><text x="88" y="1084" class="body muted">your timer keeps its place.</text>
+  <text x="88" y="1140" font-size="14" font-weight="600">After you finish</text>
+  <text x="88" y="1167" class="small muted">The session appears in your history under</text><text x="88" y="1188" class="small muted">the project and task you chose.</text>
+  <rect x="730" y="958" width="622" height="284" rx="16" class="surface"/>
+  <text x="760" y="992" class="tiny muted">CURRENT SESSION</text><text x="760" y="1023" font-size="24" font-weight="600">18:42</text><path d="M760 1045H1322" class="line"/>
+  <text x="760" y="1074" class="tiny muted">PROJECT</text><text x="920" y="1074" class="small" font-weight="600">Project Alpha</text>
+  <text x="760" y="1107" class="tiny muted">TASK</text><text x="920" y="1107" class="small" font-weight="600">Research outline</text>
+  <rect x="760" y="1133" width="562" height="76" rx="10" fill="#111720" stroke="#303743"/><circle cx="790" cy="1171" r="8" fill="#4B9EFF"/>
+  <text x="812" y="1167" class="small" font-weight="600">This session stays connected to your work.</text><text x="812" y="1189" class="tiny muted">Finish it and the time is added to your progress.</text>
+
+  <!-- Existing Goals and Analytics section -->
+  <text x="88" y="1391" class="tiny muted" letter-spacing="1.4">YOUR PROGRESS, MADE CLEAR</text>
+  <text x="88" y="1435" font-size="31" font-weight="600">See the work behind the week.</text>
+  <text x="88" y="1470" class="body muted">Your sessions add to daily goals and show</text><text x="88" y="1494" class="body muted">which projects received your focus.</text>
+  <rect x="88" y="1532" width="516" height="193" rx="16" class="surface"/><text x="116" y="1570" font-size="15" font-weight="600">Today</text>
+  <text x="116" y="1607" font-size="26" font-weight="600">50 <tspan font-size="14" class="muted" font-weight="400">/ 90 min</tspan></text>
+  <rect x="116" y="1623" width="455" height="8" rx="4" fill="#292C35"/><rect x="116" y="1623" width="253" height="8" rx="4" fill="#4B9EFF"/>
+  <text x="116" y="1671" class="tiny muted">Sessions from your projects count toward your goal.</text>
+  <rect x="650" y="1363" width="702" height="362" rx="16" class="surface"/><text x="682" y="1402" font-size="16" font-weight="600">Your focus over time</text>
+  <text x="1318" y="1402" text-anchor="end" class="tiny muted">This week</text><path d="M690 1652H1318" stroke="#30323B"/>
+  <g fill="#354258"><rect class="bar" x="732" y="1552" width="43" height="100" rx="5"/><rect class="bar" x="812" y="1510" width="43" height="142" rx="5"/><rect class="bar" x="892" y="1582" width="43" height="70" rx="5"/><rect class="bar" x="972" y="1476" width="43" height="176" rx="5"/><rect class="bar" x="1052" y="1532" width="43" height="120" rx="5"/><rect class="bar" x="1132" y="1594" width="43" height="58" rx="5"/></g>
+  <rect x="1212" y="1454" width="43" height="198" rx="5" fill="#4B9EFF"/>
+  <g class="tiny muted" text-anchor="middle"><text x="753" y="1680">M</text><text x="833" y="1680">T</text><text x="913" y="1680">W</text><text x="993" y="1680">T</text><text x="1073" y="1680">F</text><text x="1153" y="1680">S</text><text x="1233" y="1680">S</text></g>
+  <text x="682" y="1710" class="tiny quiet">Example activity · illustrative data</text>
+
+  <!-- Existing Projects and Tasks section -->
+  <rect x="0" y="1790" width="1440" height="382" fill="#101116"/>
+  <text x="88" y="1860" class="tiny muted" letter-spacing="1.4">PROJECTS &amp; TASKS</text><text x="88" y="1905" font-size="31" font-weight="600">Keep related work together.</text>
+  <text x="88" y="1940" class="body muted">A project holds its tasks. Choose one when</text><text x="88" y="1964" class="body muted">you start a session, then see its time add up.</text>
+  <text x="88" y="2020" font-size="14" font-weight="600">List or board</text><text x="88" y="2047" class="small muted">Organize tasks in the way that works for you.</text>
+  <rect x="650" y="1830" width="702" height="292" rx="16" class="surface"/><text x="680" y="1867" class="tiny muted">PROJECT</text>
+  <text x="680" y="1894" font-size="17" font-weight="600">Project Alpha</text><rect x="1193" y="1848" width="128" height="31" rx="8" fill="#20232C"/><text x="1257" y="1868" text-anchor="middle" class="tiny muted">List · Board</text>
+  <path d="M680 1910H1322" class="line"/>
+  <g class="task-card"><rect x="680" y="1930" width="198" height="150" rx="11" fill="#191B22" stroke="#30323B"/><text x="698" y="1958" class="tiny muted">TO DO</text><rect x="698" y="1971" width="160" height="82" rx="8" fill="#20232C"/><circle cx="714" cy="1989" r="4" fill="#E6A65B"/><text x="726" y="1993" class="tiny">Gather sources</text><text x="710" y="2032" class="tiny quiet">No sessions yet</text></g>
+  <g class="task-card"><rect x="892" y="1930" width="198" height="150" rx="11" fill="#191B22" stroke="#30323B"/><text x="910" y="1958" class="tiny muted">IN PROGRESS</text><rect x="910" y="1971" width="160" height="82" rx="8" fill="#20232C"/><circle cx="926" cy="1989" r="4" fill="#4B9EFF"/><text x="938" y="1993" class="tiny">Research outline</text><text x="922" y="2032" class="tiny quiet">2 focus sessions</text></g>
+  <g class="task-card"><rect x="1104" y="1930" width="198" height="150" rx="11" fill="#191B22" stroke="#30323B"/><text x="1122" y="1958" class="tiny muted">DONE</text><rect x="1122" y="1971" width="160" height="82" rx="8" fill="#20232C"/><circle cx="1138" cy="1989" r="4" fill="#3DD68C"/><text x="1150" y="1993" class="tiny">Read chapter</text><text x="1134" y="2032" class="tiny quiet">3 focus sessions</text></g>
+  <text x="680" y="2102" class="tiny quiet">Illustrative project board</text>
+
+  <!-- Existing Share Progress section -->
+  <text x="88" y="2254" class="tiny muted" letter-spacing="1.4">SHARE IF YOU WANT TO</text><text x="88" y="2298" font-size="31" font-weight="600">Share your progress, your way.</text>
+  <text x="88" y="2333" class="body muted">Turn an Analytics view into an image you can</text><text x="88" y="2357" class="body muted">share, copy, or download.</text>
+  <rect x="88" y="2390" width="202" height="42" rx="9" fill="#20232C" stroke="#30323B"/><text x="189" y="2416" text-anchor="middle" class="small">Preview before sharing</text>
+  <rect x="760" y="2210" width="592" height="270" rx="16" class="surface"/><rect x="790" y="2240" width="532" height="210" rx="10" fill="#101116" stroke="#30323B"/>
+  <text x="816" y="2276" class="tiny muted">DEPTHLY · WEEKLY FOCUS</text><text x="816" y="2311" font-size="25" font-weight="600">5h 20m</text>
+  <text x="816" y="2336" class="tiny muted">Across your projects this week</text><path d="M816 2414H1295" stroke="#30323B"/>
+  <g fill="#354258"><rect x="840" y="2370" width="28" height="44" rx="4"/><rect x="900" y="2354" width="28" height="60" rx="4"/><rect x="960" y="2383" width="28" height="31" rx="4"/><rect x="1020" y="2341" width="28" height="73" rx="4"/><rect x="1080" y="2362" width="28" height="52" rx="4"/></g>
+  <rect x="1140" y="2333" width="28" height="81" rx="4" fill="#4B9EFF"/><text x="1295" y="2435" text-anchor="end" class="tiny quiet">Example share image</text>
+
+  <!-- Optional private group feature -->
+  <rect x="0" y="2510" width="1440" height="270" fill="#101116"/>
+  <text x="88" y="2570" class="tiny muted" letter-spacing="1.4">OPTIONAL ACCOUNTABILITY</text><text x="88" y="2614" font-size="30" font-weight="600">Focus on your own or together.</text>
+  <text x="88" y="2648" class="small muted">Invite a few people to a private focus group.</text><text x="88" y="2671" class="small muted">Your shared ranking is visible to members.</text>
+  <rect x="760" y="2540" width="592" height="190" rx="16" class="surface"/><text x="790" y="2576" class="tiny muted">PRIVATE WEEKLY GROUP</text>
+  <text x="790" y="2604" font-size="16" font-weight="600">Focus circle</text><text x="1318" y="2604" text-anchor="end" class="tiny muted">3 members</text><path d="M790 2620H1322" class="line"/>
+  <g class="group-row"><circle cx="808" cy="2644" r="10" fill="#252D3A"/><text x="808" y="2648" text-anchor="middle" class="tiny">A</text><text x="830" y="2648" class="small">Alex</text><text x="1318" y="2648" text-anchor="end" class="tiny muted">4h 20m</text></g>
+  <g class="group-row"><circle cx="808" cy="2672" r="10" fill="#252D3A"/><text x="808" y="2676" text-anchor="middle" class="tiny">J</text><text x="830" y="2676" class="small">Jordan</text><text x="1318" y="2676" text-anchor="end" class="tiny muted">3h 45m</text></g>
+  <g class="group-row"><circle cx="808" cy="2700" r="10" fill="#252D3A"/><text x="808" y="2704" text-anchor="middle" class="tiny">S</text><text x="830" y="2704" class="small">Sam</text><text x="1318" y="2704" text-anchor="end" class="tiny muted">3h 10m</text></g>
+  <text x="1344" y="2760" text-anchor="end" class="tiny quiet">Concept only · illustrative sample data</text>
+</svg>

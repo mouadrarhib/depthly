@@ -340,3 +340,8 @@ private group rankings are intentionally unaffected.
 8. **No pagination.**
    All leaderboard queries hard-cap at 50 results (`limit = 50`). There is no
    load-more or infinite-scroll.
+
+
+## Public leaderboard hidden (2026-11-07)
+
+The public leaderboard is no longer exposed in the app. The former /leaderboard route redirects to /leaderboard/groups, and the sidebar now links directly to Groups. Global leaderboard claims were removed from pricing and upgrade benefits. Public profile sharing remains available; private groups, invitations and rankings continue unchanged. The old LeaderboardPage, query hooks, RPCs, data and RLS policies are preserved for a possible later return. This is a UI/routing change, not a database removal or a revocation of API access. The sidebar no longer fetches friend-request counts for the removed public/friends screen.

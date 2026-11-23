@@ -162,3 +162,12 @@ Everything else not yet built:
 **To finish wiring up `order_refunded` (code written 2026-07-16, deployed 2026-07-16 after a gap — see "Current Status" — one manual step outside the codebase remains):**
 12. ~~Apply `supabase/migrations/005_add_refunded_subscription_status.sql` (`ALTER TYPE subscription_status_type ADD VALUE 'refunded'`) to the Supabase project.~~ **Already done** — confirmed directly via `pg_enum` that the live project's `subscription_status_type` already includes `'refunded'` (queried alongside `'expired'`, both present — see "What Exists Already in the Codebase" for the exact query). This item previously said it wasn't applied, which was stale.
 13. Confirm `order_refunded` is actually enabled in both the test-mode and live-mode Lemon Squeezy dashboard webhooks' event selections. Not confirmed either way — the 2026-07-16 dashboard-simulated test against a Monthly subscription did deliver successfully (200, per the delivery log), which suggests it may already be enabled on the test-mode webhook, but a dashboard "send test event" action may not require the same subscription filtering a real event does, so this isn't conclusive. The live-mode webhook was registered 2026-07-16 subscribed to only the original 6 event types (before `order_refunded` existed), so it likely still needs to be added there explicitly.
+
+
+## Billing page presentation (2026-11-07)
+
+The page now uses a wide responsive layout with a current-plan summary alongside grouped plan benefits. Free limits come from FREE_LIMITS; Pro retains its billing cycle, billing date, payment-failure notice, and cancellation flow. Lifetime explicitly displays one-time purchase, no renewal, and lifetime access.
+
+The semantic Plan history table shows subscription records, not invoices or a payment ledger. Recorded statuses do not override profiles.plan. Lifetime sentinel dates remain hidden. History scrolls within a bounded region, with sticky headings, while narrow screens scroll the table horizontally. Loading, retry, and empty states distinguish missing records from request failures. Receipts remain available through purchase emails; no customer portal or invoice-download action was added. Cancellation dialog dismissal is blocked while the existing cancellation mutation is pending.
+
+Validation: TypeScript/Vite production build and Impeccable detector. Live checkout, cancellation, and browser visual checks were not performed during this presentation update.

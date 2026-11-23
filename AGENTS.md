@@ -184,6 +184,7 @@ Read the relevant doc before touching a feature:
 - Leaderboard: docs/LEADERBOARD.md
 - Friends:     docs/FRIENDS.md
 - Security:    docs/SECURITY.md
+- Database/RLS: docs/DATABASE_AND_RLS.md
 - Sessions:    docs/TRUSTED_SESSIONS.md
 - Groups:      docs/GROUP_LEADERBOARDS.md
 

@@ -177,7 +177,11 @@ export function OverviewView({ projectId, projectLabel }: AnalyticsProjectScope)
                   {projects.map(([id, entry]) => {
                     const share = total > 0 ? (entry.minutes / total) * 100 : 0
                     return (
-                      <tr key={id} className="border-t border-depth-border/50">
+                      <tr
+                        key={id}
+                        className="border-t"
+                        style={{ borderColor: 'color-mix(in srgb, var(--color-border) 50%, transparent)' }}
+                      >
                         <th scope="row" className="px-5 py-3 font-normal sm:px-6">
                           <span className="flex items-start gap-2">
                             <span
