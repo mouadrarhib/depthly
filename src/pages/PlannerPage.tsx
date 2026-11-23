@@ -478,6 +478,9 @@ export function PlannerPage() {
                   <div className="grid min-w-[700px] grid-cols-7">
                     {visibleDays.map((day) => {
                       const key = dateKey(day)
+                      if (view === 'month' && (day.getMonth() !== selected.getMonth() || day.getFullYear() !== selected.getFullYear())) {
+                        return <div key={key} aria-hidden="true" className="min-h-28 border-b border-r border-border bg-muted/20" />
+                      }
                       const dayTasks = entriesForDay(tasks, occurrenceStates, key)
                       return (
                         <button
@@ -486,7 +489,7 @@ export function PlannerPage() {
                           onClick={() => setSelectedDate(key)}
                           aria-label={`${day.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}, ${dayTasks.length} tasks`}
                           aria-pressed={key === selectedDate}
-                          className={`flex min-w-0 flex-col items-stretch border-b border-r border-border p-2 text-left transition-colors focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${view === 'week' ? 'min-h-72' : 'min-h-28'} ${key === selectedDate ? 'bg-brand/5 ring-1 ring-inset ring-brand' : 'hover:bg-muted/60'} ${day.getMonth() !== selected.getMonth() && view === 'month' ? 'opacity-45' : ''}`}
+                          className={`flex min-w-0 flex-col items-stretch border-b border-r border-border p-2 text-left transition-colors focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${view === 'week' ? 'min-h-72' : 'min-h-28'} ${key === selectedDate ? 'bg-brand/5 ring-1 ring-inset ring-brand' : 'hover:bg-muted/60'}`}
                         >
                           <span className={`font-data flex size-7 items-center justify-center rounded-full text-xs font-medium ${key === today ? 'bg-brand text-white' : 'text-foreground'}`}>
                             {day.getDate()}
