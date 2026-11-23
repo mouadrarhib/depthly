@@ -225,7 +225,7 @@ export function YearlyView({ date, projectId, projectLabel, onSelectDay }: Yearl
           Select a day, then use Open Daily view for details.
         </p>
         <div className="mt-5 max-w-full overflow-x-auto pb-2">
-          <div className="relative" style={{ width: columns * 18 + 36 }}>
+          <div className="relative w-full" style={{ minWidth: columns * 18 + 36 }}>
             <div className="relative ml-9 h-6">
               {months.map((month) => {
                 const first = new Date(year, month.month, 1)
@@ -236,8 +236,8 @@ export function YearlyView({ date, projectId, projectLabel, onSelectDay }: Yearl
                 return (
                   <span
                     key={month.month}
-                    className="absolute text-[10px] text-ink-primary/70"
-                    style={{ left: col * 18 }}
+                    className="absolute text-[11px] font-medium text-text-muted"
+                    style={{ left: `calc((100% + 4px) * ${col} / ${columns})` }}
                   >
                     {first.toLocaleDateString(undefined, { month: 'short' })}
                   </span>
@@ -245,13 +245,13 @@ export function YearlyView({ date, projectId, projectLabel, onSelectDay }: Yearl
               })}
             </div>
             <div className="flex gap-2">
-              <div className="relative w-7 shrink-0 text-[10px] text-ink-primary/65">
+              <div className="grid w-7 shrink-0 grid-rows-7 items-center text-[10px] text-ink-primary/65">
                 {[
                   { name: 'Mon', row: 0 },
                   { name: 'Wed', row: 2 },
                   { name: 'Fri', row: 4 },
                 ].map((item) => (
-                  <span key={item.name} className="absolute" style={{ top: item.row * 18 }}>
+                  <span key={item.name} style={{ gridRow: item.row + 1 }}>
                     {item.name}
                   </span>
                 ))}
@@ -260,8 +260,8 @@ export function YearlyView({ date, projectId, projectLabel, onSelectDay }: Yearl
                 role="group"
                 aria-label="Yearly focus activity"
                 aria-describedby="year-keyboard-help"
-                className="grid grid-flow-col grid-rows-7 gap-1"
-                style={{ gridAutoColumns: 14 }}
+                className="grid min-w-0 flex-1 grid-flow-col grid-rows-7 gap-1"
+                style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
               >
                 {Array.from({ length: leading }, (_, i) => (
                   <span key={`blank-${i}`} aria-hidden="true" />
@@ -282,15 +282,16 @@ export function YearlyView({ date, projectId, projectLabel, onSelectDay }: Yearl
                       disabled={future}
                       tabIndex={key === selection ? 0 : -1}
                       aria-label={`${day.toLocaleDateString()}: ${future ? 'upcoming' : `${value} focus minutes`}`}
+                      title={`${day.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · ${future ? 'Upcoming' : formatMinutesToHours(value)}`}
                       aria-pressed={key === selection}
                       onFocus={() => setSelectedKey(key)}
                       onClick={() => setSelectedKey(key)}
                       onKeyDown={(event) => moveFocus(key, event)}
-                      className={`h-3.5 w-3.5 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${key === selection ? 'ring-1 ring-brand' : ''} ${future ? 'border border-depth-border bg-depth-bg' : 'bg-depth-raised'}`}
+                      className={`aspect-square w-full rounded-sm transition-[box-shadow] duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand enabled:hover:ring-1 enabled:hover:ring-brand ${key === selection ? 'ring-1 ring-brand' : ''} ${future ? 'border border-depth-border bg-depth-bg' : 'bg-depth-raised'}`}
                       style={{
                         backgroundColor:
                           !future && value > 0
-                            ? `rgba(75,158,255,${0.25 + intensity * 0.75})`
+                            ? `color-mix(in srgb, var(--color-brand) ${25 + intensity * 75}%, var(--color-surface-raised))`
                             : undefined,
                       }}
                     />
@@ -340,7 +341,7 @@ export function YearlyView({ date, projectId, projectLabel, onSelectDay }: Yearl
               <span
                 key={value}
                 className="h-3 w-3 rounded-sm bg-depth-raised"
-                style={value ? { backgroundColor: `rgba(75,158,255,${value})` } : undefined}
+                style={value ? { backgroundColor: `color-mix(in srgb, var(--color-brand) ${value * 100}%, var(--color-surface-raised))` } : undefined}
                 aria-hidden="true"
               />
             ))}
